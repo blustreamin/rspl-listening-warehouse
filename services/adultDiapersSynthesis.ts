@@ -185,8 +185,8 @@ export const synthesizeAdultDiapersSection = async (
     while (attempts < 2) {
         attempts++;
         try {
-            // Optimized thinking budget: balanced for quality vs speed
-            const budget = attempts === 1 ? 16384 : 24576; 
+            // Thinking budget: high for analyst-grade depth
+            const budget = attempts === 1 ? 24576 : 32768; 
             logger?.(`Tier 1 (Attempt ${attempts}): Synthesis with ${budget} budget...`);
             
             response = await callModel(

@@ -6,6 +6,7 @@ import { runPipelineForSection } from '../services/pipeline';
 import { SectionRenderer } from './SectionRenderer';
 import { ModernSectionRenderer } from './report/ModernSectionRenderer';
 import { RunInspector } from './RunInspector';
+import { DataIngestionInfographic } from './report/DataIngestionInfographic';
 
 interface Props {
   projectId: ProjectId;
@@ -180,6 +181,11 @@ export const ReportView: React.FC<Props> = ({ projectId, injectedEvidence }) => 
             )}
         </div>
       </header>
+
+      {/* Data Ingestion Infographic */}
+      {validEvidence && (
+        <DataIngestionInfographic evidence={validEvidence} projectId={projectId} />
+      )}
 
       <div className="space-y-2">
         {sections.map(section => {
