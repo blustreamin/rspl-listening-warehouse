@@ -63,63 +63,81 @@ export const ReportView: React.FC<Props> = ({ projectId, injectedEvidence }) => 
 
       const localSections: SectionOutput[] = [];
       
-      // Execute Section Jobs Sequentially
-      for (const sec of template.sections) {
-        if (!active) { console.debug(`[ReportView] ABORT ${projectId}`); break; }
+      // Execute Section Jobs in PARALLEL BATCHES for speed
+      // Batch 1: independent sections that can run simultaneously
+      // Batch 2: sections that may benefit from seeing batch 1 context
+      const batch1 = template.sections.filter((s: any) => 
+        ['incontinence_management', 'awareness_perception', 'brand_landscape'].includes(s.sectionId)
+      );
+      const batch2 = template.sections.filter((s: any) => 
+        ['gap_analysis', 'user_non_user_profiles', 'behavioural_profile'].includes(s.sectionId)
+      );
+      // Any remaining sections not in batches
+      const batch3 = template.sections.filter((s: any) => 
+        !batch1.some((b: any) => b.sectionId === s.sectionId) && 
+        !batch2.some((b: any) => b.sectionId === s.sectionId)
+      );
 
-        // Mark pending
-        setInspectorData(prev => ({
-          ...prev,
-          perSectionStatus: { ...prev.perSectionStatus, [sec.sectionId]: 'PENDING' }
-        }));
-
-        // Artificial delay for realism (and to allow race conditions to manifest if unprotected)
-        await new Promise(r => setTimeout(r, 500));
+      const runBatch = async (batch: any[]) => {
+        if (!active) return;
         
-        if (!active) break; // Check again after await
+        // Mark all in batch as pending
+        batch.forEach((sec: any) => {
+          setInspectorData(prev => ({
+            ...prev,
+            perSectionStatus: { ...prev.perSectionStatus, [sec.sectionId]: 'PENDING' }
+          }));
+        });
 
-        try {
-            // Run Pipeline
-            const result = await runPipelineForSection(
-                projectId, 
-                sec.sectionId, 
-                (update) => {
-                    // HARDENED CALLBACK: Check strict isolation
-                    if (active) {
-                        // Double check: is this update meant for the current project context?
-                        if (projectId !== lastProjectIdRef.current) {
-                            console.warn("[Synthesis] ISOLATION_VIOLATION: Callback for stale project ignored");
-                            return;
-                        }
-                        setInspectorData(prev => ({ ...prev, ...update }));
-                    }
-                },
-                validEvidence || undefined
-            );
-
-            if (!active) break;
-            if (projectId !== lastProjectIdRef.current) break; // Extra guard
-
-            localSections.push(result);
-            setSections([...localSections]); // Incremental update
+        const results = await Promise.allSettled(
+          batch.map(async (sec: any) => {
+            if (!active) throw new Error('ABORT');
             
-            // Update Inspector Status
+            const result = await runPipelineForSection(
+              projectId,
+              sec.sectionId,
+              (update) => {
+                if (active && projectId === lastProjectIdRef.current) {
+                  setInspectorData(prev => ({ ...prev, ...update }));
+                }
+              },
+              validEvidence || undefined
+            );
+            return { sec, result };
+          })
+        );
+
+        for (const r of results) {
+          if (!active || projectId !== lastProjectIdRef.current) break;
+          if (r.status === 'fulfilled') {
+            localSections.push(r.value.result);
+            setSections([...localSections]);
             setInspectorData(prev => ({
               ...prev,
-              perSectionStatus: { ...prev.perSectionStatus, [sec.sectionId]: result.status }
+              perSectionStatus: { ...prev.perSectionStatus, [r.value.sec.sectionId]: r.value.result.status }
             }));
-
-        } catch (err) {
-            console.error(`Pipeline failed for ${sec.sectionId}`, err);
-            if (active) {
-                setInspectorData(prev => ({
-                    ...prev,
-                    perSectionStatus: { ...prev.perSectionStatus, [sec.sectionId]: 'FAILED' },
-                    retryLog: [...prev.retryLog, `CRITICAL FAIL S${sec.sectionId}: ${err}`]
-                }));
-            }
+          } else {
+            const secId = 'unknown';
+            console.error(`Pipeline failed for batch section`, r.reason);
+            setInspectorData(prev => ({
+              ...prev,
+              retryLog: [...prev.retryLog, `BATCH FAIL: ${r.reason}`]
+            }));
+          }
         }
+      };
+
+      // Run batches
+      await runBatch(batch1);
+      if (active) {
+        await new Promise(r => setTimeout(r, 300));
+        await runBatch(batch2);
       }
+      if (active && batch3.length > 0) {
+        await new Promise(r => setTimeout(r, 300));
+        await runBatch(batch3);
+      }
+
     };
 
     loadReport();
