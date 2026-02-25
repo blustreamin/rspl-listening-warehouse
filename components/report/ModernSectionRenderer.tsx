@@ -261,7 +261,7 @@ const AdultAwarenessRenderer = ({ data }: { data: any }) => {
                     <div className="flex flex-wrap gap-4">
                         {ensureArray(data.consumer_statements).slice(0, 3).map((stmt: string, i: number) => (
                             <div key={i} className="flex-1 min-w-[200px] text-xs text-indigo-900 italic bg-white/60 p-2 rounded border border-indigo-100/50">
-                                "{stmt}"
+                                {`"${stmt}"`}
                             </div>
                         ))}
                     </div>
@@ -555,7 +555,7 @@ const AdultBrandLandscapeSection = ({ data }: { data: any }) => {
                                     <div className="space-y-2">
                                         {ensureArray(b.verbatims).slice(0,2).map((v: string, k: number) => (
                                             <div key={k} className="bg-slate-50 p-2 rounded text-xs text-slate-600 italic border-l-2 border-indigo-200">
-                                                "{v}"
+                                                {`"${v}"`}
                                             </div>
                                         ))}
                                     </div>
@@ -701,7 +701,7 @@ const FemcareGapAnalysisRenderer = ({ data }: { data: any }) => {
                 <div className="mt-2 space-y-1">
                     {ensureArray(b.consumer_evidence).slice(0, 2).map((ce: any, j: number) => (
                         <div key={j} className="text-[10px] text-indigo-700 italic bg-indigo-50 px-2 py-1 rounded">
-                            "{typeof ce === 'string' ? ce : (ce.quote || ce.text || '')}" {ce.source && <span className="text-indigo-400">({ce.source})</span>}
+                            {`"${typeof ce === 'string' ? ce : (ce.quote || ce.text || '')}"`} {ce.source && <span className="text-indigo-400">({ce.source})</span>}
                         </div>
                     ))}
                 </div>
@@ -841,7 +841,7 @@ const FemcareAwarenessChannelsRenderer = ({ data }: { data: any }) => {
                                 <span className="text-xs font-bold text-slate-800 block mb-1"><SafeText content={cl.cluster_name || ''} /></span>
                                 <ul className="text-[10px] text-slate-500 space-y-0.5">
                                     {ensureArray(cl.example_queries).slice(0, 3).map((q: string, j: number) => (
-                                        <li key={j} className="italic">"{q}"</li>
+                                        <li key={j} className="italic">{`"${q}"`}</li>
                                     ))}
                                 </ul>
                             </div>
