@@ -26,8 +26,8 @@ export const validateIncontinenceManagement = (data: any): boolean => {
 
 export const validateAwarenessPerception = (data: any): boolean => {
     const errors: string[] = [];
-    if (!hasLength(data.awareness_depth, 1)) errors.push("awareness_depth empty");
-    if (!hasLength(data.perceptions_and_stigma, 1)) errors.push("perceptions_and_stigma empty");
+    if (!hasLength(data.awareness_depth, 1) && !hasLength(data.awareness_sources, 1)) errors.push("awareness_depth/awareness_sources empty");
+    if (!hasLength(data.perceptions_and_stigma, 1) && !hasLength(data.misconceptions, 1)) errors.push("perceptions_and_stigma/misconceptions empty");
     
     if (errors.length > 0) {
         console.warn("[Validator][Awareness] Errors:", errors.join(", "));

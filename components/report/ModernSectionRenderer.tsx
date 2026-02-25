@@ -42,21 +42,42 @@ const getLine = (item: any): any => {
     return item.headline || item.text || item.title || "";
 };
 
-// --- ADULT DIAPERS RENDERERS (Specific Views) ---
+// --- SHARED HELPERS ---
+
+const QuoteBlock = ({ quotes, limit }: { quotes: any[], limit?: number }) => {
+    const items = ensureArray(quotes).slice(0, limit || 3);
+    if (items.length === 0) return null;
+    return (
+        <div className="mt-2 space-y-1.5">
+            {items.map((q: any, i: number) => {
+                const text = typeof q === 'string' ? q : (q.text || q.quote || q.consumer_quote || '');
+                if (!text) return null;
+                return (
+                    <div key={i} className="text-[10px] text-indigo-800 italic bg-indigo-50/80 border-l-2 border-indigo-300 px-2.5 py-1.5 rounded-r">
+                        <SafeText content={text} />
+                    </div>
+                );
+            })}
+        </div>
+    );
+};
+
+const SectionLabel = ({ children, color }: { children: string, color?: string }) => (
+    <div className="flex items-center gap-2 mb-3">
+        <div className={`w-1 h-4 rounded-full ${color || 'bg-indigo-500'}`}></div>
+        <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">{children}</span>
+    </div>
+);
+
+// --- ADULT DIAPERS RENDERERS ---
 
 const AdultIncontinenceSection = ({ data }: { data: any }) => {
     const profiles = data.profiles || {};
 
-    // Safe text extractor that handles any shape Gemini returns
     const extractText = (item: any): string => {
         if (!item) return '';
-        if (typeof item === 'string') return item.replace(/[{}[\]"]/g, '');
-        if (item.headline) return item.headline;
-        if (item.text) return item.text;
-        if (item.title) return item.title;
-        // Fallback: join all string values
-        const vals = Object.values(item).filter(v => typeof v === 'string' && v.length > 0);
-        return (vals[0] as string) || '';
+        if (typeof item === 'string') return item.replace(/[{}\[\]"]/g, '');
+        return item.headline || item.text || item.title || (Object.values(item).find(v => typeof v === 'string' && (v as string).length > 0) as string) || '';
     };
 
     const extractDetail = (item: any): string => {
@@ -67,130 +88,94 @@ const AdultIncontinenceSection = ({ data }: { data: any }) => {
     return (
         <div className="space-y-8">
             {Object.entries(profiles).map(([key, p]: [string, any]) => (
-                <div key={key} className="bg-white border border-slate-200 rounded-lg p-5 shadow-sm">
-                    <h4 className="font-bold text-indigo-800 text-sm uppercase mb-4 border-b border-indigo-100 pb-2">
-                        {key.replace(/_/g, ' ')} PROFILE
+                <div key={key} className="bg-white border border-slate-200 rounded-xl p-6 shadow-sm">
+                    <h4 className="font-bold text-indigo-800 text-sm uppercase mb-5 border-b border-indigo-100 pb-2 tracking-wide">
+                        {key.replace(/_/g, ' ')} Profile
                     </h4>
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                        {/* Column 1: Switching Triggers + Suffering */}
-                        <div className="space-y-4">
-                            <div>
-                                <span className="text-[10px] font-bold text-slate-400 uppercase">Switching Triggers</span>
-                                <ul className="text-xs text-slate-700 mt-1 space-y-1">
-                                    {ensureArray(p.incontinence_issue).slice(0, 3).map((t: any, i: number) => (
-                                        <li key={i} className="font-medium">
-                                            <SafeText content={extractText(t)} />
-                                            {extractDetail(t) && (
-                                                <span className="block text-[10px] text-slate-500 font-normal mt-0.5">
-                                                    <SafeText content={extractDetail(t)} />
-                                                </span>
-                                            )}
-                                        </li>
-                                    ))}
-                                </ul>
-                            </div>
-                            <div>
-                                <span className="text-[10px] font-bold text-slate-400 uppercase">Suffering Moments</span>
-                                <ul className="text-xs list-disc pl-4 text-slate-600 mt-1 space-y-1">
-                                    {ensureArray(p.worst_moments).slice(0, 6).map((m: any, i: number) => (
-                                        <li key={i}>
-                                            <SafeText content={extractText(m)} />
-                                            {extractDetail(m) && (
-                                                <span className="block text-[10px] text-slate-400">
-                                                    <SafeText content={extractDetail(m)} />
-                                                </span>
-                                            )}
-                                        </li>
-                                    ))}
-                                </ul>
-                            </div>
-                        </div>
 
-                        {/* Column 2: Impact + Voice of Consumer */}
-                        <div className="space-y-4">
-                            <div>
-                                <span className="text-[10px] font-bold text-slate-400 uppercase">Impact</span>
-                                <div className="text-xs text-slate-600 mt-1 space-y-1.5">
-                                    {ensureArray(p.life_impact).slice(0, 3).map((imp: any, k: number) => (
-                                        <div key={k} className="flex gap-2">
-                                            <span className="text-red-400 font-bold">•</span>
-                                            <div>
-                                                <SafeText content={extractText(imp)} />
-                                                {extractDetail(imp) && (
-                                                    <span className="block text-[10px] text-slate-400">
-                                                        <SafeText content={extractDetail(imp)} />
-                                                    </span>
-                                                )}
-                                            </div>
-                                        </div>
-                                    ))}
+                    {/* Switching Triggers */}
+                    <div className="mb-6">
+                        <SectionLabel color="bg-amber-500">Switching Triggers</SectionLabel>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                            {ensureArray(p.incontinence_issue).slice(0, 4).map((t: any, i: number) => (
+                                <div key={i} className="bg-amber-50/50 border border-amber-100 rounded-lg p-3">
+                                    <div className="text-xs font-semibold text-slate-800"><SafeText content={extractText(t)} /></div>
+                                    {extractDetail(t) && <div className="text-[10px] text-slate-500 mt-1"><SafeText content={extractDetail(t)} /></div>}
                                 </div>
-                            </div>
-                            {p.verbatims && ensureArray(p.verbatims).length > 0 && (
-                                <div className="bg-indigo-50 p-2 rounded border border-indigo-100 space-y-1.5">
-                                    <span className="text-[9px] font-bold text-indigo-400 uppercase">Voice of Consumer</span>
-                                    {ensureArray(p.verbatims).slice(0, 3).map((v: any, i: number) => (
-                                        <div key={i} className="text-[10px] text-indigo-800 italic">
-                                            "<SafeText content={typeof v === 'string' ? v : (v.text || v.quote || '')} />"
-                                        </div>
-                                    ))}
-                                </div>
-                            )}
+                            ))}
                         </div>
+                        <QuoteBlock quotes={ensureArray(p.verbatims).slice(0, 2)} />
+                    </div>
 
-                        {/* Column 3: Solutions */}
-                        <div className="bg-slate-50 p-3 rounded border border-slate-200 text-xs space-y-2">
-                            <span className="text-slate-500 font-bold">Solutions</span>
-                            <ul className="space-y-1.5">
-                                {ensureArray(p.solutions).slice(0, 4).map((sol: any, i: number) => (
-                                    <li key={i} className="text-slate-700">
-                                        <SafeText content={extractText(sol)} />
-                                        {extractDetail(sol) && (
-                                            <span className="block text-[10px] text-slate-400 mt-0.5">
-                                                <SafeText content={extractDetail(sol)} />
-                                            </span>
-                                        )}
-                                    </li>
-                                ))}
-                            </ul>
+                    {/* Suffering Moments */}
+                    <div className="mb-6">
+                        <SectionLabel color="bg-red-500">Suffering Moments</SectionLabel>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                            {ensureArray(p.worst_moments).slice(0, 6).map((m: any, i: number) => (
+                                <div key={i} className="flex gap-2.5 p-2.5 bg-red-50/40 border border-red-100/60 rounded-lg">
+                                    <span className="text-red-400 font-bold text-[10px] mt-0.5">{'0' + (i+1)}</span>
+                                    <div>
+                                        <div className="text-xs font-medium text-slate-800"><SafeText content={extractText(m)} /></div>
+                                        {extractDetail(m) && <div className="text-[10px] text-slate-500 mt-0.5"><SafeText content={extractDetail(m)} /></div>}
+                                    </div>
+                                </div>
+                            ))}
                         </div>
+                        <QuoteBlock quotes={ensureArray(p.verbatims).slice(2, 4)} />
+                    </div>
+
+                    {/* Impact */}
+                    <div className="mb-6">
+                        <SectionLabel color="bg-rose-500">Impact</SectionLabel>
+                        <div className="space-y-2.5">
+                            {ensureArray(p.life_impact).slice(0, 4).map((imp: any, k: number) => (
+                                <div key={k} className="flex gap-2.5 items-start bg-slate-50 p-3 rounded-lg border border-slate-100">
+                                    <span className="text-rose-500 font-bold text-xs mt-0.5">!</span>
+                                    <div>
+                                        <div className="text-xs font-medium text-slate-800"><SafeText content={extractText(imp)} /></div>
+                                        {extractDetail(imp) && <div className="text-[10px] text-slate-500 mt-0.5"><SafeText content={extractDetail(imp)} /></div>}
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                        <QuoteBlock quotes={ensureArray(p.verbatims).slice(4, 6)} />
+                    </div>
+
+                    {/* Solutions */}
+                    <div className="mb-4">
+                        <SectionLabel color="bg-emerald-500">Solutions</SectionLabel>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                            {ensureArray(p.solutions).slice(0, 8).map((sol: any, i: number) => (
+                                <div key={i} className="bg-emerald-50/40 border border-emerald-100/60 rounded-lg p-3">
+                                    <div className="text-xs font-semibold text-slate-800"><SafeText content={extractText(sol)} /></div>
+                                    {extractDetail(sol) && <div className="text-[10px] text-slate-500 mt-1 leading-relaxed"><SafeText content={extractDetail(sol)} /></div>}
+                                </div>
+                            ))}
+                        </div>
+                        <QuoteBlock quotes={ensureArray(p.verbatims).slice(6, 8)} />
                     </div>
                 </div>
             ))}
-
-            {/* Section-level consumer statements */}
-            {data.consumer_statements && ensureArray(data.consumer_statements).length > 0 && (
-                <div className="bg-indigo-50 border border-indigo-100 p-4 rounded-lg">
-                    <h4 className="text-[10px] font-bold text-indigo-400 uppercase mb-2">Voice of Consumer</h4>
-                    <div className="flex flex-wrap gap-4">
-                        {ensureArray(data.consumer_statements).slice(0, 4).map((stmt: any, i: number) => (
-                            <div key={i} className="flex-1 min-w-[200px] text-xs text-indigo-900 italic bg-white/60 p-2 rounded border border-indigo-100/50">
-                                "<SafeText content={typeof stmt === 'string' ? stmt : (stmt.text || stmt.quote || '')} />"
-                            </div>
-                        ))}
-                    </div>
-                </div>
-            )}
         </div>
     );
 };
 
 const AdultAwarenessRenderer = ({ data }: { data: any }) => {
-    if (!data.misconceptions && !data.perceptions_and_stigma && !data.decision_journey && !data.awareness_sources) return null;
+    if (!data.misconceptions && !data.perceptions_and_stigma && !data.decision_journey && !data.awareness_sources && !data.awareness_depth) return null;
+
+    const sources = ensureArray(data.awareness_sources || data.awareness_depth);
 
     return (
         <div className="space-y-8">
-            {/* Awareness Sources */}
-            {data.awareness_sources && ensureArray(data.awareness_sources).length > 0 && (
-                <div className="bg-white p-5 rounded-lg border border-slate-200 shadow-sm">
-                    <h4 className="font-bold text-slate-800 text-sm mb-4 flex items-center gap-2">
-                        <span className="w-1.5 h-1.5 rounded-full bg-blue-500"></span> INFORMATION SOURCES
-                    </h4>
+            {/* Information Sources */}
+            {sources.length > 0 && (
+                <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
+                    <SectionLabel color="bg-blue-500">Information Sources</SectionLabel>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        {ensureArray(data.awareness_sources).map((s: any, i: number) => (
-                            <div key={i} className="bg-blue-50/50 p-3 rounded border border-blue-100">
-                                <div className="text-xs font-bold text-slate-700 mb-1"><SafeText content={s.headline || s.source || ''} /></div>
-                                <div className="text-[11px] text-slate-600"><SafeText content={s.what_it_means || s.description || ''} /></div>
+                        {sources.map((s: any, i: number) => (
+                            <div key={i} className="bg-blue-50/50 p-4 rounded-lg border border-blue-100">
+                                <div className="text-xs font-bold text-slate-800 mb-1.5"><SafeText content={s.headline || s.source || ''} /></div>
+                                <div className="text-[11px] text-slate-600 leading-relaxed"><SafeText content={s.what_it_means || s.description || s.so_what || ''} /></div>
                             </div>
                         ))}
                     </div>
@@ -198,53 +183,49 @@ const AdultAwarenessRenderer = ({ data }: { data: any }) => {
             )}
 
             {/* Misconceptions */}
-            {data.misconceptions && (
-                <div className="bg-white p-5 rounded-lg border border-slate-200 shadow-sm">
-                    <h4 className="font-bold text-slate-800 text-sm mb-4 flex items-center gap-2">
-                        <span className="w-1.5 h-1.5 rounded-full bg-red-500"></span> COMMON MISCONCEPTIONS
-                    </h4>
+            {data.misconceptions && ensureArray(data.misconceptions).length > 0 && (
+                <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
+                    <SectionLabel color="bg-red-500">Common Misconceptions</SectionLabel>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         {ensureArray(data.misconceptions).map((m: any, i: number) => (
-                            <div key={i} className="bg-red-50/50 p-3 rounded border border-red-100">
-                                <div className="flex gap-2 items-start mb-1">
-                                    <span className="text-red-400 font-bold text-xs">✕</span>
-                                    <div className="text-xs font-bold text-slate-700"><SafeText content={m.headline || m.misconception} /></div>
+                            <div key={i} className="bg-red-50/40 p-4 rounded-lg border border-red-100">
+                                <div className="flex gap-2 items-start mb-1.5">
+                                    <span className="text-red-400 font-bold text-sm">x</span>
+                                    <div className="text-xs font-bold text-slate-800"><SafeText content={m.headline || m.misconception || ''} /></div>
                                 </div>
-                                <div className="text-[11px] text-slate-600 pl-4"><SafeText content={m.what_it_means || m.reality} /></div>
+                                <div className="text-[11px] text-slate-600 ml-5 leading-relaxed"><SafeText content={m.what_it_means || m.reality || ''} /></div>
                             </div>
                         ))}
                     </div>
                 </div>
             )}
 
-            {/* Stigma & Journey */}
+            {/* Stigma & Decision Journey side by side */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                {data.perceptions_and_stigma && (
-                    <div className="bg-white p-5 rounded-lg border border-slate-200 shadow-sm">
-                        <h4 className="font-bold text-slate-800 text-sm mb-4">Stigma Drivers</h4>
-                        <ul className="space-y-3">
+                {data.perceptions_and_stigma && ensureArray(data.perceptions_and_stigma).length > 0 && (
+                    <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
+                        <SectionLabel color="bg-purple-500">Stigma Drivers</SectionLabel>
+                        <div className="space-y-4">
                             {ensureArray(data.perceptions_and_stigma).map((s: any, i: number) => (
-                                <li key={i} className="text-xs text-slate-600 border-l-2 border-indigo-200 pl-3">
-                                    <strong className="block text-slate-800 mb-0.5"><SafeText content={s.headline || s.driver} /></strong>
-                                    <SafeText content={s.what_it_means || s.description} />
-                                </li>
+                                <div key={i} className="border-l-2 border-purple-200 pl-4 py-1">
+                                    <div className="text-xs font-bold text-slate-800 mb-1"><SafeText content={s.headline || s.driver || ''} /></div>
+                                    <div className="text-[11px] text-slate-600 leading-relaxed"><SafeText content={s.what_it_means || s.description || ''} /></div>
+                                </div>
                             ))}
-                        </ul>
+                        </div>
                     </div>
                 )}
-                
-                {data.decision_journey && (
-                    <div className="bg-slate-50 p-5 rounded-lg border border-slate-200 shadow-sm">
-                        <h4 className="font-bold text-slate-800 text-sm mb-4">Decision Journey</h4>
-                        <div className="space-y-4">
+
+                {data.decision_journey && ensureArray(data.decision_journey).length > 0 && (
+                    <div className="bg-slate-50 p-6 rounded-xl border border-slate-200 shadow-sm">
+                        <SectionLabel color="bg-indigo-500">Decision Journey</SectionLabel>
+                        <div className="space-y-5">
                             {ensureArray(data.decision_journey).map((step: any, i: number) => (
                                 <div key={i} className="flex gap-3">
-                                    <div className="flex-shrink-0 w-5 h-5 rounded-full bg-indigo-100 text-indigo-600 flex items-center justify-center text-[10px] font-bold border border-indigo-200">
-                                        {i + 1}
-                                    </div>
-                                    <div>
-                                        <div className="text-xs font-bold text-slate-700"><SafeText content={step.headline || step.step} /></div>
-                                        <div className="text-[11px] text-slate-500"><SafeText content={step.what_it_means || step.detail} /></div>
+                                    <div className="flex-shrink-0 w-7 h-7 rounded-full bg-indigo-100 text-indigo-700 flex items-center justify-center text-xs font-bold border border-indigo-200">{i + 1}</div>
+                                    <div className="flex-1">
+                                        <div className="text-xs font-bold text-slate-800"><SafeText content={step.headline || step.step || ''} /></div>
+                                        <div className="text-[11px] text-slate-500 mt-0.5 leading-relaxed"><SafeText content={step.what_it_means || step.detail || ''} /></div>
                                     </div>
                                 </div>
                             ))}
@@ -252,118 +233,76 @@ const AdultAwarenessRenderer = ({ data }: { data: any }) => {
                     </div>
                 )}
             </div>
-            
+
             {/* Consumer Statements */}
-            {data.consumer_statements && ensureArray(data.consumer_statements).length > 0 && (
-                 <div className="bg-indigo-50 border border-indigo-100 p-4 rounded-lg">
-                    <h4 className="text-[10px] font-bold text-indigo-400 uppercase mb-2">Voice of Consumer</h4>
-                    <div className="flex flex-wrap gap-4">
-                        {ensureArray(data.consumer_statements).slice(0, 3).map((stmt: string, i: number) => (
-                            <div key={i} className="flex-1 min-w-[200px] text-xs text-indigo-900 italic bg-white/60 p-2 rounded border border-indigo-100/50">
-                                "{stmt}"
-                            </div>
-                        ))}
-                    </div>
-                 </div>
-            )}
+            <QuoteBlock quotes={ensureArray(data.consumer_statements)} limit={4} />
         </div>
     );
 };
 
 const AdultUserNonUserSection = ({ data }: { data: any }) => {
-    // Support both old and new keys via normalizer
-    const users = contentList(data.user_profiles || data.users_trialists?.detailed_profiles);
-    const nonUsers = contentList(data.non_user_profiles || data.non_users?.detailed_profiles);
-    
-    // Helper to get array safely
-    function contentList(src: any) { return ensureArray(src); }
+    const users = ensureArray(data.user_profiles || data.users_trialists?.detailed_profiles);
+    const nonUsers = ensureArray(data.non_user_profiles || data.non_users?.detailed_profiles);
 
-    const ProfileList = ({ title, items, colorClass }: any) => {
-        const [isOpen, setIsOpen] = useState(true);
-        if (!items || items.length === 0) return null;
-        
-        return (
-            <div className={`mt-6 border-t pt-4 ${colorClass.replace('bg-', 'border-')}`}>
-                <button onClick={() => setIsOpen(!isOpen)} className="flex items-center gap-2 text-xs font-bold text-slate-500 w-full mb-3 hover:text-slate-700 transition-colors">
-                    <svg className={`w-3 h-3 transition-transform ${isOpen ? 'rotate-90' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" /></svg>
-                    {title.toUpperCase()} ({items.length})
-                </button>
-                {isOpen && (
-                    <div className="space-y-3">
-                        {items.map((p: any, i: number) => (
-                            <div key={i} className={`text-xs p-3 rounded border ${colorClass} bg-opacity-30`}>
-                                <div className="flex justify-between">
-                                    <span className="font-bold text-slate-800"><SafeText content={p.profile_name} /></span>
-                                    {p.cost_sensitivity && <span className="text-[9px] bg-white px-1 rounded border">{p.cost_sensitivity} Cost</span>}
-                                </div>
-                                <div className="text-slate-600 mb-2 italic mt-1"><SafeText content={p.who_they_are || p.primary_barrier} /></div>
-                                {p.verbatims && p.verbatims.length > 0 && (
-                                    <div className="bg-white/80 p-2 rounded text-[10px] text-slate-600 border border-slate-200 italic flex gap-2">
-                                        <span className="text-indigo-400 font-serif font-bold">“</span>
-                                        <SafeText content={p.verbatims[0]} />
-                                    </div>
-                                )}
-                            </div>
-                        ))}
-                    </div>
-                )}
+    const ProfileCard = ({ p, accent }: { p: any, accent: string }) => (
+        <div className={`bg-white rounded-xl border ${accent} p-5 shadow-sm mb-4`}>
+            <div className="flex justify-between items-start mb-2">
+                <span className="text-sm font-bold text-slate-800"><SafeText content={p.profile_name || ''} /></span>
+                {p.cost_sensitivity && <span className="text-[9px] bg-slate-100 text-slate-600 px-2 py-0.5 rounded-full font-medium">{p.cost_sensitivity} Cost</span>}
             </div>
-        );
-    };
+            <div className="text-[11px] text-slate-600 leading-relaxed mb-3"><SafeText content={p.who_they_are || p.primary_barrier || ''} /></div>
+            {p.switching_trigger && <div className="text-[10px] text-amber-700 bg-amber-50 px-2.5 py-1.5 rounded border border-amber-100 mb-2"><span className="font-bold">Trigger: </span><SafeText content={p.switching_trigger || p.trigger_event || ''} /></div>}
+            {p.skepticism_quote && <div className="text-[10px] text-red-700 italic bg-red-50 px-2.5 py-1.5 rounded border border-red-100 mb-2"><SafeText content={p.skepticism_quote} /></div>}
+            <QuoteBlock quotes={ensureArray(p.verbatims)} limit={3} />
+        </div>
+    );
 
     return (
         <div className="space-y-8">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            <div className="bg-white border border-indigo-100 rounded-lg p-5 shadow-sm">
-                <div className="flex items-center gap-2 mb-4">
-                    <div className="w-2 h-2 rounded-full bg-emerald-500"></div>
-                    <h4 className="font-bold text-slate-800 text-sm">CURRENT USERS</h4>
-                </div>
-                <ProfileList title="User Archetypes" items={users} colorClass="bg-emerald-50 border-emerald-100" />
-            </div>
-            
-            <div className="bg-white border border-red-100 rounded-lg p-5 shadow-sm">
-                <div className="flex items-center gap-2 mb-4">
-                    <div className="w-2 h-2 rounded-full bg-red-500"></div>
-                    <h4 className="font-bold text-slate-800 text-sm">NON-USERS / RESISTERS</h4>
-                </div>
-                <ProfileList title="Non-User Archetypes" items={nonUsers} colorClass="bg-red-50 border-red-100" />
-            </div>
-        </div>
-
-        {/* Failure & Delight Stories */}
-        {(ensureArray(data.failure_stories).length > 0 || ensureArray(data.delight_stories).length > 0) && (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                {ensureArray(data.failure_stories).length > 0 && (
-                    <div className="bg-white border border-red-100 rounded-lg p-5 shadow-sm">
-                        <h4 className="font-bold text-slate-800 text-sm mb-3 flex items-center gap-2">
-                            <span className="w-1.5 h-1.5 rounded-full bg-red-500"></span> FAILURE STORIES
-                        </h4>
-                        <div className="space-y-2">
-                            {ensureArray(data.failure_stories).slice(0, 4).map((s: any, i: number) => (
-                                <div key={i} className="text-xs text-slate-600 bg-red-50/50 p-2.5 rounded border border-red-100 italic">
-                                    <SafeText content={typeof s === 'string' ? s : (s.story || s.text || '')} />
-                                </div>
-                            ))}
-                        </div>
+                <div>
+                    <div className="flex items-center gap-2 mb-4">
+                        <div className="w-2 h-2 rounded-full bg-emerald-500"></div>
+                        <h4 className="font-bold text-slate-800 text-sm uppercase tracking-wide">Current Users ({users.length})</h4>
                     </div>
-                )}
-                {ensureArray(data.delight_stories).length > 0 && (
-                    <div className="bg-white border border-emerald-100 rounded-lg p-5 shadow-sm">
-                        <h4 className="font-bold text-slate-800 text-sm mb-3 flex items-center gap-2">
-                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> DELIGHT STORIES
-                        </h4>
-                        <div className="space-y-2">
-                            {ensureArray(data.delight_stories).slice(0, 4).map((s: any, i: number) => (
-                                <div key={i} className="text-xs text-slate-600 bg-emerald-50/50 p-2.5 rounded border border-emerald-100 italic">
-                                    <SafeText content={typeof s === 'string' ? s : (s.story || s.text || '')} />
-                                </div>
-                            ))}
-                        </div>
+                    {users.map((p: any, i: number) => <ProfileCard key={i} p={p} accent="border-emerald-200" />)}
+                </div>
+                <div>
+                    <div className="flex items-center gap-2 mb-4">
+                        <div className="w-2 h-2 rounded-full bg-red-500"></div>
+                        <h4 className="font-bold text-slate-800 text-sm uppercase tracking-wide">Non-Users / Resisters ({nonUsers.length})</h4>
                     </div>
-                )}
+                    {nonUsers.map((p: any, i: number) => <ProfileCard key={i} p={p} accent="border-red-200" />)}
+                </div>
             </div>
-        )}
+
+            {/* Failure & Delight Stories */}
+            {(ensureArray(data.failure_stories).length > 0 || ensureArray(data.delight_stories).length > 0) && (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    {ensureArray(data.failure_stories).length > 0 && (
+                        <div className="bg-white border border-red-200 rounded-xl p-5 shadow-sm">
+                            <SectionLabel color="bg-red-500">Failure Stories</SectionLabel>
+                            <p className="text-[11px] text-slate-500 mb-3 -mt-1">Product experiences that fell short of expectations</p>
+                            {ensureArray(data.failure_stories).slice(0, 5).map((s: any, i: number) => (
+                                <div key={i} className="text-xs text-slate-700 bg-red-50/40 p-3 rounded-lg border border-red-100 mb-2 leading-relaxed">
+                                    <SafeText content={typeof s === 'string' ? s : (s.story || s.text || '')} />
+                                </div>
+                            ))}
+                        </div>
+                    )}
+                    {ensureArray(data.delight_stories).length > 0 && (
+                        <div className="bg-white border border-emerald-200 rounded-xl p-5 shadow-sm">
+                            <SectionLabel color="bg-emerald-500">Delight Stories</SectionLabel>
+                            <p className="text-[11px] text-slate-500 mb-3 -mt-1">Moments where the product made a meaningful difference</p>
+                            {ensureArray(data.delight_stories).slice(0, 5).map((s: any, i: number) => (
+                                <div key={i} className="text-xs text-slate-700 bg-emerald-50/40 p-3 rounded-lg border border-emerald-100 mb-2 leading-relaxed">
+                                    <SafeText content={typeof s === 'string' ? s : (s.story || s.text || '')} />
+                                </div>
+                            ))}
+                        </div>
+                    )}
+                </div>
+            )}
         </div>
     );
 };
@@ -373,197 +312,199 @@ const AdultBehaviouralRenderer = ({ data }: { data: any }) => {
 
     return (
         <div className="space-y-8">
+            {/* Usage Occasions - expanded cards */}
+            <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
+                <SectionLabel color="bg-indigo-500">Usage Occasions</SectionLabel>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {ensureArray(data.occasions_of_use).map((occ: any, i: number) => (
+                        <div key={i} className="bg-indigo-50/40 border border-indigo-100 rounded-lg p-4">
+                            <div className="text-xs font-bold text-slate-800 mb-1.5"><SafeText content={occ.headline || occ.occasion || (typeof occ === 'string' ? occ : '')} /></div>
+                            {occ.what_it_means && <div className="text-[11px] text-slate-600 leading-relaxed"><SafeText content={occ.what_it_means} /></div>}
+                            <QuoteBlock quotes={ensureArray(occ.consumer_quotes || occ.verbatims)} limit={3} />
+                        </div>
+                    ))}
+                </div>
+            </div>
+
+            {/* Switching Triggers + Brand Switching */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                {/* Occasions */}
-                <div className="bg-white p-5 rounded-lg border border-slate-200 shadow-sm">
-                    <h4 className="font-bold text-slate-800 text-sm mb-4">Usage Occasions</h4>
-                    <div className="flex flex-wrap gap-2">
-                        {ensureArray(data.occasions_of_use).map((occ: any, i: number) => (
-                            <div key={i} className="bg-indigo-50 text-indigo-900 border border-indigo-100 px-3 py-1.5 rounded text-xs font-medium">
-                                {occ.headline || occ.occasion || occ}
-                                {occ.what_it_means && <span className="block text-[10px] text-indigo-500 mt-0.5">{occ.what_it_means}</span>}
+                <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
+                    <SectionLabel color="bg-amber-500">Switching Triggers (Product-to-Product)</SectionLabel>
+                    <div className="space-y-3">
+                        {ensureArray(data.switching_patterns).map((sw: any, i: number) => (
+                            <div key={i} className="bg-amber-50/40 border border-amber-100 rounded-lg p-3">
+                                <div className="text-xs text-slate-800 font-medium"><SafeText content={sw.headline || sw.pattern || (typeof sw === 'string' ? sw : '')} /></div>
                             </div>
                         ))}
                     </div>
                 </div>
 
-                {/* Switching */}
-                <div className="bg-white p-5 rounded-lg border border-slate-200 shadow-sm">
-                    <h4 className="font-bold text-slate-800 text-sm mb-4">Switching Triggers (Product-to-Product)</h4>
-                    <ul className="space-y-2">
-                         {ensureArray(data.switching_patterns).map((sw: any, i: number) => (
-                            <li key={i} className="text-xs flex items-center gap-2 text-slate-700">
-                                <span className="text-slate-400">➜</span>
-                                <SafeText content={sw.headline || sw.pattern || sw} />
-                            </li>
-                         ))}
-                    </ul>
-                </div>
+                {data.brand_switching && ensureArray(data.brand_switching).length > 0 && (
+                    <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
+                        <SectionLabel color="bg-violet-500">Brand Switching Context</SectionLabel>
+                        <div className="space-y-3">
+                            {ensureArray(data.brand_switching).map((bs: any, i: number) => (
+                                <div key={i} className="bg-violet-50/40 border border-violet-100 rounded-lg p-3">
+                                    <div className="text-xs text-slate-800 font-medium"><SafeText content={bs.headline || bs.reason || (typeof bs === 'string' ? bs : '')} /></div>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                )}
             </div>
 
-            {/* Purchase Behaviour */}
+            {/* Purchase Behaviour - visual cards */}
             {data.purchase_behaviour && (
-                <div className="bg-slate-50 border border-slate-200 p-5 rounded-lg">
-                    <h4 className="font-bold text-slate-800 text-sm mb-4">Purchase Behaviour (India)</h4>
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                        {/* Channels */}
-                        <div>
-                            <span className="text-[10px] font-bold text-slate-500 uppercase block mb-2">Channels</span>
-                            <ul className="text-xs space-y-1">
+                <div className="bg-gradient-to-br from-slate-50 to-slate-100/50 border border-slate-200 p-6 rounded-xl">
+                    <SectionLabel>Purchase Behaviour (India)</SectionLabel>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
+                        <div className="bg-white rounded-lg p-4 border border-slate-200 shadow-sm">
+                            <div className="text-[10px] font-bold text-indigo-600 uppercase mb-3 flex items-center gap-1.5">
+                                <span className="w-1 h-1 rounded-full bg-indigo-500"></span> Channels
+                            </div>
+                            <ul className="text-xs space-y-2">
                                 {ensureArray(data.purchase_behaviour.channels).map((c: any, i: number) => (
-                                    <li key={i} className="flex gap-2 text-slate-700">
-                                        <span className="text-indigo-400">•</span>
-                                        <SafeText content={c.channel || c} />
-                                    </li>
+                                    <li key={i} className="text-slate-700 leading-relaxed"><SafeText content={c.channel || c} /></li>
                                 ))}
                             </ul>
                         </div>
-                         {/* Packs */}
-                         <div>
-                            <span className="text-[10px] font-bold text-slate-500 uppercase block mb-2">Pack Sizes</span>
-                            <ul className="text-xs space-y-1">
+                        <div className="bg-white rounded-lg p-4 border border-slate-200 shadow-sm">
+                            <div className="text-[10px] font-bold text-emerald-600 uppercase mb-3 flex items-center gap-1.5">
+                                <span className="w-1 h-1 rounded-full bg-emerald-500"></span> Pack Sizes
+                            </div>
+                            <ul className="text-xs space-y-2">
                                 {ensureArray(data.purchase_behaviour.pack_sizes).map((p: any, i: number) => (
-                                    <li key={i} className="flex gap-2 text-slate-700">
-                                        <span className="text-indigo-400">•</span>
-                                        <SafeText content={p.pack || p} />
-                                    </li>
+                                    <li key={i} className="text-slate-700 leading-relaxed"><SafeText content={p.pack || p} /></li>
                                 ))}
                             </ul>
                         </div>
-                         {/* Price */}
-                         <div>
-                            <span className="text-[10px] font-bold text-slate-500 uppercase block mb-2">Price Points (INR)</span>
-                            <ul className="text-xs space-y-1">
+                        <div className="bg-white rounded-lg p-4 border border-slate-200 shadow-sm">
+                            <div className="text-[10px] font-bold text-amber-600 uppercase mb-3 flex items-center gap-1.5">
+                                <span className="w-1 h-1 rounded-full bg-amber-500"></span> Price Points (INR)
+                            </div>
+                            <ul className="text-xs space-y-2 font-mono">
                                 {ensureArray(data.purchase_behaviour.price_points_inr).map((pr: any, i: number) => (
-                                    <li key={i} className="flex gap-2 text-slate-700 font-mono">
-                                        <span className="text-indigo-400">•</span>
-                                        <SafeText content={pr.range_label || pr.price || pr} />
-                                    </li>
+                                    <li key={i} className="text-slate-700"><SafeText content={pr.range_label || pr.price || pr} /></li>
                                 ))}
                             </ul>
                         </div>
-                         {/* Geographic Patterns */}
-                         {data.purchase_behaviour.geographic_patterns && ensureArray(data.purchase_behaviour.geographic_patterns).length > 0 && (
-                         <div>
-                            <span className="text-[10px] font-bold text-slate-500 uppercase block mb-2">Geographic Patterns</span>
-                            <ul className="text-xs space-y-1">
-                                {ensureArray(data.purchase_behaviour.geographic_patterns).map((gp: any, i: number) => (
-                                    <li key={i} className="flex gap-2 text-slate-700">
-                                        <span className="text-amber-400">•</span>
-                                        <SafeText content={typeof gp === 'string' ? gp : (gp.pattern || gp.insight || '')} />
-                                    </li>
-                                ))}
-                            </ul>
-                        </div>
-                         )}
+                        {data.purchase_behaviour.geographic_patterns && ensureArray(data.purchase_behaviour.geographic_patterns).length > 0 && (
+                            <div className="bg-white rounded-lg p-4 border border-slate-200 shadow-sm">
+                                <div className="text-[10px] font-bold text-rose-600 uppercase mb-3 flex items-center gap-1.5">
+                                    <span className="w-1 h-1 rounded-full bg-rose-500"></span> Geographic Patterns
+                                </div>
+                                <ul className="text-xs space-y-2">
+                                    {ensureArray(data.purchase_behaviour.geographic_patterns).map((gp: any, i: number) => (
+                                        <li key={i} className="text-slate-700 leading-relaxed"><SafeText content={typeof gp === 'string' ? gp : (gp.pattern || gp.insight || '')} /></li>
+                                    ))}
+                                </ul>
+                            </div>
+                        )}
                     </div>
                 </div>
             )}
+
+            <QuoteBlock quotes={ensureArray(data.consumer_statements)} limit={4} />
         </div>
     );
 };
 
 const AdultBrandLandscapeSection = ({ data }: { data: any }) => {
     const brands = ensureArray(data.brands);
-
-    // QUALITY CHECK: If any brand is "Unknown" or list is empty, force fallback
     if (brands.length === 0 || brands.some((b: any) => (b.brand || '').includes('Unknown'))) {
-        return <DataQualityNoticeCard title="Brand Landscape" reason="Brand payload contains unknown entities or insufficient data." data={data} />;
+        return <DataQualityNoticeCard title="Brand Landscape" reason="Brand data insufficient." data={data} />;
     }
 
+    const sentimentColor = (s: string) => s === 'POS' ? 'bg-emerald-100 text-emerald-700' : s === 'NEG' ? 'bg-red-100 text-red-700' : 'bg-amber-100 text-amber-700';
+
     return (
-        <div className="space-y-8">
-            <div className="grid grid-cols-1 gap-6">
-                {brands.map((b: any, i: number) => (
-                    <div key={i} className="bg-white border border-slate-200 rounded-lg p-5 shadow-sm">
-                        <div className="flex justify-between items-start mb-4 border-b border-slate-100 pb-3">
-                            <div>
-                                <h4 className="font-bold text-lg text-slate-800">{b.brand}</h4>
-                                <div className="flex gap-2 mt-1">
-                                    <span className="text-[10px] bg-indigo-50 text-indigo-700 px-2 py-0.5 rounded font-bold">SOV: {b.share_of_voice?.share_pct ?? '?'}%</span>
-                                    <span className="text-[10px] bg-yellow-50 text-yellow-700 px-2 py-0.5 rounded font-bold">{b.overall_sentiment}</span>
-                                </div>
+        <div className="space-y-6">
+            {brands.map((b: any, i: number) => (
+                <div key={i} className="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden">
+                    {/* Brand Header */}
+                    <div className="bg-gradient-to-r from-slate-800 to-slate-700 px-6 py-4 text-white">
+                        <div className="flex justify-between items-center">
+                            <h4 className="font-bold text-lg">{b.brand}</h4>
+                            <div className="flex gap-2">
+                                <span className="text-[10px] bg-white/20 backdrop-blur px-2.5 py-1 rounded-full font-bold">SOV: {b.share_of_voice?.share_pct ?? '?'}%</span>
+                                <span className={`text-[10px] px-2.5 py-1 rounded-full font-bold ${sentimentColor(b.overall_sentiment || '')}`}>{b.overall_sentiment}</span>
                             </div>
                         </div>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                        {b.positioning_summary && <div className="text-[11px] text-slate-300 mt-1.5 leading-relaxed"><SafeText content={b.positioning_summary} /></div>}
+                    </div>
+
+                    <div className="p-6">
+                        {/* Attributes + SWOT */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-6">
                             <div>
-                                <span className="text-[10px] font-bold text-slate-400 uppercase block mb-2">Attribute Performance</span>
-                                <div className="space-y-2">
+                                <span className="text-[10px] font-bold text-slate-400 uppercase block mb-3">Attribute Performance</span>
+                                <div className="space-y-2.5">
                                     {ensureArray(b.attribute_scale).map((attr: any, k: number) => (
                                         <div key={k} className="flex items-center gap-2 text-xs">
-                                            <span className="w-24 font-medium text-slate-600 truncate">{attr.attribute}</span>
-                                            <div className="flex-1 h-2 bg-slate-100 rounded-full overflow-hidden">
-                                                <div className="h-full bg-indigo-500" style={{ width: `${(attr.score_0_5 || 0) * 20}%` }}></div>
+                                            <span className="w-28 font-medium text-slate-600 truncate">{attr.attribute}</span>
+                                            <div className="flex-1 h-2.5 bg-slate-100 rounded-full overflow-hidden">
+                                                <div className="h-full rounded-full bg-gradient-to-r from-indigo-400 to-indigo-600 transition-all" style={{ width: `${(attr.score_0_5 || 0) * 20}%` }}></div>
                                             </div>
-                                            <span className="font-mono text-slate-400 w-6 text-right">{attr.score_0_5}</span>
+                                            <span className="font-mono text-slate-500 w-6 text-right font-bold">{attr.score_0_5}</span>
                                         </div>
                                     ))}
                                 </div>
                             </div>
-                            <div className="space-y-4">
+                            <div className="space-y-5">
                                 {b.strengths && ensureArray(b.strengths).length > 0 && (
                                     <div>
-                                        <span className="text-[10px] font-bold text-emerald-600 uppercase block mb-1">Strengths</span>
-                                        <ul className="text-xs text-slate-600 space-y-1">
-                                            {ensureArray(b.strengths).map((sw: any, j: number) => (
-                                                <li key={j} className="flex gap-2"><span className="text-emerald-400">+</span> <SafeText content={typeof sw === 'string' ? sw : (sw.text || '')} /></li>
-                                            ))}
-                                        </ul>
+                                        <span className="text-[10px] font-bold text-emerald-600 uppercase block mb-2">Strengths</span>
+                                        {ensureArray(b.strengths).map((sw: any, j: number) => (
+                                            <div key={j} className="flex gap-2 mb-1.5 text-xs text-slate-700">
+                                                <span className="text-emerald-500 font-bold">+</span>
+                                                <span className="leading-relaxed"><SafeText content={typeof sw === 'string' ? sw : (sw.text || '')} /></span>
+                                            </div>
+                                        ))}
                                     </div>
                                 )}
                                 {b.weaknesses && ensureArray(b.weaknesses).length > 0 && (
                                     <div>
-                                        <span className="text-[10px] font-bold text-red-600 uppercase block mb-1">Weaknesses</span>
-                                        <ul className="text-xs text-slate-600 space-y-1">
-                                            {ensureArray(b.weaknesses).map((wk: any, j: number) => (
-                                                <li key={j} className="flex gap-2"><span className="text-red-400">-</span> <SafeText content={typeof wk === 'string' ? wk : (wk.text || '')} /></li>
-                                            ))}
-                                        </ul>
+                                        <span className="text-[10px] font-bold text-red-600 uppercase block mb-2">Weaknesses</span>
+                                        {ensureArray(b.weaknesses).map((wk: any, j: number) => (
+                                            <div key={j} className="flex gap-2 mb-1.5 text-xs text-slate-700">
+                                                <span className="text-red-500 font-bold">-</span>
+                                                <span className="leading-relaxed"><SafeText content={typeof wk === 'string' ? wk : (wk.text || '')} /></span>
+                                            </div>
+                                        ))}
                                     </div>
                                 )}
                             </div>
                         </div>
+
+                        {/* Pricing, Packaging, Geographic */}
                         {(b.pricing_insight || b.packaging_insight || b.geographic_strength) && (
-                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4 pt-4 border-t border-slate-100">
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6 pt-5 border-t border-slate-100">
                                 {b.pricing_insight && (
-                                    <div className="bg-slate-50 p-2.5 rounded border border-slate-200">
-                                        <span className="text-[9px] font-bold text-slate-400 uppercase block mb-1">Pricing</span>
-                                        <div className="text-[11px] text-slate-600"><SafeText content={b.pricing_insight} /></div>
+                                    <div className="bg-gradient-to-br from-amber-50 to-amber-100/30 p-4 rounded-lg border border-amber-200/50">
+                                        <span className="text-[9px] font-bold text-amber-600 uppercase block mb-1.5">Pricing</span>
+                                        <div className="text-[11px] text-slate-700 leading-relaxed"><SafeText content={b.pricing_insight} /></div>
                                     </div>
                                 )}
                                 {b.packaging_insight && (
-                                    <div className="bg-slate-50 p-2.5 rounded border border-slate-200">
-                                        <span className="text-[9px] font-bold text-slate-400 uppercase block mb-1">Packaging</span>
-                                        <div className="text-[11px] text-slate-600"><SafeText content={b.packaging_insight} /></div>
+                                    <div className="bg-gradient-to-br from-blue-50 to-blue-100/30 p-4 rounded-lg border border-blue-200/50">
+                                        <span className="text-[9px] font-bold text-blue-600 uppercase block mb-1.5">Packaging</span>
+                                        <div className="text-[11px] text-slate-700 leading-relaxed"><SafeText content={b.packaging_insight} /></div>
                                     </div>
                                 )}
                                 {b.geographic_strength && (
-                                    <div className="bg-slate-50 p-2.5 rounded border border-slate-200">
-                                        <span className="text-[9px] font-bold text-slate-400 uppercase block mb-1">Geographic</span>
-                                        <div className="text-[11px] text-slate-600"><SafeText content={b.geographic_strength} /></div>
+                                    <div className="bg-gradient-to-br from-emerald-50 to-emerald-100/30 p-4 rounded-lg border border-emerald-200/50">
+                                        <span className="text-[9px] font-bold text-emerald-600 uppercase block mb-1.5">Geographic</span>
+                                        <div className="text-[11px] text-slate-700 leading-relaxed"><SafeText content={b.geographic_strength} /></div>
                                     </div>
                                 )}
                             </div>
                         )}
-                        <div className="mt-4">
-                            <div>
-                                <span className="text-[10px] font-bold text-slate-400 uppercase block mb-2">Consumer Verdict</span>
-                                {b.verbatims && b.verbatims.length > 0 ? (
-                                    <div className="space-y-2">
-                                        {ensureArray(b.verbatims).slice(0,2).map((v: string, k: number) => (
-                                            <div key={k} className="bg-slate-50 p-2 rounded text-xs text-slate-600 italic border-l-2 border-indigo-200">
-                                                "{v}"
-                                            </div>
-                                        ))}
-                                    </div>
-                                ) : (
-                                    <div className="text-xs text-slate-400 italic">No direct quotes available.</div>
-                                )}
-                            </div>
-                        </div>
+
+                        {/* Consumer Verdict */}
+                        <QuoteBlock quotes={ensureArray(b.verbatims)} limit={4} />
                     </div>
-                ))}
-            </div>
+                </div>
+            ))}
         </div>
     );
 };
@@ -573,22 +514,17 @@ const AdultBrandLandscapeSection = ({ data }: { data: any }) => {
 const AdultGapAnalysisRenderer = ({ data }: { data: any }) => {
     if (!data.emotional_needs && !data.functional_needs && !data.unmet_expectations && !data.non_user_gaps) return null;
 
-    const renderGapItem = (item: any, icon: string, bgClass: string) => (
-        <div className={`p-3 rounded border ${bgClass} mb-3`}>
-            <div className="flex items-start gap-2 mb-1">
-                <span className="text-xs">{icon}</span>
-                <span className="text-xs font-bold text-slate-800"><SafeText content={item.need || item.expectation || item.gap || ''} /></span>
-            </div>
+    const renderGapCard = (item: any, accent: string) => (
+        <div className={`${accent} rounded-lg p-4 mb-3`}>
+            <div className="text-xs font-bold text-slate-800 mb-1.5"><SafeText content={item.need || item.expectation || item.gap || ''} /></div>
             {(item.who_feels_it || item.segment) && (
-                <div className="text-[10px] text-slate-500 ml-5 mb-1"><SafeText content={item.who_feels_it || item.segment || ''} /></div>
+                <div className="text-[10px] text-slate-500 mb-1.5"><SafeText content={item.who_feels_it || item.segment || ''} /></div>
             )}
-            <div className="text-[11px] text-slate-600 ml-5 mb-2"><SafeText content={item.current_gap || item.brand_implication || item.conversion_lever || ''} /></div>
-            {item.consumer_quote && (
-                <div className="ml-5 text-[10px] text-indigo-700 italic bg-indigo-50 px-2 py-1 rounded border border-indigo-100"><SafeText content={item.consumer_quote} /></div>
-            )}
+            <div className="text-[11px] text-slate-600 leading-relaxed mb-2"><SafeText content={item.current_gap || item.brand_implication || item.conversion_lever || ''} /></div>
             {item.opportunity && (
-                <div className="ml-5 mt-1.5 text-[10px] text-emerald-700 bg-emerald-50 px-2 py-1 rounded border border-emerald-100"><SafeText content={item.opportunity} /></div>
+                <div className="text-[10px] text-emerald-700 bg-emerald-50 px-2.5 py-1.5 rounded border border-emerald-100 mb-2"><SafeText content={item.opportunity} /></div>
             )}
+            <QuoteBlock quotes={ensureArray(item.consumer_quotes || (item.consumer_quote ? [item.consumer_quote] : []))} limit={3} />
         </div>
     );
 
@@ -596,46 +532,38 @@ const AdultGapAnalysisRenderer = ({ data }: { data: any }) => {
         <div className="space-y-8">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                 {data.emotional_needs && ensureArray(data.emotional_needs).length > 0 && (
-                    <div className="bg-white p-5 rounded-lg border border-slate-200 shadow-sm">
-                        <h4 className="font-bold text-slate-800 text-sm mb-4 flex items-center gap-2">
-                            <span className="w-1.5 h-1.5 rounded-full bg-purple-500"></span> EMOTIONAL NEEDS
-                        </h4>
+                    <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
+                        <SectionLabel color="bg-purple-500">Emotional Needs</SectionLabel>
                         {ensureArray(data.emotional_needs).map((item: any, i: number) => (
-                            <div key={i}>{renderGapItem(item, '+', 'bg-purple-50/50 border-purple-100')}</div>
+                            <div key={i}>{renderGapCard(item, 'bg-purple-50/40 border border-purple-100')}</div>
                         ))}
                     </div>
                 )}
                 {data.functional_needs && ensureArray(data.functional_needs).length > 0 && (
-                    <div className="bg-white p-5 rounded-lg border border-slate-200 shadow-sm">
-                        <h4 className="font-bold text-slate-800 text-sm mb-4 flex items-center gap-2">
-                            <span className="w-1.5 h-1.5 rounded-full bg-blue-500"></span> FUNCTIONAL NEEDS
-                        </h4>
+                    <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
+                        <SectionLabel color="bg-blue-500">Functional Needs</SectionLabel>
                         {ensureArray(data.functional_needs).map((item: any, i: number) => (
-                            <div key={i}>{renderGapItem(item, '+', 'bg-blue-50/50 border-blue-100')}</div>
+                            <div key={i}>{renderGapCard(item, 'bg-blue-50/40 border border-blue-100')}</div>
                         ))}
                     </div>
                 )}
             </div>
             {data.unmet_expectations && ensureArray(data.unmet_expectations).length > 0 && (
-                <div className="bg-white p-5 rounded-lg border border-slate-200 shadow-sm">
-                    <h4 className="font-bold text-slate-800 text-sm mb-4 flex items-center gap-2">
-                        <span className="w-1.5 h-1.5 rounded-full bg-amber-500"></span> UNMET EXPECTATIONS
-                    </h4>
+                <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
+                    <SectionLabel color="bg-amber-500">Unmet Expectations</SectionLabel>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                         {ensureArray(data.unmet_expectations).map((item: any, i: number) => (
-                            <div key={i}>{renderGapItem(item, '!', 'bg-amber-50/50 border-amber-100')}</div>
+                            <div key={i}>{renderGapCard(item, 'bg-amber-50/40 border border-amber-100')}</div>
                         ))}
                     </div>
                 </div>
             )}
             {data.non_user_gaps && ensureArray(data.non_user_gaps).length > 0 && (
-                <div className="bg-white p-5 rounded-lg border border-slate-200 shadow-sm">
-                    <h4 className="font-bold text-slate-800 text-sm mb-4 flex items-center gap-2">
-                        <span className="w-1.5 h-1.5 rounded-full bg-red-500"></span> NON-USER CONVERSION GAPS
-                    </h4>
+                <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
+                    <SectionLabel color="bg-red-500">Non-User Conversion Gaps</SectionLabel>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                         {ensureArray(data.non_user_gaps).map((item: any, i: number) => (
-                            <div key={i}>{renderGapItem(item, 'x', 'bg-red-50/50 border-red-100')}</div>
+                            <div key={i}>{renderGapCard(item, 'bg-red-50/40 border border-red-100')}</div>
                         ))}
                     </div>
                 </div>

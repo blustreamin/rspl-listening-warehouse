@@ -46,7 +46,7 @@ export const ADULT_DIAPERS_TEMPLATE: TemplatePack = {
         - **incontinence_issue**: Array of min 2 items. Each item = { "headline": "...", "what_it_means": "..." }. Be specific: "Stress incontinence triggered by sneezing/laughing" not just "Bladder weakness".
         - **worst_moments**: Array of MINIMUM 6 suffering moments. These are occasions of acute difficulty DUE TO INCONTINENCE — NOT stigma, NOT barriers. Cover: emotional (shame at family gatherings), social (avoiding temple visits, skipping weddings), practical (sleep disruption, clothing limitations, monsoon-season challenges), financial (cost burden impacting household budget), travel-related (long train/bus journeys without toilet access), and daily routine (morning walks, grocery runs). Each item = { "headline": "...", "what_it_means": "..." }. Each MUST include a specific situational example. Include at least 2 consumer quotes within this section.
         - **life_impact**: Array of min 3 life impacts. Each item = { "headline": "...", "what_it_means": "..." }. Include severity: social isolation, caregiver burnout, reduced mobility confidence. IMPORTANT: Each impact description MUST identify the speaker profile — e.g., "For caregivers, this means..." or "Active seniors report...".
-        - **solutions**: Array of MINIMUM 4 solutions. Each item = { "headline": "...", "what_it_means": "..." }. MUST cover ALL of the following: (a) product types — light pads vs. heavy tape-style vs. pant-style, (b) behavioral hacks — fluid restriction, toilet-mapping routes, double-layering, (c) routines — day vs. night usage patterns, pre-travel prep rituals, (d) satisfaction level for each solution — state whether users find it adequate or a compromise. Do NOT give brief one-liners — each solution needs a 2-3 sentence description with real consumer context.
+        - **solutions**: Array of MINIMUM 8 solutions. Each item = { "headline": "...", "what_it_means": "..." }. MUST cover ALL of the following: (a) product types — light pads vs. heavy tape-style vs. pant-style, (b) behavioral hacks — fluid restriction, toilet-mapping routes, double-layering, (c) routines — day vs. night usage patterns, pre-travel prep rituals, (d) satisfaction level for each solution — state whether users find it adequate or a compromise, (e) channel-based solutions — pharmacy-led vs. e-commerce subscription vs. hospital supply, (f) caregiver-specific solutions — bed protectors, quick-change techniques, odor management. Each solution needs a 2-3 sentence description with real consumer context.
         - **verbatims**: Array of min 3 specific consumer quotes per profile. EVERY verbatim MUST tag the speaker: "Quote text" — [Profile Type], [City/Context]. E.g.: "Main raat ko 3 baar uthti hoon check karne" — Self-Use Senior, Lucknow. These must sound like real Indian consumers — use colloquial language, mention specific situations (train journeys, wedding functions, monsoon season), reference real costs in ₹, mention actual brands or channels.
         - **satisfaction**: "High" | "Medium" | "Low"
 
@@ -112,7 +112,7 @@ export const ADULT_DIAPERS_TEMPLATE: TemplatePack = {
               "need": "The emotional need — e.g., 'Dignity in social settings'",
               "who_feels_it": "Which consumer segments feel this most acutely — e.g., 'Active seniors attending family functions, caregivers managing parents in joint families'",
               "current_gap": "How current products/messaging FAIL to address this need",
-              "consumer_quote": "A direct consumer quote illustrating the gap — tagged with speaker profile",
+              "consumer_quotes": ["Quote 1 — tagged", "Quote 2 — tagged", "Quote 3 — tagged"],
               "opportunity": "What a brand could do to address this — product, messaging, or service innovation"
             }
           ],
@@ -121,7 +121,7 @@ export const ADULT_DIAPERS_TEMPLATE: TemplatePack = {
               "need": "The functional need — e.g., 'Overnight protection without bulk'",
               "who_feels_it": "Which segments",
               "current_gap": "Where products fall short",
-              "consumer_quote": "Direct quote — tagged",
+              "consumer_quotes": ["Quote 1 — tagged", "Quote 2 — tagged", "Quote 3 — tagged"],
               "opportunity": "Innovation opportunity"
             }
           ],
@@ -130,15 +130,15 @@ export const ADULT_DIAPERS_TEMPLATE: TemplatePack = {
               "expectation": "What consumers expected vs. what they got — e.g., 'Expected all-night dryness, got 4-hour max'",
               "segment": "User / Non-User / Both",
               "severity": "HIGH / MEDIUM / LOW",
-              "consumer_quote": "Direct quote — tagged",
+              "consumer_quotes": ["Quote 1 — tagged", "Quote 2 — tagged", "Quote 3 — tagged"],
               "brand_implication": "What this means for product teams"
             }
           ],
           "non_user_gaps": [
             {
-              "gap": "What would need to change for non-users to consider trying — e.g., 'Needs to not look/feel like a diaper', 'Price needs to drop below ₹15/piece'",
+              "gap": "What would need to change for non-users to consider trying",
               "barrier_type": "stigma / cost / awareness / logistics / product_design",
-              "consumer_quote": "Direct quote from a non-user — tagged",
+              "consumer_quotes": ["Quote 1 from non-user — tagged", "Quote 2 — tagged", "Quote 3 — tagged"],
               "conversion_lever": "The specific change that could flip this non-user"
             }
           ],
@@ -222,12 +222,17 @@ export const ADULT_DIAPERS_TEMPLATE: TemplatePack = {
         Each occasion MUST include a consumer quote in the description.
 
         **switching_patterns** (Array, MINIMUM 5 items):
-        IMPORTANT: "Switching" means PRODUCT-TO-PRODUCT transitions — NOT initial product adoption. E.g., moving from sanitary napkins to adult diapers, or from cloth/rags to disposable pads, or from Brand A to Brand B.
+        IMPORTANT: "Switching" means PRODUCT-TO-PRODUCT transitions between COMMERCIALLY AVAILABLE products only. Do NOT include cotton cloth, rags, old sarees, or any non-commercial homemade solution. Only commercially sold products: sanitary pads, adult diapers, pull-ups, underpads, liners, etc.
         Each item must use EXACTLY this schema:
-        { "from_product": "What they switched FROM", "to_product": "What they switched TO", "trigger": "The SWITCHING TRIGGER — the specific moment/event that caused this product-to-product transition" }
-        Must cover: cloth/rags → disposable, sanitary pads → adult diapers, tape-style → pant-style, generic brand → premium brand, AND at least one reverse switch (premium → value brand due to cost).
+        { "from_product": "What they switched FROM", "to_product": "What they switched TO", "trigger": "The SWITCHING TRIGGER with consumer quote" }
+        Must cover: sanitary pads to adult diapers, tape-style to pant-style, generic brand to premium brand, premium to value brand (cost downgrade), underpad-only to diaper+underpad combo.
         Each pattern MUST include a consumer quote in the trigger field.
-        CLARIFICATION: A first-time user who has never used any product before is NOT a switching pattern — that belongs in user profiles as a "trigger to purchase."
+
+        **brand_switching** (Array, MINIMUM 4 items):
+        Why consumers switch between BRANDS specifically. Separate from product-type switching.
+        Each item = { "from_brand": "Brand A", "to_brand": "Brand B", "reason": "Why they switched with consumer quote" }
+        Must cover: availability-driven (chemist stock), price-driven, quality-driven (leakage/rash), recommendation-driven (doctor/family).
+        Each reason MUST include a consumer quote.
 
         **purchase_behaviour**:
         {

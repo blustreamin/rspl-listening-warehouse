@@ -94,7 +94,7 @@ export const normalizeAdultDiapersData = (sectionId: string, rawData: any): any 
 
         // Normalize awareness_sources (new field)
         if (!adapted.awareness_sources) {
-            const sourcesData = adapted.information_sources || adapted.awareness_channels || adapted.discovery_sources;
+            const sourcesData = adapted.information_sources || adapted.awareness_channels || adapted.discovery_sources || adapted.awareness_depth;
             if (sourcesData) {
                 adapted.awareness_sources = ensureArray(sourcesData).map((s: any) => {
                     if (typeof s === 'string') return { headline: s, what_it_means: '' };
@@ -176,6 +176,20 @@ export const normalizeAdultDiapersData = (sectionId: string, rawData: any): any 
                     return { headline: `${from} → ${to}${trigger}` };
                 }
                 return { headline: sw.headline || sw.pattern || sw.description || '' };
+            });
+        }
+
+        // Normalize brand_switching (new field)
+        if (adapted.brand_switching) {
+            adapted.brand_switching = ensureArray(adapted.brand_switching).map((bs: any) => {
+                if (typeof bs === 'string') return { headline: bs };
+                const from = bs.from_brand || bs.from || '';
+                const to = bs.to_brand || bs.to || '';
+                if (from && to) {
+                    const reason = bs.reason ? ` — ${bs.reason}` : '';
+                    return { headline: `${from} → ${to}${reason}` };
+                }
+                return { headline: bs.headline || bs.reason || '' };
             });
         }
 
