@@ -74,12 +74,45 @@ export const normalizeAdultDiapersData = (sectionId: string, rawData: any): any 
         adapted = { 
             ...data, 
             user_profiles: u, 
-            non_user_profiles: n 
+            non_user_profiles: n,
+            // Preserve failure/delight stories (new fields)
+            failure_stories: ensureArray(data.failure_stories || data.users_trialists?.failure_stories),
+            delight_stories: ensureArray(data.delight_stories || data.users_trialists?.delight_stories),
         };
         adapted = fillUserProfileGaps(adapted);
+
+        // Normalize switching_trigger field name (was trigger_event)
+        if (adapted.user_profiles) {
+            adapted.user_profiles = ensureArray(adapted.user_profiles).map((p: any) => ({
+                ...p,
+                switching_trigger: p.switching_trigger || p.trigger_event || p.trigger || '',
+            }));
+        }
     }
     else if (sectionId === 'awareness_perception') {
         adapted = { ...data };
+
+        // Normalize awareness_sources (new field)
+        if (!adapted.awareness_sources) {
+            const sourcesData = adapted.information_sources || adapted.awareness_channels || adapted.discovery_sources;
+            if (sourcesData) {
+                adapted.awareness_sources = ensureArray(sourcesData).map((s: any) => {
+                    if (typeof s === 'string') return { headline: s, what_it_means: '' };
+                    return {
+                        headline: s.headline || s.source || s.channel || s.title || '',
+                        what_it_means: s.what_it_means || s.description || s.detail || s.impact || '',
+                    };
+                });
+            }
+        } else {
+            adapted.awareness_sources = ensureArray(adapted.awareness_sources).map((s: any) => {
+                if (typeof s === 'string') return { headline: s, what_it_means: '' };
+                return {
+                    headline: s.headline || s.source || s.channel || s.title || '',
+                    what_it_means: s.what_it_means || s.description || s.detail || '',
+                };
+            });
+        }
 
         // Fix Stigma Drivers key mismatch
         if (!adapted.perceptions_and_stigma) {
@@ -116,6 +149,18 @@ export const normalizeAdultDiapersData = (sectionId: string, rawData: any): any 
                 };
             });
         }
+    }
+    else if (sectionId === 'gap_analysis') {
+        adapted = { ...data };
+        // Normalize emotional/functional needs arrays defensively
+        ['emotional_needs', 'functional_needs', 'unmet_expectations', 'non_user_gaps'].forEach(key => {
+            if (adapted[key]) {
+                adapted[key] = ensureArray(adapted[key]).map((item: any) => {
+                    if (typeof item === 'string') return { need: item, who_feels_it: '', current_gap: '', consumer_quote: '', opportunity: '' };
+                    return item;
+                });
+            }
+        });
     }
     else if (sectionId === 'behavioural_profile') {
         adapted = { ...data };

@@ -92,3 +92,17 @@ export const validateBrandLandscape = (data: any): boolean => {
     }
     return true;
 };
+
+export const validateGapAnalysis = (data: any): boolean => {
+    if (!data) return false;
+    const errors: string[] = [];
+    
+    if (!hasLength(data.emotional_needs, 1)) errors.push("emotional_needs empty");
+    if (!hasLength(data.functional_needs, 1)) errors.push("functional_needs empty");
+    
+    if (errors.length > 0) {
+        console.warn("[Validator][GapAnalysis] Errors:", errors.join(", "));
+        return false;
+    }
+    return true;
+};

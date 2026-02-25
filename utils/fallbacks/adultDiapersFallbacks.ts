@@ -51,6 +51,23 @@ export const AD_FALLBACKS = {
             price_points_inr: []
         }
     },
+    "gap_analysis": {
+        section_id: "gap_analysis",
+        emotional_needs: [
+            { need: "Dignity in Social Settings", who_feels_it: "Active seniors, caregivers", current_gap: "Products are bulky and visible under clothing.", consumer_quote: "\"Sab ko pata chal jaata hai\" — Active Senior, Pune", opportunity: "Ultra-thin discreet designs for social occasions." },
+            { need: "Caregiver Emotional Relief", who_feels_it: "Family caregivers", current_gap: "No support ecosystem for caregivers managing daily changes.", consumer_quote: "\"Main thak gayi hoon, koi samajhta nahi\" — Caregiver, Delhi", opportunity: "Caregiver support programs and easy-change products." }
+        ],
+        functional_needs: [
+            { need: "Overnight Leak Protection", who_feels_it: "Self-use seniors, bedridden patients", current_gap: "Most products last 4-5 hours, not full 8-hour night.", consumer_quote: "\"Raat mein 2 baar badalna padta hai\" — Self-Use, Lucknow", opportunity: "True 8-hour overnight product with wetness indicator." },
+            { need: "Affordable Daily Use", who_feels_it: "Tier 2-3 families, cost-sensitive segments", current_gap: "₹25-40/piece makes daily use unaffordable for many.", consumer_quote: "\"Mahine ka ₹3000 sirf isme jaata hai\" — Caregiver, Indore", opportunity: "Economy line at ₹12-15/piece for daily users." }
+        ],
+        unmet_expectations: [
+            { expectation: "Expected discretion, got bulk", segment: "User", severity: "HIGH", consumer_quote: "\"Pant style bhi dikhta hai saree mein\" — Active Senior, Chennai", brand_implication: "Need ultra-thin product line for Indian clothing." }
+        ],
+        non_user_gaps: [
+            { gap: "Product looks and feels like a baby diaper", barrier_type: "stigma", consumer_quote: "\"Bacchon wala diaper nahi pehenunga\" — Non-User, Jaipur", conversion_lever: "Adult-specific branding and form factor that looks like underwear." }
+        ]
+    },
     "brand_landscape": {
         section_id: "brand_landscape",
         market_structure: [{ headline: "Duopoly", what_it_means: "Friends vs Lifree dominate.", confidence: "HIGH", evidence: { quotes: [] } }],

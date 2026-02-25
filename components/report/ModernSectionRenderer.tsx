@@ -72,10 +72,10 @@ const AdultIncontinenceSection = ({ data }: { data: any }) => {
                         {key.replace(/_/g, ' ')} PROFILE
                     </h4>
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                        {/* Column 1: Triggers + Suffering */}
+                        {/* Column 1: Switching Triggers + Suffering */}
                         <div className="space-y-4">
                             <div>
-                                <span className="text-[10px] font-bold text-slate-400 uppercase">Triggers</span>
+                                <span className="text-[10px] font-bold text-slate-400 uppercase">Switching Triggers</span>
                                 <ul className="text-xs text-slate-700 mt-1 space-y-1">
                                     {ensureArray(p.incontinence_issue).slice(0, 3).map((t: any, i: number) => (
                                         <li key={i} className="font-medium">
@@ -92,7 +92,7 @@ const AdultIncontinenceSection = ({ data }: { data: any }) => {
                             <div>
                                 <span className="text-[10px] font-bold text-slate-400 uppercase">Suffering Moments</span>
                                 <ul className="text-xs list-disc pl-4 text-slate-600 mt-1 space-y-1">
-                                    {ensureArray(p.worst_moments).slice(0, 4).map((m: any, i: number) => (
+                                    {ensureArray(p.worst_moments).slice(0, 6).map((m: any, i: number) => (
                                         <li key={i}>
                                             <SafeText content={extractText(m)} />
                                             {extractDetail(m) && (
@@ -142,7 +142,7 @@ const AdultIncontinenceSection = ({ data }: { data: any }) => {
                         <div className="bg-slate-50 p-3 rounded border border-slate-200 text-xs space-y-2">
                             <span className="text-slate-500 font-bold">Solutions</span>
                             <ul className="space-y-1.5">
-                                {ensureArray(p.solutions).slice(0, 3).map((sol: any, i: number) => (
+                                {ensureArray(p.solutions).slice(0, 4).map((sol: any, i: number) => (
                                     <li key={i} className="text-slate-700">
                                         <SafeText content={extractText(sol)} />
                                         {extractDetail(sol) && (
@@ -177,10 +177,27 @@ const AdultIncontinenceSection = ({ data }: { data: any }) => {
 
 const AdultAwarenessRenderer = ({ data }: { data: any }) => {
     // Quality check: if empty data, let main renderer handle fallback
-    if (!data.misconceptions && !data.perceptions_and_stigma && !data.decision_journey) return null;
+    if (!data.misconceptions && !data.perceptions_and_stigma && !data.decision_journey && !data.awareness_sources) return null;
 
     return (
         <div className="space-y-8">
+            {/* Awareness Sources */}
+            {data.awareness_sources && ensureArray(data.awareness_sources).length > 0 && (
+                <div className="bg-white p-5 rounded-lg border border-slate-200 shadow-sm">
+                    <h4 className="font-bold text-slate-800 text-sm mb-4 flex items-center gap-2">
+                        <span className="w-1.5 h-1.5 rounded-full bg-blue-500"></span> INFORMATION SOURCES
+                    </h4>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {ensureArray(data.awareness_sources).map((s: any, i: number) => (
+                            <div key={i} className="bg-blue-50/50 p-3 rounded border border-blue-100">
+                                <div className="text-xs font-bold text-slate-700 mb-1"><SafeText content={s.headline || s.source || ''} /></div>
+                                <div className="text-[11px] text-slate-600"><SafeText content={s.what_it_means || s.description || ''} /></div>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            )}
+
             {/* Misconceptions */}
             {data.misconceptions && (
                 <div className="bg-white p-5 rounded-lg border border-slate-200 shadow-sm">
@@ -296,22 +313,58 @@ const AdultUserNonUserSection = ({ data }: { data: any }) => {
     };
 
     return (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            <div className="bg-white border border-indigo-100 rounded-lg p-5 shadow-sm">
-                <div className="flex items-center gap-2 mb-4">
-                    <div className="w-2 h-2 rounded-full bg-emerald-500"></div>
-                    <h4 className="font-bold text-slate-800 text-sm">CURRENT USERS</h4>
+        <div className="space-y-8">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div className="bg-white border border-indigo-100 rounded-lg p-5 shadow-sm">
+                    <div className="flex items-center gap-2 mb-4">
+                        <div className="w-2 h-2 rounded-full bg-emerald-500"></div>
+                        <h4 className="font-bold text-slate-800 text-sm">CURRENT USERS</h4>
+                    </div>
+                    <ProfileList title="User Archetypes" items={users} colorClass="bg-emerald-50 border-emerald-100" />
                 </div>
-                <ProfileList title="User Archetypes" items={users} colorClass="bg-emerald-50 border-emerald-100" />
-            </div>
-            
-            <div className="bg-white border border-red-100 rounded-lg p-5 shadow-sm">
-                <div className="flex items-center gap-2 mb-4">
-                    <div className="w-2 h-2 rounded-full bg-red-500"></div>
-                    <h4 className="font-bold text-slate-800 text-sm">NON-USERS / RESISTERS</h4>
+                
+                <div className="bg-white border border-red-100 rounded-lg p-5 shadow-sm">
+                    <div className="flex items-center gap-2 mb-4">
+                        <div className="w-2 h-2 rounded-full bg-red-500"></div>
+                        <h4 className="font-bold text-slate-800 text-sm">NON-USERS / RESISTERS</h4>
+                    </div>
+                    <ProfileList title="Non-User Archetypes" items={nonUsers} colorClass="bg-red-50 border-red-100" />
                 </div>
-                <ProfileList title="Non-User Archetypes" items={nonUsers} colorClass="bg-red-50 border-red-100" />
             </div>
+
+            {/* Failure & Delight Stories */}
+            {(ensureArray(data.failure_stories).length > 0 || ensureArray(data.delight_stories).length > 0) && (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    {ensureArray(data.failure_stories).length > 0 && (
+                        <div className="bg-white border border-red-100 rounded-lg p-5 shadow-sm">
+                            <h4 className="font-bold text-slate-800 text-sm mb-3 flex items-center gap-2">
+                                <span className="w-1.5 h-1.5 rounded-full bg-red-500"></span> FAILURE STORIES
+                            </h4>
+                            <div className="space-y-2">
+                                {ensureArray(data.failure_stories).slice(0, 4).map((s: any, i: number) => (
+                                    <div key={i} className="text-xs text-slate-600 bg-red-50/50 p-2.5 rounded border border-red-100 italic">
+                                        "<SafeText content={typeof s === 'string' ? s : (s.story || s.text || '')} />"
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+                    {ensureArray(data.delight_stories).length > 0 && (
+                        <div className="bg-white border border-emerald-100 rounded-lg p-5 shadow-sm">
+                            <h4 className="font-bold text-slate-800 text-sm mb-3 flex items-center gap-2">
+                                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> DELIGHT STORIES
+                            </h4>
+                            <div className="space-y-2">
+                                {ensureArray(data.delight_stories).slice(0, 4).map((s: any, i: number) => (
+                                    <div key={i} className="text-xs text-slate-600 bg-emerald-50/50 p-2.5 rounded border border-emerald-100 italic">
+                                        "<SafeText content={typeof s === 'string' ? s : (s.story || s.text || '')} />"
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+                </div>
+            )}
         </div>
     );
 };
@@ -337,7 +390,7 @@ const AdultBehaviouralRenderer = ({ data }: { data: any }) => {
 
                 {/* Switching */}
                 <div className="bg-white p-5 rounded-lg border border-slate-200 shadow-sm">
-                    <h4 className="font-bold text-slate-800 text-sm mb-4">Switching Patterns</h4>
+                    <h4 className="font-bold text-slate-800 text-sm mb-4">Switching Triggers (Product-to-Product)</h4>
                     <ul className="space-y-2">
                          {ensureArray(data.switching_patterns).map((sw: any, i: number) => (
                             <li key={i} className="text-xs flex items-center gap-2 text-slate-700">
@@ -353,7 +406,7 @@ const AdultBehaviouralRenderer = ({ data }: { data: any }) => {
             {data.purchase_behaviour && (
                 <div className="bg-slate-50 border border-slate-200 p-5 rounded-lg">
                     <h4 className="font-bold text-slate-800 text-sm mb-4">Purchase Behaviour (India)</h4>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                         {/* Channels */}
                         <div>
                             <span className="text-[10px] font-bold text-slate-500 uppercase block mb-2">Channels</span>
@@ -390,6 +443,20 @@ const AdultBehaviouralRenderer = ({ data }: { data: any }) => {
                                 ))}
                             </ul>
                         </div>
+                         {/* Geographic Patterns */}
+                         {data.purchase_behaviour.geographic_patterns && ensureArray(data.purchase_behaviour.geographic_patterns).length > 0 && (
+                         <div>
+                            <span className="text-[10px] font-bold text-slate-500 uppercase block mb-2">Geographic Patterns</span>
+                            <ul className="text-xs space-y-1">
+                                {ensureArray(data.purchase_behaviour.geographic_patterns).map((gp: any, i: number) => (
+                                    <li key={i} className="flex gap-2 text-slate-700">
+                                        <span className="text-amber-400">•</span>
+                                        <SafeText content={typeof gp === 'string' ? gp : (gp.pattern || gp.insight || '')} />
+                                    </li>
+                                ))}
+                            </ul>
+                        </div>
+                         )}
                     </div>
                 </div>
             )}
@@ -434,7 +501,55 @@ const AdultBrandLandscapeSection = ({ data }: { data: any }) => {
                                     ))}
                                 </div>
                             </div>
-                            <div>
+                            <div className="space-y-4">
+                                {/* SWOT-Style Strengths & Weaknesses */}
+                                {b.strengths && ensureArray(b.strengths).length > 0 && (
+                                    <div>
+                                        <span className="text-[10px] font-bold text-emerald-600 uppercase block mb-1">Strengths</span>
+                                        <ul className="text-xs text-slate-600 space-y-1">
+                                            {ensureArray(b.strengths).map((s: any, j: number) => (
+                                                <li key={j} className="flex gap-2"><span className="text-emerald-400">+</span> <SafeText content={typeof s === 'string' ? s : (s.text || '')} /></li>
+                                            ))}
+                                        </ul>
+                                    </div>
+                                )}
+                                {b.weaknesses && ensureArray(b.weaknesses).length > 0 && (
+                                    <div>
+                                        <span className="text-[10px] font-bold text-red-600 uppercase block mb-1">Weaknesses</span>
+                                        <ul className="text-xs text-slate-600 space-y-1">
+                                            {ensureArray(b.weaknesses).map((w: any, j: number) => (
+                                                <li key={j} className="flex gap-2"><span className="text-red-400">−</span> <SafeText content={typeof w === 'string' ? w : (w.text || '')} /></li>
+                                            ))}
+                                        </ul>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                        {/* Pricing, Packaging, Geographic Insights */}
+                        {(b.pricing_insight || b.packaging_insight || b.geographic_strength) && (
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4 pt-4 border-t border-slate-100">
+                                {b.pricing_insight && (
+                                    <div className="bg-slate-50 p-2.5 rounded border border-slate-200">
+                                        <span className="text-[9px] font-bold text-slate-400 uppercase block mb-1">Pricing</span>
+                                        <div className="text-[11px] text-slate-600"><SafeText content={b.pricing_insight} /></div>
+                                    </div>
+                                )}
+                                {b.packaging_insight && (
+                                    <div className="bg-slate-50 p-2.5 rounded border border-slate-200">
+                                        <span className="text-[9px] font-bold text-slate-400 uppercase block mb-1">Packaging</span>
+                                        <div className="text-[11px] text-slate-600"><SafeText content={b.packaging_insight} /></div>
+                                    </div>
+                                )}
+                                {b.geographic_strength && (
+                                    <div className="bg-slate-50 p-2.5 rounded border border-slate-200">
+                                        <span className="text-[9px] font-bold text-slate-400 uppercase block mb-1">Geographic Strength</span>
+                                        <div className="text-[11px] text-slate-600"><SafeText content={b.geographic_strength} /></div>
+                                    </div>
+                                )}
+                            </div>
+                        )}
+                        {/* Consumer Verdict */}
+                        <div className="mt-4">
                                 <span className="text-[10px] font-bold text-slate-400 uppercase block mb-2">Consumer Verdict</span>
                                 {b.verbatims && b.verbatims.length > 0 ? (
                                     <div className="space-y-2">
@@ -452,6 +567,117 @@ const AdultBrandLandscapeSection = ({ data }: { data: any }) => {
                     </div>
                 ))}
             </div>
+        </div>
+    );
+};
+
+// --- ADULT DIAPERS GAP ANALYSIS RENDERER ---
+
+const AdultGapAnalysisRenderer = ({ data }: { data: any }) => {
+    if (!data.emotional_needs && !data.functional_needs && !data.unmet_expectations && !data.non_user_gaps) return null;
+
+    const GapCard = ({ item, colorClass, icon }: { item: any, colorClass: string, icon: string }) => (
+        <div className={`p-3 rounded border ${colorClass} mb-3`}>
+            <div className="flex items-start gap-2 mb-1">
+                <span className="text-xs">{icon}</span>
+                <div className="text-xs font-bold text-slate-800"><SafeText content={item.need || item.expectation || item.gap || ''} /></div>
+            </div>
+            {(item.who_feels_it || item.segment) && (
+                <div className="text-[10px] text-slate-500 ml-5 mb-1">
+                    <span className="font-medium">Who:</span> <SafeText content={item.who_feels_it || item.segment || ''} />
+                </div>
+            )}
+            <div className="text-[11px] text-slate-600 ml-5 mb-2">
+                <SafeText content={item.current_gap || item.brand_implication || item.conversion_lever || ''} />
+            </div>
+            {item.consumer_quote && (
+                <div className="ml-5 text-[10px] text-indigo-700 italic bg-indigo-50 px-2 py-1 rounded border border-indigo-100">
+                    <SafeText content={item.consumer_quote} />
+                </div>
+            )}
+            {item.opportunity && (
+                <div className="ml-5 mt-1.5 text-[10px] text-emerald-700 bg-emerald-50 px-2 py-1 rounded border border-emerald-100">
+                    <span className="font-bold">→ Opportunity:</span> <SafeText content={item.opportunity} />
+                </div>
+            )}
+            {item.severity && (
+                <span className={`ml-5 mt-1 inline-block text-[9px] font-bold px-1.5 py-0.5 rounded ${
+                    item.severity === 'HIGH' ? 'bg-red-100 text-red-700' :
+                    item.severity === 'MEDIUM' ? 'bg-amber-100 text-amber-700' : 'bg-slate-100 text-slate-600'
+                }`}>{item.severity}</span>
+            )}
+        </div>
+    );
+
+    return (
+        <div className="space-y-8">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                {/* Emotional Needs */}
+                {data.emotional_needs && ensureArray(data.emotional_needs).length > 0 && (
+                    <div className="bg-white p-5 rounded-lg border border-slate-200 shadow-sm">
+                        <h4 className="font-bold text-slate-800 text-sm mb-4 flex items-center gap-2">
+                            <span className="w-1.5 h-1.5 rounded-full bg-purple-500"></span> EMOTIONAL NEEDS
+                        </h4>
+                        {ensureArray(data.emotional_needs).map((item: any, i: number) => (
+                            <GapCard key={i} item={item} colorClass="bg-purple-50/50 border-purple-100" icon="💜" />
+                        ))}
+                    </div>
+                )}
+
+                {/* Functional Needs */}
+                {data.functional_needs && ensureArray(data.functional_needs).length > 0 && (
+                    <div className="bg-white p-5 rounded-lg border border-slate-200 shadow-sm">
+                        <h4 className="font-bold text-slate-800 text-sm mb-4 flex items-center gap-2">
+                            <span className="w-1.5 h-1.5 rounded-full bg-blue-500"></span> FUNCTIONAL NEEDS
+                        </h4>
+                        {ensureArray(data.functional_needs).map((item: any, i: number) => (
+                            <GapCard key={i} item={item} colorClass="bg-blue-50/50 border-blue-100" icon="🔧" />
+                        ))}
+                    </div>
+                )}
+            </div>
+
+            {/* Unmet Expectations */}
+            {data.unmet_expectations && ensureArray(data.unmet_expectations).length > 0 && (
+                <div className="bg-white p-5 rounded-lg border border-slate-200 shadow-sm">
+                    <h4 className="font-bold text-slate-800 text-sm mb-4 flex items-center gap-2">
+                        <span className="w-1.5 h-1.5 rounded-full bg-amber-500"></span> UNMET EXPECTATIONS
+                    </h4>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        {ensureArray(data.unmet_expectations).map((item: any, i: number) => (
+                            <GapCard key={i} item={item} colorClass="bg-amber-50/50 border-amber-100" icon="⚠️" />
+                        ))}
+                    </div>
+                </div>
+            )}
+
+            {/* Non-User Gaps */}
+            {data.non_user_gaps && ensureArray(data.non_user_gaps).length > 0 && (
+                <div className="bg-white p-5 rounded-lg border border-slate-200 shadow-sm">
+                    <h4 className="font-bold text-slate-800 text-sm mb-4 flex items-center gap-2">
+                        <span className="w-1.5 h-1.5 rounded-full bg-red-500"></span> NON-USER CONVERSION GAPS
+                    </h4>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        {ensureArray(data.non_user_gaps).map((item: any, i: number) => (
+                            <GapCard key={i} item={item} colorClass="bg-red-50/50 border-red-100" icon="🚫" />
+                        ))}
+                    </div>
+                </div>
+            )}
+
+            {/* Consumer Statements */}
+            {data.consumer_statements && ensureArray(data.consumer_statements).length > 0 && (
+                <div className="bg-indigo-50 border border-indigo-100 p-4 rounded-lg">
+                    <h4 className="text-[10px] font-bold text-indigo-400 uppercase mb-2">Voice of Consumer</h4>
+                    <div className="flex flex-wrap gap-4">
+                        {ensureArray(data.consumer_statements).slice(0, 4).map((stmt: any, i: number) => (
+                            <div key={i} className="flex-1 min-w-[200px] text-xs text-indigo-900 italic bg-white/60 p-2 rounded border border-indigo-100/50">
+                                "<SafeText content={typeof stmt === 'string' ? stmt : (stmt.text || stmt.quote || '')} />"
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            )}
         </div>
     );
 };
@@ -701,6 +927,7 @@ export const ModernSectionRenderer: React.FC<Props> = ({ data, projectId }) => {
         else if (data.sectionId === 'brand_landscape') Component = AdultBrandLandscapeSection;
         else if (data.sectionId === 'awareness_perception') Component = AdultAwarenessRenderer;
         else if (data.sectionId === 'behavioural_profile') Component = AdultBehaviouralRenderer;
+        else if (data.sectionId === 'gap_analysis') Component = AdultGapAnalysisRenderer;
     }
     
     // --- STRICT ROUTING: FEMCARE (Explicit) ---
