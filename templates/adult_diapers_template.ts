@@ -76,22 +76,28 @@ export const ADULT_DIAPERS_TEMPLATE: TemplatePack = {
         Each misconception MUST include a consumer evidence quote inline in the what_it_means text.
         IMPORTANT: Misconceptions are DISTINCT from stigma. Misconceptions = factual misunderstandings. Stigma = social/emotional judgment. Do NOT conflate them.
 
-        **perceptions_and_stigma** (Array, MINIMUM 4 items):
-        Each item = { "headline": "Stigma driver name", "what_it_means": "Description with consumer evidence" }
+        **perceptions_and_stigma** (Array, MINIMUM 6 items):
+        Each item = { "headline": "Stigma driver name", "what_it_means": "DETAILED 3-4 sentence description with consumer evidence" }
+        DEPTH REQUIREMENT: Each stigma driver must be a MINI CASE STUDY — not a one-liner. Describe WHO feels it most, WHERE it manifests (specific settings like joint family dining, public transport, chemist counter), HOW it affects purchasing/usage behavior, and include a REAL consumer quote as evidence.
         Cover:
-        - Infantilization stigma ("It's for babies")
-        - Family judgment in joint household settings
-        - Purchase embarrassment at chemist counter ("black bag shame")
-        - Disposal stigma in shared housing
-        IMPORTANT: These are social/emotional barriers — NOT the same as misconceptions or suffering moments. Keep them clearly distinct.
-        Each driver MUST include a consumer quote as evidence within the description.
+        - Infantilization stigma ("It's for babies") — how the very word "diaper" triggers resistance in seniors who see it as regression. Include the cultural context of Indian family hierarchy where elders command respect.
+        - Joint family visibility — the logistics of hiding, storing, and disposing diapers in a 3-generation household where privacy is scarce. Cover the role of daughters-in-law.
+        - Purchase embarrassment at chemist counter ("black bag shame") — the gendered dynamics (who buys), the whispering, asking for it by pointing rather than saying the name.
+        - Disposal stigma in shared housing — garbage collectors, neighbors, apartment building dustbins. The fear of being "found out."
+        - Family burden guilt — seniors feeling they are a financial/physical burden, leading to self-rationing or refusing to use.
+        - Spousal/partner dynamics — how incontinence affects the marital relationship, sleeping arrangements, intimacy.
+        IMPORTANT: These are social/emotional barriers — NOT the same as misconceptions. Each driver MUST include a direct consumer quote embedded in the description with speaker tag.
 
-        **decision_journey** (Array, MINIMUM 5 stages):
-        Each item = { "headline": "Stage name", "what_it_means": "What happens at this stage with consumer mindset quote" }
-        Stages must cover: Switching Trigger Event → Information Search → Evaluation & Trial → First Experience → Adoption or Rejection
-        Each stage MUST describe: what the consumer is thinking (include a mindset quote), where they drop off, and what converts them to the next stage.
-        IMPORTANT: Include DIFFERENT quotes for different archetypes. E.g., an active senior's trigger ("I leaked at my grandson's birthday") is very different from a caregiver's trigger ("Papa couldn't make it to the bathroom anymore"). Show at least 2 archetype perspectives across the journey stages.
-        Keep descriptions CONCISE — 2-3 sentences max per stage. This should be scannable, not a wall of text.
+        **decision_journey** (Array, EXACTLY 5 stages):
+        Each item = { "headline": "Stage name", "what_it_means": "DETAILED 4-5 sentence description with at least 2 consumer mindset quotes from different archetypes" }
+        Stages must cover: Trigger Event → Information Search → Evaluation & Trial → First Experience → Adoption or Rejection
+        DEPTH REQUIREMENT: Each stage must describe:
+        (a) What the consumer is FEELING — the emotional state, not just the action
+        (b) Who influences them at this stage (doctor? daughter? chemist? Amazon review?)
+        (c) Where they commonly DROP OFF and why (each stage has a dropout reason)
+        (d) What CONVERTS them to the next stage
+        (e) At least 2 quotes from DIFFERENT archetypes — e.g., active senior vs. caregiver vs. young PCOS user
+        Each stage description should be 4-5 rich sentences. Think Kantar qualitative depth — a strategist reading this should understand the emotional texture of each stage.
 
         **consumer_statements** (Array, MINIMUM 4 items):
         Clean consumer quotes about awareness and stigma. NO source IDs. NO evidence IDs. Just the quote text as a string with speaker tag — e.g., "Quote" — Non-User, Tier 2 City. These must sound like real Indian consumers speaking candidly.
@@ -215,11 +221,11 @@ export const ADULT_DIAPERS_TEMPLATE: TemplatePack = {
         
         REQUIREMENTS:
 
-        **occasions_of_use** (Array, MINIMUM 6 items):
-        Each item = { "headline": "Occasion name", "what_it_means": "Description with frequency estimate and consumer quote" }
-        Must include: overnight/sleep, long-distance travel (train/bus), heavy menstrual flow, post-surgical recovery, social events (weddings/temple), workplace/school use.
-        ALSO include location-specific contexts: stuck in traffic, beach/holiday trips, monsoon season (wet clothes compounding), pilgrimage (Vaishno Devi/Char Dham).
-        Each occasion MUST include a consumer quote in the description.
+        **occasions_of_use** (Array, MINIMUM 8 items):
+        Each item = { "headline": "Occasion name", "what_it_means": "DETAILED 3-4 sentence description with frequency estimate, who uses it for this occasion, and consumer quote", "consumer_quotes": ["Quote 1 — tagged", "Quote 2 — tagged", "Quote 3 — tagged"] }
+        DEPTH REQUIREMENT: Each occasion must feel like a mini ethnographic observation — not a bullet point. Describe the SETTING, the ANXIETY, the WORKAROUND, and the PRODUCT BEHAVIOR for that occasion.
+        Must include: (a) overnight/sleep — the 3 AM bedsheet check, caregiver sleep disruption, double-layering rituals, (b) long-distance travel — train/bus journeys 12+ hours, unhygienic public toilets, pre-travel preparation, (c) post-partum/heavy menstrual flow — younger women using for lochia or PCOS flooding, (d) post-surgical recovery — hospital discharge, catheter removal transition, (e) social events — weddings 4-6 hours, temple visits, family functions where sitting/standing alternates, (f) pilgrimage treks — Vaishno Devi, Char Dham, Sabarimala where facilities are scarce, (g) monsoon/traffic — urban commuters stuck 3+ hours, wet clothing compounding, (h) workplace/daily routine — morning walks abandoned, grocery runs timed around bladder.
+        Each occasion MUST include at least 2 consumer quotes tagged with speaker profile.
 
         **switching_patterns** (Array, MINIMUM 5 items):
         IMPORTANT: "Switching" means PRODUCT-TO-PRODUCT transitions between COMMERCIALLY AVAILABLE products only. Do NOT include cotton cloth, rags, old sarees, or any non-commercial homemade solution. Only commercially sold products: sanitary pads, adult diapers, pull-ups, underpads, liners, etc.
@@ -236,12 +242,22 @@ export const ADULT_DIAPERS_TEMPLATE: TemplatePack = {
 
         **purchase_behaviour**:
         {
-          "channels": ["Channel 1 with detail", "Channel 2 with detail", ...],  // Min 4: Pharmacy/Chemist, Supermarket, E-commerce (Amazon/Flipkart/BigBasket), Hospital/Institutional
-          "pack_sizes": ["Size 1 description", "Size 2 description", ...],      // Min 3: Trial (2-5 units), Standard (10 units), Bulk/Monthly (30+ units)
-          "price_points_inr": ["Tier 1", "Tier 2", "Tier 3"],                   // Min 3 tiers in INR with per-piece pricing
-          "geographic_patterns": ["Pattern 1", "Pattern 2", ...]                 // Min 3: Regional channel preferences (e.g., "South India: Pharmacy-dominant", "Metro: E-commerce growing 40% YoY", "Tier 3: Kirana-only with limited SKU range")
+          "channels": ["Channel with DETAILED 3-4 sentence description", ...],
+          "pack_sizes": ["Pack size with detailed context", ...],
+          "price_points_inr": ["Price tier with per-piece pricing and consumer perception", ...],
+          "geographic_patterns": ["Regional pattern with behavioral context", ...]
         }
-        NOTE: channels, pack_sizes, price_points_inr, and geographic_patterns must be arrays of PLAIN STRINGS. Not objects. Just strings.
+        DEPTH REQUIREMENTS for each sub-field:
+        CHANNELS (MINIMUM 6): Each must be 3-4 sentences. Cover: (a) Local Chemist/Pharmacy — why it remains dominant, the trust factor, black bag culture, chemist recommendations influencing brand choice, (b) E-commerce (Amazon/Flipkart) — growth driver for discreet delivery, subscription models, how reviews influence first purchase, price comparison behavior, (c) BigBasket/Quick Commerce (Blinkit/Zepto) — the new discreet channel, impulse vs. planned, (d) Modern Trade (Big Bazaar/Reliance Smart) — self-checkout preference, normalization effect of seeing on shelf, (e) Hospital Pharmacies — point of discharge capture, doctor prescription influence, first-time buyer channel, (f) Wholesale/Medical Supply — institutional buyers, NGO/old age homes, bulk pricing.
+        Each channel MUST include consumer context with quote.
+        
+        PACK SIZES (MINIMUM 4): Each must be 2-3 sentences. Cover: Trial (2-3 units) — the critical first buy, price point, where purchased; Standard (10 units) — weekly replenishment, the most common; Economy/Jumbo (30+ units) — monthly bulk, per-piece savings; Night-specific packs — specialized overnight SKUs. Include pricing context in INR.
+        
+        PRICE POINTS (MINIMUM 4 tiers): Each must be 2-3 sentences with per-piece pricing AND consumer perception. Cover: Budget (below ₹25/piece), Economy (₹25-40/piece), Mid-market (₹40-65/piece), Premium (₹65-110+/piece). Include what the consumer gets at each tier (basic tape vs. pant style vs. overnight premium).
+        
+        GEOGRAPHIC PATTERNS (MINIMUM 5): Each must be 2-3 sentences. Cover: (a) Metros (Mumbai/Delhi/Bangalore) — e-commerce penetration, pant-style preference, willingness to pay premium, (b) South India (Kerala/TN/Karnataka) — pharmacy network strength, higher geriatric awareness, (c) Tier 2 cities (Jaipur/Lucknow/Coimbatore) — chemist-dominant, price sensitivity, brand loyalty, (d) Tier 3/Rural — near-zero penetration, awareness gap, kirana channel, (e) East India (Kolkata/Bhubaneswar) — emerging market dynamics.
+        
+        NOTE: All values must be arrays of PLAIN STRINGS with rich detail. Not objects.
 
         **consumer_statements** (Array, MINIMUM 4 items):
         Consumer quotes about purchasing habits, usage frequency, brand switching. EVERY quote MUST tag the speaker — e.g., "Quote" — Caregiver, Mumbai.
