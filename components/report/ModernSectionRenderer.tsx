@@ -131,7 +131,7 @@ const AdultIncontinenceSection = ({ data }: { data: any }) => {
                                     <span className="text-[9px] font-bold text-indigo-400 uppercase">Voice of Consumer</span>
                                     {ensureArray(p.verbatims).slice(0, 3).map((v: any, i: number) => (
                                         <div key={i} className="text-[10px] text-indigo-800 italic">
-                                            "<SafeText content={typeof v === 'string' ? v : (v.text || v.quote || '')} />"
+                                            {"\""}<SafeText content={typeof v === 'string' ? v : (v.text || v.quote || '')} />{"\""}
                                         </div>
                                     ))}
                                 </div>
@@ -165,7 +165,7 @@ const AdultIncontinenceSection = ({ data }: { data: any }) => {
                     <div className="flex flex-wrap gap-4">
                         {ensureArray(data.consumer_statements).slice(0, 4).map((stmt: any, i: number) => (
                             <div key={i} className="flex-1 min-w-[200px] text-xs text-indigo-900 italic bg-white/60 p-2 rounded border border-indigo-100/50">
-                                "<SafeText content={typeof stmt === 'string' ? stmt : (stmt.text || stmt.quote || '')} />"
+                                {"\""}<SafeText content={typeof stmt === 'string' ? stmt : (stmt.text || stmt.quote || '')} />{"\""}
                             </div>
                         ))}
                     </div>
@@ -343,7 +343,7 @@ const AdultUserNonUserSection = ({ data }: { data: any }) => {
                             <div className="space-y-2">
                                 {ensureArray(data.failure_stories).slice(0, 4).map((s: any, i: number) => (
                                     <div key={i} className="text-xs text-slate-600 bg-red-50/50 p-2.5 rounded border border-red-100 italic">
-                                        "<SafeText content={typeof s === 'string' ? s : (s.story || s.text || '')} />"
+                                        {"\""}<SafeText content={typeof s === 'string' ? s : (s.story || s.text || '')} />{"\""}
                                     </div>
                                 ))}
                             </div>
@@ -357,7 +357,7 @@ const AdultUserNonUserSection = ({ data }: { data: any }) => {
                             <div className="space-y-2">
                                 {ensureArray(data.delight_stories).slice(0, 4).map((s: any, i: number) => (
                                     <div key={i} className="text-xs text-slate-600 bg-emerald-50/50 p-2.5 rounded border border-emerald-100 italic">
-                                        "<SafeText content={typeof s === 'string' ? s : (s.story || s.text || '')} />"
+                                        {"\""}<SafeText content={typeof s === 'string' ? s : (s.story || s.text || '')} />{"\""}
                                     </div>
                                 ))}
                             </div>
@@ -672,7 +672,7 @@ const AdultGapAnalysisRenderer = ({ data }: { data: any }) => {
                     <div className="flex flex-wrap gap-4">
                         {ensureArray(data.consumer_statements).slice(0, 4).map((stmt: any, i: number) => (
                             <div key={i} className="flex-1 min-w-[200px] text-xs text-indigo-900 italic bg-white/60 p-2 rounded border border-indigo-100/50">
-                                "<SafeText content={typeof stmt === 'string' ? stmt : (stmt.text || stmt.quote || '')} />"
+                                {"\""}<SafeText content={typeof stmt === 'string' ? stmt : (stmt.text || stmt.quote || '')} />{"\""}
                             </div>
                         ))}
                     </div>
@@ -763,7 +763,7 @@ const FemcareProofPointsRenderer = ({ data }: { data: any }) => {
                     <div className="text-[11px] text-slate-600 mb-2"><SafeText content={p.insight || p.explanation || ''} /></div>
                     {p.quote && (
                         <div className="text-[10px] text-indigo-700 italic bg-indigo-50 px-2 py-1.5 rounded border border-indigo-100">
-                            "<SafeText content={typeof p.quote === 'string' ? p.quote : ''} />"
+                            {"\""}<SafeText content={typeof p.quote === 'string' ? p.quote : ''} />{"\""}
                         </div>
                     )}
                 </div>
