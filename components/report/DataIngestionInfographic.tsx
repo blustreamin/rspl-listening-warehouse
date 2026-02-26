@@ -70,7 +70,13 @@ const computeStats = (evidence: EvidenceGraph) => {
         eventTypes[eType] = (eventTypes[eType] || 0) + 1;
 
         // Geo
-        if (e.geo?.city) cities[e.geo.city] = (cities[e.geo.city] || 0) + 1;
+        // Geo — use city, fallback to state for broader coverage
+        if (e.geo?.city) {
+            cities[e.geo.city] = (cities[e.geo.city] || 0) + 1;
+        } else if (e.geo?.state) {
+            // Use state as location when city is not available
+            cities[e.geo.state] = (cities[e.geo.state] || 0) + 1;
+        }
 
         // Rating
         if (e.commerce?.rating) ratings.push(e.commerce.rating);
@@ -104,7 +110,7 @@ const computeStats = (evidence: EvidenceGraph) => {
         awarioSubSources: Object.entries(awarioSubSources).sort((a, b) => b[1] - a[1]),
         eventTypes: Object.entries(eventTypes).sort((a, b) => b[1] - a[1]),
         topBrands: Object.entries(brands).sort((a, b) => b[1] - a[1]).slice(0, 10),
-        topCities: Object.entries(cities).sort((a, b) => b[1] - a[1]).slice(0, 12),
+        topCities: Object.entries(cities).sort((a, b) => b[1] - a[1]).slice(0, 50),
         avgRating, ratingCount: ratings.length,
         withQuotes, avgTextLen, qualityReport: evidence.qualityReport,
         aggregations: evidence.aggregations, dateRange, sentimentBuckets, sentimentSamples,
