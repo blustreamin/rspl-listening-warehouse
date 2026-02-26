@@ -389,11 +389,20 @@ const AdultBehaviouralRenderer = ({ data }: { data: any }) => {
                             <div className="text-xs font-bold text-emerald-700 uppercase mb-4 pb-2 border-b border-emerald-100">Pack Sizes</div>
                             <div className="space-y-3">
                                 {ensureArray(data.purchase_behaviour.pack_sizes).map((p: any, i: number) => {
-                                    const txt = (p.pack || p || '').toString();
+                                    const isObj = typeof p === 'object' && p !== null && p.headline;
+                                    const headline = isObj ? p.headline : '';
+                                    const insight = isObj ? p.insight : (p || '').toString();
+                                    const txt = !isObj ? (p || '').toString() : '';
                                     const parts = txt.split(':');
                                     return (
                                         <div key={i} className="border-l-2 border-emerald-200 pl-3">
-                                            {parts.length > 1 ? (
+                                            {isObj ? (
+                                                <div>
+                                                    <div className="text-xs font-semibold text-slate-800">{headline}</div>
+                                                    <div className="text-[10px] text-slate-600 mt-0.5 leading-relaxed">{insight}</div>
+                                                    <QuoteBlock quotes={ensureArray(p.consumer_quotes)} limit={2} />
+                                                </div>
+                                            ) : parts.length > 1 ? (
                                                 <div>
                                                     <div className="text-xs font-semibold text-slate-800">{parts[0].trim()}</div>
                                                     <div className="text-[10px] text-slate-600 mt-0.5 leading-relaxed">{parts.slice(1).join(':').trim()}</div>
@@ -405,16 +414,40 @@ const AdultBehaviouralRenderer = ({ data }: { data: any }) => {
                                     );
                                 })}
                             </div>
+                            {/* Pack Sizes By Brand sub-section */}
+                            {ensureArray(data.purchase_behaviour.pack_sizes_by_brand).length > 0 && (
+                                <div className="mt-5 pt-4 border-t border-emerald-100">
+                                    <div className="text-[10px] font-bold text-emerald-600 uppercase mb-3">Pack Sizes By Brand</div>
+                                    <div className="space-y-3">
+                                        {ensureArray(data.purchase_behaviour.pack_sizes_by_brand).map((item: any, i: number) => (
+                                            <div key={i} className="border-l-2 border-emerald-300 pl-3 bg-emerald-50/30 rounded-r-lg py-2 pr-2">
+                                                <div className="text-xs font-semibold text-slate-800">{item.headline || ''}</div>
+                                                <div className="text-[10px] text-slate-600 mt-0.5 leading-relaxed">{item.insight || ''}</div>
+                                                <QuoteBlock quotes={ensureArray(item.consumer_quotes)} limit={2} />
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
                         </div>
                         <div className="bg-white rounded-xl p-5 border border-slate-200 shadow-sm">
                             <div className="text-xs font-bold text-amber-700 uppercase mb-4 pb-2 border-b border-amber-100">Price Points (INR)</div>
                             <div className="space-y-3">
                                 {ensureArray(data.purchase_behaviour.price_points_inr).map((pr: any, i: number) => {
-                                    const txt = (pr.range_label || pr.price || pr || '').toString();
+                                    const isObj = typeof pr === 'object' && pr !== null && pr.headline;
+                                    const headline = isObj ? pr.headline : '';
+                                    const insight = isObj ? pr.insight : (pr || '').toString();
+                                    const txt = !isObj ? (pr.range_label || pr.price || pr || '').toString() : '';
                                     const parts = txt.split(':');
                                     return (
                                         <div key={i} className="border-l-2 border-amber-200 pl-3">
-                                            {parts.length > 1 ? (
+                                            {isObj ? (
+                                                <div>
+                                                    <div className="text-xs font-semibold text-slate-800">{headline}</div>
+                                                    <div className="text-[10px] text-slate-600 mt-0.5 leading-relaxed">{insight}</div>
+                                                    <QuoteBlock quotes={ensureArray(pr.consumer_quotes)} limit={2} />
+                                                </div>
+                                            ) : parts.length > 1 ? (
                                                 <div>
                                                     <div className="text-xs font-semibold text-slate-800">{parts[0].trim()}</div>
                                                     <div className="text-[10px] text-slate-600 mt-0.5 leading-relaxed">{parts.slice(1).join(':').trim()}</div>
@@ -426,23 +459,58 @@ const AdultBehaviouralRenderer = ({ data }: { data: any }) => {
                                     );
                                 })}
                             </div>
+                            {/* Price By Brand sub-section */}
+                            {ensureArray(data.purchase_behaviour.price_by_brand).length > 0 && (
+                                <div className="mt-5 pt-4 border-t border-amber-100">
+                                    <div className="text-[10px] font-bold text-amber-600 uppercase mb-3">Price By Brand</div>
+                                    <div className="space-y-3">
+                                        {ensureArray(data.purchase_behaviour.price_by_brand).map((item: any, i: number) => (
+                                            <div key={i} className="border-l-2 border-amber-300 pl-3 bg-amber-50/30 rounded-r-lg py-2 pr-2">
+                                                <div className="text-xs font-semibold text-slate-800">{item.headline || ''}</div>
+                                                <div className="text-[10px] text-slate-600 mt-0.5 leading-relaxed">{item.insight || ''}</div>
+                                                <QuoteBlock quotes={ensureArray(item.consumer_quotes)} limit={2} />
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
                         </div>
                         {data.purchase_behaviour.geographic_patterns && ensureArray(data.purchase_behaviour.geographic_patterns).length > 0 && (
-                            <div className="bg-white rounded-xl p-5 border border-slate-200 shadow-sm">
+                            <div className="bg-white rounded-xl p-5 border border-slate-200 shadow-sm md:col-span-2">
                                 <div className="text-xs font-bold text-rose-700 uppercase mb-4 pb-2 border-b border-rose-100">Geographic Patterns</div>
-                                <div className="space-y-3">
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     {ensureArray(data.purchase_behaviour.geographic_patterns).map((gp: any, i: number) => {
-                                        const txt = (typeof gp === 'string' ? gp : (gp.pattern || gp.insight || '')).toString();
-                                        const parts = txt.split(':');
+                                        const isObj = typeof gp === 'object' && gp !== null && gp.headline;
+                                        if (!isObj) {
+                                            const txt = (typeof gp === 'string' ? gp : (gp.pattern || gp.insight || '')).toString();
+                                            const parts = txt.split(':');
+                                            return (
+                                                <div key={i} className="border-l-2 border-rose-200 pl-3">
+                                                    {parts.length > 1 ? (
+                                                        <div>
+                                                            <div className="text-xs font-semibold text-slate-800">{parts[0].trim()}</div>
+                                                            <div className="text-[10px] text-slate-600 mt-0.5 leading-relaxed">{parts.slice(1).join(':').trim()}</div>
+                                                        </div>
+                                                    ) : (
+                                                        <div className="text-xs text-slate-700 leading-relaxed"><SafeText content={txt} /></div>
+                                                    )}
+                                                </div>
+                                            );
+                                        }
                                         return (
-                                            <div key={i} className="border-l-2 border-rose-200 pl-3">
-                                                {parts.length > 1 ? (
-                                                    <div>
-                                                        <div className="text-xs font-semibold text-slate-800">{parts[0].trim()}</div>
-                                                        <div className="text-[10px] text-slate-600 mt-0.5 leading-relaxed">{parts.slice(1).join(':').trim()}</div>
+                                            <div key={i} className="bg-rose-50/30 rounded-lg p-3 border border-rose-100">
+                                                <div className="text-xs font-semibold text-rose-800 mb-1">{gp.headline}</div>
+                                                <div className="text-[10px] text-slate-600 leading-relaxed mb-2">{gp.insight || ''}</div>
+                                                {ensureArray(gp.sub_factors).length > 0 && (
+                                                    <div className="space-y-2 mt-2 pt-2 border-t border-rose-100">
+                                                        {ensureArray(gp.sub_factors).map((sf: any, j: number) => (
+                                                            <div key={j} className="border-l-2 border-rose-300 pl-2">
+                                                                <div className="text-[10px] font-semibold text-slate-700">{sf.factor || ''}</div>
+                                                                <div className="text-[10px] text-slate-500 leading-relaxed">{sf.detail || ''}</div>
+                                                                <QuoteBlock quotes={ensureArray(sf.consumer_quotes)} limit={2} />
+                                                            </div>
+                                                        ))}
                                                     </div>
-                                                ) : (
-                                                    <div className="text-xs text-slate-700 leading-relaxed"><SafeText content={txt} /></div>
                                                 )}
                                             </div>
                                         );

@@ -250,28 +250,47 @@ export const ADULT_DIAPERS_TEMPLATE: TemplatePack = {
         **purchase_behaviour**:
         {
           "channels": ["Channel with DETAILED 3-4 sentence description", ...],
-          "pack_sizes": ["Pack size with detailed context", ...],
-          "price_points_inr": ["Price tier with per-piece pricing and consumer perception", ...],
-          "geographic_patterns": ["Regional pattern with behavioral context", ...]
+          "pack_sizes": [
+            { "headline": "Pack size name (e.g. Trial Pack 2-3 units)", "insight": "2-3 sentence description with context", "consumer_quotes": ["Quote — Profile, City, Source: Platform", "Quote — Profile, City, Source: Platform"] }
+          ],
+          "pack_sizes_by_brand": [
+            { "headline": "Brand + Pack Size insight (e.g. Friends 10-pack dominance)", "insight": "2-3 sentences on how this brand's pack strategy differs, pricing per piece, consumer preference", "consumer_quotes": ["Quote — Profile, City, Source: Platform", "Quote — Profile, City, Source: Platform"] }
+          ],
+          "price_points_inr": [
+            { "headline": "Price tier name (e.g. Budget below ₹25/piece)", "insight": "2-3 sentences with per-piece pricing AND consumer perception", "consumer_quotes": ["Quote — Profile, City, Source: Platform", "Quote — Profile, City, Source: Platform"] }
+          ],
+          "price_by_brand": [
+            { "headline": "Brand pricing insight (e.g. Friends vs Lifree value gap)", "insight": "2-3 sentences comparing brand pricing strategy, consumer willingness to pay, value perception", "consumer_quotes": ["Quote — Profile, City, Source: Platform", "Quote — Profile, City, Source: Platform"] }
+          ],
+          "geographic_patterns": [
+            { "headline": "Region name (e.g. South India)", "insight": "2-3 sentence overview of the region's adult diaper market dynamics", "sub_factors": [
+                { "factor": "Key factor name (e.g. Pharmacy Network Strength)", "detail": "1-2 sentences on this specific factor", "consumer_quotes": ["Quote — Profile, City, Source: Platform", "Quote — Profile, City, Source: Platform"] }
+              ]
+            }
+          ]
         }
         DEPTH REQUIREMENTS for each sub-field:
         CHANNELS (MINIMUM 6): Each must be 3-4 sentences. Cover: (a) Local Chemist/Pharmacy — why it remains dominant, the trust factor, black bag culture, chemist recommendations influencing brand choice, (b) E-commerce (Amazon/Flipkart) — growth driver for discreet delivery, subscription models, how reviews influence first purchase, price comparison behavior, (c) BigBasket/Quick Commerce (Blinkit/Zepto) — the new discreet channel, impulse vs. planned, (d) Modern Trade (Big Bazaar/Reliance Smart) — self-checkout preference, normalization effect of seeing on shelf, (e) Hospital Pharmacies — point of discharge capture, doctor prescription influence, first-time buyer channel, (f) Wholesale/Medical Supply — institutional buyers, NGO/old age homes, bulk pricing.
         Each channel MUST include consumer context with quote.
         
-        PACK SIZES (MINIMUM 4): Each must be 2-3 sentences. Cover: Trial (2-3 units) — the critical first buy, price point, where purchased; Standard (10 units) — weekly replenishment, the most common; Economy/Jumbo (30+ units) — monthly bulk, per-piece savings; Night-specific packs — specialized overnight SKUs. Include pricing context in INR.
+        PACK SIZES (MINIMUM 4): Each must be 2-3 sentences with consumer quotes. Cover: Trial (2-3 units) — the critical first buy, price point, where purchased; Standard (10 units) — weekly replenishment, the most common; Economy/Jumbo (30+ units) — monthly bulk, per-piece savings; Night-specific packs — specialized overnight SKUs. Include pricing context in INR. Each item MUST have exactly 2 consumer_quotes.
         
-        PRICE POINTS (MINIMUM 4 tiers): Each must be 2-3 sentences with per-piece pricing AND consumer perception. Cover: Budget (below ₹25/piece), Economy (₹25-40/piece), Mid-market (₹40-65/piece), Premium (₹65-110+/piece). Include what the consumer gets at each tier (basic tape vs. pant style vs. overnight premium).
+        PACK SIZES BY BRAND (MINIMUM 4): Cross-reference pack strategy by brand. Cover how Friends, Lifree, Teddyy, KareIn differ in pack offerings — which brands dominate trial packs, which push bulk, which have night-specific SKUs. Include per-piece price comparisons. Each item MUST have exactly 2 consumer_quotes grounded in evidence.
         
-        GEOGRAPHIC PATTERNS (MINIMUM 5): Each must be 2-3 sentences. Cover: (a) Metros (Mumbai/Delhi/Bangalore) — e-commerce penetration, pant-style preference, willingness to pay premium, (b) South India (Kerala/TN/Karnataka) — pharmacy network strength, higher geriatric awareness, (c) Tier 2 cities (Jaipur/Lucknow/Coimbatore) — chemist-dominant, price sensitivity, brand loyalty, (d) Tier 3/Rural — near-zero penetration, awareness gap, kirana channel, (e) East India (Kolkata/Bhubaneswar) — emerging market dynamics.
+        PRICE POINTS (MINIMUM 4 tiers): Each must be 2-3 sentences with per-piece pricing AND consumer perception. Cover: Budget (below ₹25/piece), Economy (₹25-40/piece), Mid-market (₹40-65/piece), Premium (₹65-110+/piece). Include what the consumer gets at each tier (basic tape vs. pant style vs. overnight premium). Each item MUST have exactly 2 consumer_quotes.
         
-        NOTE: All values must be arrays of PLAIN STRINGS with rich detail. Not objects.
+        PRICE BY BRAND (MINIMUM 4): Brand-level pricing insights. How does Friends pricing compare to Lifree? Where does Teddyy position itself? What is TENA's premium gap? Include consumer willingness-to-pay insights and value-for-money perceptions per brand. Each item MUST have exactly 2 consumer_quotes grounded in evidence.
+        
+        GEOGRAPHIC PATTERNS (MINIMUM 5 regions): Each region is now a STRUCTURED OBJECT with sub_factors. Cover: (a) Metros (Mumbai/Delhi/Bangalore) — sub_factors: e-commerce penetration, pant-style preference, premium willingness, (b) South India (Kerala/TN/Karnataka) — sub_factors: pharmacy network strength, geriatric awareness, brand preferences, (c) Tier 2 cities (Jaipur/Lucknow/Coimbatore) — sub_factors: chemist dominance, price sensitivity, brand loyalty drivers, (d) Tier 3/Rural — sub_factors: awareness gap, kirana channel dynamics, affordability barriers, (e) East India (Kolkata/Bhubaneswar) — sub_factors: emerging market signals, distribution challenges. Each sub_factor MUST have 1-2 sentence detail and 2 consumer_quotes. Generate 2-3 sub_factors per region.
+        
+        NOTE: channels remain as plain strings. pack_sizes, pack_sizes_by_brand, price_points_inr, price_by_brand use { headline, insight, consumer_quotes } objects. geographic_patterns use { headline, insight, sub_factors: [{ factor, detail, consumer_quotes }] } objects.
 
         **consumer_statements** (Array, MINIMUM 4 items):
         Consumer quotes about purchasing habits, usage frequency, brand switching. NEVER use personal names or ages — tag each: "Quote" — [Role (Detail)], [City], Source: [Platform]. Draw from raw evidence.
 
         SOURCE GROUNDING: All quotes and insights must trace to sample_evidence. Use only platforms from platforms_in_data.
 
-        JSON: { "occasions_of_use": [...], "switching_patterns": [...], "purchase_behaviour": {...}, "consumer_statements": [...] }
+        JSON: { "occasions_of_use": [...], "switching_patterns": [...], "purchase_behaviour": { "channels": [...], "pack_sizes": [...], "pack_sizes_by_brand": [...], "price_points_inr": [...], "price_by_brand": [...], "geographic_patterns": [...] }, "consumer_statements": [...] }
     `,
     "brand_landscape": `
         TASK: Generate 'AdultDiapersBrandLandscapeSectionDTO'.

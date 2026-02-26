@@ -253,10 +253,11 @@ export const normalizeAdultDiapersData = (sectionId: string, rawData: any): any 
                 return c.channel || c.name || c.type || c.channel_focus || JSON.stringify(c);
             });
 
-            // Fix Pack Sizes — convert rich objects to "Name (Count)" strings
+            // Fix Pack Sizes — preserve structured objects { headline, insight, consumer_quotes }, convert legacy to strings
             if (adapted.purchase_behaviour.pack_sizes) {
                 adapted.purchase_behaviour.pack_sizes = ensureArray(adapted.purchase_behaviour.pack_sizes).map((p: any) => {
                     if (typeof p === 'string') return p;
+                    if (p.headline && p.insight) return p; // new structured format — keep as-is
                     if (p.pack) return p.pack;
                     const name = p.size_type || p.name || p.label || '';
                     const count = p.count || p.units || '';
@@ -266,15 +267,36 @@ export const normalizeAdultDiapersData = (sectionId: string, rawData: any): any 
                 });
             }
 
-            // Defensive: normalize price_points_inr too
+            // Pass through pack_sizes_by_brand (new structured sub-section)
+            if (adapted.purchase_behaviour.pack_sizes_by_brand) {
+                adapted.purchase_behaviour.pack_sizes_by_brand = ensureArray(adapted.purchase_behaviour.pack_sizes_by_brand);
+            }
+
+            // Defensive: normalize price_points_inr — preserve structured objects
             if (adapted.purchase_behaviour.price_points_inr) {
                 adapted.purchase_behaviour.price_points_inr = ensureArray(adapted.purchase_behaviour.price_points_inr).map((pr: any) => {
                     if (typeof pr === 'string') return pr;
+                    if (pr.headline && pr.insight) return pr; // new structured format — keep as-is
                     if (pr.range_label || pr.price) return pr;
                     const label = pr.tier || pr.segment || pr.category || '';
                     const range = pr.range || pr.price_range || pr.inr || '';
                     if (label && range) return { range_label: `${range} (${label})` };
                     return pr;
+                });
+            }
+
+            // Pass through price_by_brand (new structured sub-section)
+            if (adapted.purchase_behaviour.price_by_brand) {
+                adapted.purchase_behaviour.price_by_brand = ensureArray(adapted.purchase_behaviour.price_by_brand);
+            }
+
+            // Normalize geographic_patterns — preserve structured objects with sub_factors
+            if (adapted.purchase_behaviour.geographic_patterns) {
+                adapted.purchase_behaviour.geographic_patterns = ensureArray(adapted.purchase_behaviour.geographic_patterns).map((gp: any) => {
+                    if (typeof gp === 'string') return gp;
+                    if (gp.headline && gp.sub_factors) return gp; // new structured format — keep as-is
+                    if (gp.headline && gp.insight) return gp; // structured without sub_factors — still fine
+                    return gp;
                 });
             }
         }
