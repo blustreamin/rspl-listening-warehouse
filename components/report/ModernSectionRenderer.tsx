@@ -363,10 +363,11 @@ const AdultBehaviouralRenderer = ({ data }: { data: any }) => {
             {data.purchase_behaviour && (
                 <div className="space-y-6">
                     <SectionLabel>Purchase Behaviour (India)</SectionLabel>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="grid grid-cols-1 gap-6">
+                        {/* Channels — full width horizontal spread */}
                         <div className="bg-white rounded-xl p-5 border border-slate-200 shadow-sm">
                             <div className="text-xs font-bold text-indigo-700 uppercase mb-4 pb-2 border-b border-indigo-100">Channels</div>
-                            <div className="space-y-3">
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                                 {ensureArray(data.purchase_behaviour.channels).map((c: any, i: number) => {
                                     const txt = (c.channel || c || '').toString();
                                     const parts = txt.split(':');
@@ -385,6 +386,8 @@ const AdultBehaviouralRenderer = ({ data }: { data: any }) => {
                                 })}
                             </div>
                         </div>
+                        {/* Pack Sizes + Price Points — side by side */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div className="bg-white rounded-xl p-5 border border-slate-200 shadow-sm">
                             <div className="text-xs font-bold text-emerald-700 uppercase mb-4 pb-2 border-b border-emerald-100">Pack Sizes</div>
                             <div className="space-y-3">
@@ -475,8 +478,9 @@ const AdultBehaviouralRenderer = ({ data }: { data: any }) => {
                                 </div>
                             )}
                         </div>
+                        </div>{/* end Pack Sizes + Price Points 2-col grid */}
                         {data.purchase_behaviour.geographic_patterns && ensureArray(data.purchase_behaviour.geographic_patterns).length > 0 && (
-                            <div className="bg-white rounded-xl p-5 border border-slate-200 shadow-sm md:col-span-2">
+                            <div className="bg-white rounded-xl p-5 border border-slate-200 shadow-sm">
                                 <div className="text-xs font-bold text-rose-700 uppercase mb-4 pb-2 border-b border-rose-100">Geographic Patterns</div>
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     {ensureArray(data.purchase_behaviour.geographic_patterns).map((gp: any, i: number) => {

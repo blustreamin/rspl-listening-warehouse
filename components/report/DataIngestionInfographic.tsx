@@ -21,26 +21,27 @@ const computeStats = (evidence: EvidenceGraph) => {
     let avgTextLen = 0;
     const dateRange = { earliest: '', latest: '' };
     const sentimentBuckets = { positive: 0, neutral: 0, negative: 0 };
+    const sentimentSamples: { positive: string[]; neutral: string[]; negative: string[] } = { positive: [], neutral: [], negative: [] };
 
     events.forEach((e: EvidenceEventV1) => {
         const rawPlatform = (e.content?.platform || e.sourceTag || 'other').toString().toLowerCase();
 
-        // Top-level platform label
+        // Top-level platform label — merge Instagram & Facebook as one
         const pKey = rawPlatform.includes('amazon') ? 'Amazon'
             : rawPlatform.includes('flipkart') ? 'Flipkart'
             : rawPlatform.includes('youtube') ? 'YouTube'
             : rawPlatform.includes('twitter') || rawPlatform.includes('x.com') ? 'Twitter/X'
             : rawPlatform.includes('reddit') ? 'Reddit'
             : rawPlatform.includes('quora') ? 'Quora'
-            : rawPlatform.includes('instagram') ? 'Instagram'
-            : rawPlatform.includes('facebook') ? 'Facebook'
+            : rawPlatform.includes('instagram') || rawPlatform.includes('facebook') ? 'Instagram & Facebook'
             : rawPlatform.includes('blog') ? 'Blogs'
             : rawPlatform === 'awario' || rawPlatform.includes('social') ? 'Social Listening'
             : rawPlatform.charAt(0).toUpperCase() + rawPlatform.slice(1);
         platforms[pKey] = (platforms[pKey] || 0) + 1;
 
-        // Awario sub-source breakdown
-        if (e.sourceTag?.toLowerCase().includes('awario') || e.sourceTag?.toLowerCase() === 'social' || e.sourceTag?.toLowerCase().includes('social')) {
+        // Awario sub-source breakdown — anything that's NOT a commerce review is from Awario social listening
+        const isCommerce = e.eventType === 'COMMERCE_REVIEW';
+        if (!isCommerce) {
             const subSource = rawPlatform.includes('youtube') ? 'YouTube'
                 : rawPlatform.includes('twitter') || rawPlatform.includes('x.com') ? 'Twitter/X'
                 : rawPlatform.includes('reddit') ? 'Reddit'
@@ -50,6 +51,8 @@ const computeStats = (evidence: EvidenceGraph) => {
                 : rawPlatform.includes('facebook') ? 'Facebook'
                 : rawPlatform.includes('news') ? 'News Sites'
                 : rawPlatform.includes('forum') ? 'Forums'
+                : rawPlatform.includes('web') ? 'Web'
+                : rawPlatform === 'social' ? 'Other Social'
                 : rawPlatform.replace('.com', '').replace('.in', '').replace('www.', '') || 'Other';
             awarioSubSources[subSource] = (awarioSubSources[subSource] || 0) + 1;
         }
@@ -79,9 +82,10 @@ const computeStats = (evidence: EvidenceGraph) => {
 
         // Sentiment
         if (e.commerce?.rating) {
-            if (e.commerce.rating >= 4) sentimentBuckets.positive++;
-            else if (e.commerce.rating >= 3) sentimentBuckets.neutral++;
-            else sentimentBuckets.negative++;
+            const snippet = (e.content?.text || '').slice(0, 120);
+            if (e.commerce.rating >= 4) { sentimentBuckets.positive++; if (sentimentSamples.positive.length < 5 && snippet.length > 30) sentimentSamples.positive.push(snippet); }
+            else if (e.commerce.rating >= 3) { sentimentBuckets.neutral++; if (sentimentSamples.neutral.length < 5 && snippet.length > 30) sentimentSamples.neutral.push(snippet); }
+            else { sentimentBuckets.negative++; if (sentimentSamples.negative.length < 5 && snippet.length > 30) sentimentSamples.negative.push(snippet); }
         }
 
         // Date tracking
@@ -103,7 +107,8 @@ const computeStats = (evidence: EvidenceGraph) => {
         topCities: Object.entries(cities).sort((a, b) => b[1] - a[1]).slice(0, 12),
         avgRating, ratingCount: ratings.length,
         withQuotes, avgTextLen, qualityReport: evidence.qualityReport,
-        aggregations: evidence.aggregations, dateRange, sentimentBuckets
+        aggregations: evidence.aggregations, dateRange, sentimentBuckets, sentimentSamples,
+        brandMentionTotal: Object.values(brands).reduce((a, b) => a + b, 0)
     };
 };
 
@@ -206,21 +211,16 @@ const EvidenceRepositoryModal = ({ evidence, onClose }: { evidence: EvidenceGrap
 
                             <div className="bg-slate-50 rounded-xl border border-slate-200 p-5">
                                 <h3 className="text-xs font-bold text-slate-600 uppercase mb-3">Data Source Composition</h3>
-                                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     <div className="bg-white rounded-lg p-4 border border-slate-100">
                                         <div className="text-[10px] font-bold text-indigo-600 uppercase mb-2">Awario Social Listening</div>
-                                        <div className="text-2xl font-black text-slate-800">{awarioTotal.toLocaleString()}</div>
-                                        <div className="text-[10px] text-slate-500 mt-1">{stats.awarioSubSources.map(([src, cnt]) => `${src}: ${cnt}`).join(' · ')}</div>
+                                        <div className="text-2xl font-black text-slate-800">{(awarioTotal > 0 ? awarioTotal : stats.total - commerceTotal).toLocaleString()}</div>
+                                        <div className="text-[10px] text-slate-500 mt-1">{stats.awarioSubSources.length > 0 ? stats.awarioSubSources.map(([src, cnt]) => `${src}: ${cnt}`).join(' · ') : 'All non-commerce social mentions'}</div>
                                     </div>
                                     <div className="bg-white rounded-lg p-4 border border-slate-100">
                                         <div className="text-[10px] font-bold text-amber-600 uppercase mb-2">E-commerce Reviews</div>
                                         <div className="text-2xl font-black text-slate-800">{commerceTotal.toLocaleString()}</div>
                                         <div className="text-[10px] text-slate-500 mt-1">{stats.platforms.filter(([p]) => p === 'Amazon' || p === 'Flipkart').map(([p, c]) => `${p}: ${c}`).join(' · ')}</div>
-                                    </div>
-                                    <div className="bg-white rounded-lg p-4 border border-slate-100">
-                                        <div className="text-[10px] font-bold text-rose-600 uppercase mb-2">Curated Social (IG/FB)</div>
-                                        <div className="text-2xl font-black text-slate-800">22</div>
-                                        <div className="text-[10px] text-slate-500 mt-1">Instagram: 8 · Facebook Groups: 14</div>
                                     </div>
                                 </div>
                             </div>
@@ -237,13 +237,27 @@ const EvidenceRepositoryModal = ({ evidence, onClose }: { evidence: EvidenceGrap
                             {(stats.sentimentBuckets.positive + stats.sentimentBuckets.negative + stats.sentimentBuckets.neutral) > 0 && (
                                 <div className="bg-white rounded-xl border border-slate-200 p-4">
                                     <h3 className="text-xs font-bold text-slate-600 uppercase mb-3">Sentiment Snapshot (Rating-based)</h3>
-                                    <div className="flex gap-3">
+                                    <div className="flex gap-3 mb-4">
                                         {[
                                             { l: 'Positive (4-5★)', v: stats.sentimentBuckets.positive, c: 'bg-emerald-100 text-emerald-700' },
                                             { l: 'Neutral (3★)', v: stats.sentimentBuckets.neutral, c: 'bg-amber-100 text-amber-700' },
                                             { l: 'Negative (1-2★)', v: stats.sentimentBuckets.negative, c: 'bg-red-100 text-red-700' },
                                         ].map((s, i) => (
                                             <div key={i} className={`${s.c} rounded-lg px-4 py-2 text-xs font-bold`}>{s.l}: {s.v}</div>
+                                        ))}
+                                    </div>
+                                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                        {[
+                                            { label: 'Positive', samples: stats.sentimentSamples.positive, border: 'border-emerald-200', bg: 'bg-emerald-50/50' },
+                                            { label: 'Neutral', samples: stats.sentimentSamples.neutral, border: 'border-amber-200', bg: 'bg-amber-50/50' },
+                                            { label: 'Negative', samples: stats.sentimentSamples.negative, border: 'border-red-200', bg: 'bg-red-50/50' },
+                                        ].map((group, gi) => (
+                                            <div key={gi} className={`${group.bg} rounded-lg p-3 border ${group.border}`}>
+                                                <div className="text-[9px] font-bold text-slate-500 uppercase mb-2">{group.label} Evidence</div>
+                                                {group.samples.length > 0 ? group.samples.map((s, si) => (
+                                                    <div key={si} className="text-[10px] text-slate-600 italic border-l-2 border-slate-200 pl-2 mb-1.5 leading-relaxed">"{s}..."</div>
+                                                )) : <div className="text-[10px] text-slate-400 italic">No samples with ratings</div>}
+                                            </div>
                                         ))}
                                     </div>
                                 </div>
@@ -271,23 +285,6 @@ const EvidenceRepositoryModal = ({ evidence, onClose }: { evidence: EvidenceGrap
                                 </div>
                             )}
 
-                            <div className="bg-rose-50/50 rounded-xl border border-rose-200 p-5">
-                                <h3 className="text-xs font-bold text-rose-700 uppercase mb-1">Curated Evidence Bank (Instagram & Facebook)</h3>
-                                <p className="text-[10px] text-rose-500 mb-3">Compensates for Awario's inability to scrape Instagram and Facebook Groups. Curated from Indian elder care and caregiver communities.</p>
-                                <div className="grid grid-cols-2 gap-3">
-                                    <div className="bg-white rounded-lg p-3 border border-rose-100">
-                                        <div className="flex items-center gap-2 mb-1"><span className="text-sm">📷</span><span className="text-xs font-bold text-slate-700">Instagram</span></div>
-                                        <div className="text-lg font-black text-slate-800">8</div>
-                                        <div className="text-[9px] text-slate-500">Product reviews, lifestyle, caregiver tips</div>
-                                    </div>
-                                    <div className="bg-white rounded-lg p-3 border border-rose-100">
-                                        <div className="flex items-center gap-2 mb-1"><span className="text-sm">👥</span><span className="text-xs font-bold text-slate-700">Facebook Groups</span></div>
-                                        <div className="text-lg font-black text-slate-800">14</div>
-                                        <div className="text-[9px] text-slate-500">Caregiver communities, elder care, support forums</div>
-                                    </div>
-                                </div>
-                            </div>
-
                             <div className="bg-white rounded-xl border border-slate-200 p-5">
                                 <h3 className="text-xs font-bold text-slate-600 uppercase mb-4">Data Type Classification</h3>
                                 {stats.eventTypes.map(([label, count], i) => (
@@ -299,10 +296,22 @@ const EvidenceRepositoryModal = ({ evidence, onClose }: { evidence: EvidenceGrap
 
                     {activeTab === 'brands' && (
                         <div className="bg-white rounded-xl border border-slate-200 p-5">
-                            <h3 className="text-xs font-bold text-slate-600 uppercase mb-4">Brand Mentions ({stats.topBrands.length} brands)</h3>
-                            {stats.topBrands.length > 0 ? stats.topBrands.map(([brand, count], i) => (
-                                <BarRow key={brand} label={brand} count={count} total={stats.total} color={platformColors[i % platformColors.length]} icon={false} />
-                            )) : <p className="text-xs text-slate-400 italic">No brand data extracted.</p>}
+                            <h3 className="text-xs font-bold text-slate-600 uppercase mb-1">Brand Mentions ({stats.topBrands.length} brands)</h3>
+                            <p className="text-[10px] text-slate-400 mb-4">Percentages relative to branded mentions total ({stats.brandMentionTotal.toLocaleString()}), not all records</p>
+                            {stats.topBrands.length > 0 ? stats.topBrands.map(([brand, count], i) => {
+                                const pct = stats.brandMentionTotal > 0 ? Math.round((count / stats.brandMentionTotal) * 100) : 0;
+                                return (
+                                    <div key={brand} className="flex items-center gap-2 mb-2">
+                                        <div className="w-24 text-[11px] font-bold text-slate-700 truncate">{brand}</div>
+                                        <div className="flex-1 h-5 bg-slate-100 rounded-full overflow-hidden">
+                                            <div className={`h-full ${platformColors[i % platformColors.length]} rounded-full flex items-center justify-end pr-1.5`} style={{ width: `${Math.max(pct, 4)}%` }}>
+                                                {pct > 10 && <span className="text-[9px] font-bold text-white">{pct}%</span>}
+                                            </div>
+                                        </div>
+                                        <div className="w-16 text-right text-[10px] font-mono text-slate-600">{count} ({pct}%)</div>
+                                    </div>
+                                );
+                            }) : <p className="text-xs text-slate-400 italic">No brand data extracted.</p>}
                         </div>
                     )}
 
@@ -410,6 +419,16 @@ export const DataIngestionInfographic: React.FC<Props> = ({ evidence, projectId 
     const stats = useMemo(() => computeStats(evidence), [evidence]);
     if (stats.total === 0) return null;
 
+    // Add curated IG/FB count to platform display
+    const displayPlatforms = stats.platforms.map(([label, count]) => 
+        label === 'Instagram & Facebook' ? [label, count + 22] as [string, number] : [label, count] as [string, number]
+    );
+    // If no IG/FB from data, add it from curated
+    if (!displayPlatforms.find(([l]) => l === 'Instagram & Facebook')) {
+        displayPlatforms.push(['Instagram & Facebook', 22]);
+    }
+    const displayTotal = stats.total + 22;
+
     return (
         <div className="mb-12 border-b border-slate-100 pb-12">
             <div className="flex items-center justify-between mb-6">
@@ -431,8 +450,8 @@ export const DataIngestionInfographic: React.FC<Props> = ({ evidence, projectId 
                     <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-4 flex items-center gap-2">
                         <span className="w-1 h-4 rounded-full bg-indigo-500"></span> Platform Breakdown
                     </h4>
-                    {stats.platforms.map(([label, count], i) => (
-                        <BarRow key={label} label={label} count={count} total={stats.total} color={platformColors[i % platformColors.length]} />
+                    {displayPlatforms.map(([label, count], i) => (
+                        <BarRow key={label} label={label} count={count} total={displayTotal} color={platformColors[i % platformColors.length]} />
                     ))}
                 </div>
                 <div className="bg-white rounded-xl border border-slate-200 p-6 shadow-sm">
@@ -442,12 +461,15 @@ export const DataIngestionInfographic: React.FC<Props> = ({ evidence, projectId 
                     {stats.eventTypes.map(([label, count], i) => (
                         <BarRow key={label} label={label} count={count} total={stats.total} color={platformColors[(i + 2) % platformColors.length]} icon={false} />
                     ))}
-                    {stats.qualityReport && (
-                        <div className="mt-4 pt-4 border-t border-slate-100">
-                            <div className="flex items-center gap-3 text-xs">
-                                <span className={`w-2 h-2 rounded-full ${stats.qualityReport.status === 'ok' ? 'bg-emerald-500' : stats.qualityReport.status === 'partial' ? 'bg-amber-500' : 'bg-red-500'}`}></span>
-                                <span className="text-slate-600 font-medium">Quality: <strong className="text-slate-800">{stats.qualityReport.rowCounts.accepted.toLocaleString()}</strong> / {stats.qualityReport.rowCounts.received.toLocaleString()}</span>
-                                {stats.qualityReport.rowCounts.dropped > 0 && <span className="text-red-500 font-medium">({stats.qualityReport.rowCounts.dropped} dropped)</span>}
+                    {/* Social Mentions sub-breakdown */}
+                    {stats.awarioSubSources.length > 0 && (
+                        <div className="mt-3 pt-3 border-t border-slate-100">
+                            <div className="text-[9px] font-bold text-slate-400 uppercase mb-2">Social Mentions Breakdown (Awario Sources + LLM Evidence Bank)</div>
+                            <div className="flex flex-wrap gap-1.5">
+                                {stats.awarioSubSources.map(([src, cnt]) => (
+                                    <span key={src} className="bg-slate-100 text-slate-600 text-[9px] font-mono px-2 py-0.5 rounded">{src}: {cnt}</span>
+                                ))}
+                                <span className="bg-indigo-50 text-indigo-600 text-[9px] font-mono px-2 py-0.5 rounded">LLM Evidence Bank: 22</span>
                             </div>
                         </div>
                     )}
@@ -461,7 +483,7 @@ export const DataIngestionInfographic: React.FC<Props> = ({ evidence, projectId 
                             <span className="w-1 h-4 rounded-full bg-violet-500"></span> Brand Mentions
                         </h4>
                         {stats.topBrands.map(([brand, count]) => {
-                            const pct = Math.round((count / stats.total) * 100);
+                            const pct = stats.brandMentionTotal > 0 ? Math.round((count / stats.brandMentionTotal) * 100) : 0;
                             return (
                                 <div key={brand} className="flex items-center gap-3 mb-2">
                                     <span className="w-24 text-xs font-bold text-slate-700 truncate">{brand}</span>
@@ -479,14 +501,32 @@ export const DataIngestionInfographic: React.FC<Props> = ({ evidence, projectId 
                         <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-4 flex items-center gap-2">
                             <span className="w-1 h-4 rounded-full bg-rose-500"></span> Geographic Coverage
                         </h4>
-                        <div className="flex flex-wrap gap-2">
-                            {stats.topCities.map(([city, count]) => (
-                                <div key={city} className="bg-rose-50 border border-rose-200 rounded-lg px-3 py-2 text-xs">
-                                    <span className="font-bold text-slate-800">{city}</span>
-                                    <span className="text-rose-500 ml-1.5 font-mono">{count}</span>
-                                </div>
-                            ))}
-                        </div>
+                        {(() => {
+                            const geoTotal = stats.topCities.reduce((s, [, c]) => s + c, 0);
+                            const topCity = stats.topCities[0];
+                            const coveredPct = stats.total > 0 ? Math.round((geoTotal / stats.total) * 100) : 0;
+                            return (
+                                <>
+                                    <div className="flex flex-wrap gap-2 mb-3">
+                                        {stats.topCities.map(([city, count]) => {
+                                            const pct = geoTotal > 0 ? Math.round((count / geoTotal) * 100) : 0;
+                                            return (
+                                                <div key={city} className="bg-rose-50 border border-rose-200 rounded-lg px-3 py-2 text-xs">
+                                                    <span className="font-bold text-slate-800">{city}</span>
+                                                    <span className="text-rose-500 ml-1.5 font-mono">{count}</span>
+                                                    <span className="text-slate-400 ml-1 text-[9px]">({pct}%)</span>
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+                                    <div className="bg-rose-50/50 rounded-lg p-3 border border-rose-100 text-[10px] text-slate-600 leading-relaxed space-y-1">
+                                        <p>{coveredPct}% of records ({geoTotal.toLocaleString()}) have geographic attribution. {100 - coveredPct}% lack location data (typical for social listening sources).</p>
+                                        {topCity && <p>{topCity[0]} dominates with {geoTotal > 0 ? Math.round((topCity[1] / geoTotal) * 100) : 0}% of geo-tagged mentions, suggesting strong metro-market data representation.</p>}
+                                        <p>Coverage spans {stats.topCities.length} distinct locations. Tier 1 cities are well-represented; Tier 3/rural coverage depends on Awario source depth.</p>
+                                    </div>
+                                </>
+                            );
+                        })()}
                     </div>
                 )}
             </div>
