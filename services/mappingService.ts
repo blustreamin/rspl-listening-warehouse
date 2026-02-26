@@ -10,26 +10,58 @@ export const CANONICAL_FIELDS = [
   { key: 'product', label: 'Product Title', required: false },
   { key: 'url', label: 'Source URL', required: false },
   { key: 'platform', label: 'Platform Source', required: false },
-  { key: 'location', label: 'Location/Country', required: false },
+  { key: 'location', label: 'Country', required: false },
+  { key: 'city', label: 'City', required: false },
+  { key: 'state', label: 'State / Region', required: false },
   { key: 'language', label: 'Language', required: false },
 ];
 
+/**
+ * SOURCE_HEURISTICS: Maps canonical field names to likely column names.
+ * 
+ * ⚠️  ORDERING MATTERS: The matching engine tries exact match first, then substring.
+ *    Put the MOST SPECIFIC column name first to avoid false positives.
+ *    e.g., 'Post Snippet' should match on 'postsnippet' not 'mentionurl'.
+ *    e.g., 'reviewDescription' should match before 'reviewTitle'.
+ */
 const SOURCE_HEURISTICS: Record<string, Record<keyof CanonicalFieldMap, string[]>> = {
   amazon: {
-    text: ['reviewText', 'text', 'content', 'review', 'body'],
+    // ⚠️ 'reviewDescription' must come BEFORE 'review' to avoid matching 'reviewTitle' first
+    text: ['reviewDescription', 'reviewText', 'review_description', 'text', 'content', 'review', 'body'],
     title: ['reviewTitle', 'title', 'headline', 'summary'],
-    rating: ['rating', 'stars', 'reviewRating', 'star_rating'],
-    createdAtISO: ['reviewDate', 'date', 'publishedAt', 'timestamp', 'date_posted'],
+    rating: ['ratingScore', 'rating', 'stars', 'reviewRating', 'star_rating'],
+    createdAtISO: ['date', 'reviewDate', 'publishedAt', 'timestamp', 'date_posted'],
     author: ['reviewerName', 'author', 'userName', 'name'],
     brand: ['brand', 'manufacturer'],
     product: ['productTitle', 'productName', 'titleProduct', 'asin_name'],
     url: ['reviewUrl', 'url', 'productUrl'],
-    platform: [], // Usually constant
+    platform: [],
     location: ['country', 'marketplace'],
+    city: [],
+    state: [],
     language: [],
     variant: ['variant', 'style', 'color', 'size'],
-    sku: ['asin', 'sku'],
+    sku: ['asin', 'productAsin', 'sku'],
     price: ['price', 'amount']
+  },
+  amazon_apify: {
+    // Apify Amazon scraper uses: productAsin, ratingScore, reviewTitle, reviewDescription, date, country, variant, isVerified, position, reviewUrl
+    text: ['reviewDescription', 'review_description'],
+    title: ['reviewTitle', 'review_title'],
+    rating: ['ratingScore', 'rating_score', 'rating'],
+    createdAtISO: ['date', 'timestamp'],
+    author: ['author', 'reviewerName'],
+    brand: ['brand'],
+    product: ['productTitle', 'productName'],
+    url: ['reviewUrl', 'review_url', 'url'],
+    platform: ['platform'],
+    location: ['country'],
+    city: [],
+    state: [],
+    language: [],
+    variant: ['variant'],
+    sku: ['productAsin', 'asin'],
+    price: ['price']
   },
   flipkart: {
     text: ['reviewText', 'text', 'content', 'comment', 'review'],
@@ -42,6 +74,8 @@ const SOURCE_HEURISTICS: Record<string, Record<keyof CanonicalFieldMap, string[]
     url: ['reviewUrl', 'productUrl', 'url'],
     platform: [],
     location: ['city', 'state', 'location'],
+    city: ['city'],
+    state: ['state'],
     language: [],
     variant: [],
     sku: ['pid', 'sku'],
@@ -58,6 +92,8 @@ const SOURCE_HEURISTICS: Record<string, Record<keyof CanonicalFieldMap, string[]
     url: ['url', 'reviewUrl'],
     platform: ['platform'],
     location: ['location'],
+    city: [],
+    state: [],
     language: [],
     variant: [],
     sku: [],
@@ -74,6 +110,8 @@ const SOURCE_HEURISTICS: Record<string, Record<keyof CanonicalFieldMap, string[]
     url: ['url', 'permalink'],
     platform: ['platform'],
     location: ['location'],
+    city: [],
+    state: [],
     language: [],
     variant: [],
     sku: [],
@@ -90,23 +128,29 @@ const SOURCE_HEURISTICS: Record<string, Record<keyof CanonicalFieldMap, string[]
     url: ['url', 'permalink'],
     platform: ['platform'],
     location: ['location', 'locationName'],
+    city: [],
+    state: [],
     language: [],
     variant: [],
     sku: [],
     price: []
   },
   awario: {
-    text: ['text', 'mention', 'content', 'snippet', 'post_text'],
+    // ⚠️  'Post Snippet' is the text column. Use exact name FIRST.
+    //     Previously 'mention' was matching 'Mention URL' before 'snippet' matched 'Post Snippet' — FIXED.
+    text: ['Post Snippet', 'postsnippet', 'snippet', 'post_text', 'text', 'content'],
     title: ['title', 'post_title'],
-    rating: [], // Rarely has rating
-    createdAtISO: ['date', 'published', 'created_at', 'time'],
-    author: ['author', 'username', 'source_name', 'screen_name'],
+    rating: [],
+    createdAtISO: ['Mention Date', 'mentiondate', 'date', 'published', 'created_at'],
+    author: ['Author Name', 'authorname', 'author', 'username', 'source_name', 'screen_name'],
     brand: ['brand_name', 'keyword'],
     product: [],
-    url: ['url', 'link', 'permalink', 'original_url'],
-    platform: ['source', 'network', 'source_type'],
-    location: ['country', 'location', 'place'],
-    language: ['language', 'lang'],
+    url: ['Mention URL', 'mentionurl', 'url', 'link', 'permalink', 'original_url'],
+    platform: ['Source', 'source', 'network', 'source_type'],
+    location: ['Country', 'country', 'location', 'place'],
+    city: ['City', 'city'],
+    state: ['State', 'state'],
+    language: ['Language', 'language', 'lang'],
     variant: [],
     sku: [],
     price: []
@@ -122,6 +166,8 @@ const SOURCE_HEURISTICS: Record<string, Record<keyof CanonicalFieldMap, string[]
     url: ['url', 'link', 'permalink', 'href'],
     platform: ['platform', 'source', 'network', 'origin'],
     location: ['location', 'country', 'geo'],
+    city: ['city'],
+    state: ['state', 'region'],
     language: ['language', 'lang'],
     variant: [],
     sku: [],
@@ -138,15 +184,23 @@ export const generateAutoMapping = (file: UploadedFile): InputMapping => {
 
   const findCol = (targetField: keyof CanonicalFieldMap): string | undefined => {
     const keywords = heuristics[targetField] || [];
-    // 1. Exact match (case insensitive)
+    // 1. Exact match (case insensitive, normalized)
     for (const k of keywords) {
         const cleanK = k.toLowerCase().replace(/_/g, '').replace(/\s/g, '');
         const idx = lowerCols.indexOf(cleanK);
         if (idx !== -1) return columns[idx];
     }
-    // 2. Contains match
+    // 2. Contains match — only for longer keywords (≥4 chars) to avoid false positives
     for (const k of keywords) {
         const cleanK = k.toLowerCase().replace(/_/g, '').replace(/\s/g, '');
+        if (cleanK.length < 4) continue;
+        const idx = lowerCols.findIndex(c => c.includes(cleanK));
+        if (idx !== -1) return columns[idx];
+    }
+    // 3. Relaxed contains for short keywords (last resort)
+    for (const k of keywords) {
+        const cleanK = k.toLowerCase().replace(/_/g, '').replace(/\s/g, '');
+        if (cleanK.length >= 4) continue;
         const idx = lowerCols.findIndex(c => c.includes(cleanK));
         if (idx !== -1) return columns[idx];
     }
@@ -164,7 +218,7 @@ export const generateAutoMapping = (file: UploadedFile): InputMapping => {
       currency: 'INR'
   };
   
-  if (file.sourceTag === 'amazon') constants.platform = 'Amazon';
+  if (file.sourceTag === 'amazon' || file.sourceTag === 'amazon_apify') constants.platform = 'Amazon';
   if (file.sourceTag === 'flipkart') constants.platform = 'Flipkart';
   if (file.sourceTag === 'flipkart_apify') constants.platform = 'Flipkart';
   if (file.sourceTag === 'facebook_apify') constants.platform = 'Facebook';
@@ -179,13 +233,14 @@ export const generateAutoMapping = (file: UploadedFile): InputMapping => {
     coverage: calculateCoverage(file, map)
   };
 
+  console.log(`[mappingService] ${file.sourceTag}: text→${map.text}, url→${map.url}, city→${map.city}, state→${map.state}, location→${map.location}`);
+
   return mapping;
 };
 
 const calculateCoverage = (file: UploadedFile, map: CanonicalFieldMap): { text: number, rating: number, date: number } => {
   if (!file.rawContent || file.rawContent.length === 0) return { text: 0, rating: 0, date: 0 };
   
-  // Sample first 100 rows
   const sample = file.rawContent.slice(0, 100);
   const isArray = Array.isArray(sample[0]);
   const headers = file.parsedPreview?.columns || [];
@@ -225,7 +280,6 @@ export const getPreviewRows = (file: UploadedFile, mapping: InputMapping, count:
   return sample.map((row, i) => {
     const mapped: any = { _rowId: i };
     
-    // Apply field map
     Object.entries(mapping.fieldMap).forEach(([canonical, colName]) => {
       if (colName) {
         if (isArray) {
@@ -237,7 +291,6 @@ export const getPreviewRows = (file: UploadedFile, mapping: InputMapping, count:
       }
     });
 
-    // Apply constants
     if (!mapped.platform && mapping.constants.platform) mapped.platform = mapping.constants.platform;
     if (!mapped.location && mapping.constants.country) mapped.location = mapping.constants.country;
     

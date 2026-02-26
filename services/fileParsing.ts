@@ -9,6 +9,11 @@ const detectSourceTag = (fileName: string, headers: string[]): FileSourceTag => 
   const fn = fileName.toLowerCase();
   const headersLower = headers.map(h => h.toLowerCase());
 
+  // Apify Amazon Reviews Scraper
+  if (fn.includes('amazon-reviews-scraper') || fn.includes('amazon_reviews')) {
+    return 'amazon_apify';
+  }
+
   // Apify Facebook Posts Scraper
   if (fn.includes('facebook-posts-scraper') || fn.includes('facebook_posts')) {
     return 'facebook_apify';
@@ -27,6 +32,10 @@ const detectSourceTag = (fileName: string, headers: string[]): FileSourceTag => 
   // Header-based detection as fallback
   if (headersLower.includes('review_text') && headersLower.includes('verified_purchase')) {
     return 'flipkart_apify';
+  }
+  // Amazon Apify: has reviewDescription + ratingScore (unique combo)
+  if (headersLower.includes('reviewdescription') && headersLower.includes('ratingscore')) {
+    return 'amazon_apify';
   }
   if (headersLower.includes('caption') && headersLower.includes('ownerusername') && headersLower.includes('likescount')) {
     return 'instagram_apify';

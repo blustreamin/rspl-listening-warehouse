@@ -298,6 +298,7 @@ export const DataStudio: React.FC<Props> = ({ projectId, onDataIngested }) => {
                                             <option value="other">Other</option>
                                             <option value="awario">Awario (Social)</option>
                                             <option value="amazon">Amazon</option>
+                                            <option value="amazon_apify">Amazon (Apify)</option>
                                             <option value="flipkart">Flipkart</option>
                                             <option value="flipkart_apify">Flipkart (Apify)</option>
                                             <option value="instagram_apify">Instagram (Apify)</option>

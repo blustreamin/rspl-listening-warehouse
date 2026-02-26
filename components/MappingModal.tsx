@@ -144,7 +144,8 @@ export const MappingModal: React.FC<Props> = ({ isOpen, onClose, files, projectI
                                 onChange={(e) => handleSourceTagChange(e.target.value as FileSourceTag)}
                                 className="w-full border-slate-300 rounded text-sm"
                             >
-                                <option value="amazon">Amazon Reviews (Apify XLSX)</option>
+                                <option value="amazon">Amazon Reviews (Generic)</option>
+                                <option value="amazon_apify">Amazon Reviews (Apify XLSX)</option>
                                 <option value="flipkart">Flipkart Reviews (Apify XLSX)</option>
                                 <option value="flipkart_apify">Flipkart Reviews (Apify Scraper)</option>
                                 <option value="instagram_apify">Instagram Posts (Apify)</option>
