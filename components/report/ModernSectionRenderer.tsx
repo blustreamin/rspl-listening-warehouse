@@ -622,7 +622,13 @@ const AdultBrandLandscapeSection = ({ data }: { data: any }) => {
 // --- ADULT DIAPERS GAP ANALYSIS RENDERER ---
 
 const AdultGapAnalysisRenderer = ({ data }: { data: any }) => {
-    if (!data.emotional_needs && !data.functional_needs && !data.unmet_expectations && !data.non_user_gaps) return null;
+    // Resilient: show whatever we have, even partial data
+    const emotional = ensureArray(data.emotional_needs);
+    const functional = ensureArray(data.functional_needs);
+    const unmet = ensureArray(data.unmet_expectations);
+    const nonUser = ensureArray(data.non_user_gaps);
+    
+    if (emotional.length === 0 && functional.length === 0 && unmet.length === 0 && nonUser.length === 0) return null;
 
     const renderGapCard = (item: any, accent: string) => (
         <div className={`${accent} rounded-lg p-4 mb-3`}>

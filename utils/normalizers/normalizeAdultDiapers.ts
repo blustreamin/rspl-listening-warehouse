@@ -156,7 +156,14 @@ export const normalizeAdultDiapersData = (sectionId: string, rawData: any): any 
         ['emotional_needs', 'functional_needs', 'unmet_expectations', 'non_user_gaps'].forEach(key => {
             if (adapted[key]) {
                 adapted[key] = ensureArray(adapted[key]).map((item: any) => {
-                    if (typeof item === 'string') return { need: item, who_feels_it: '', current_gap: '', consumer_quote: '', opportunity: '' };
+                    if (typeof item === 'string') return { need: item, who_feels_it: '', current_gap: '', consumer_quotes: [], opportunity: '' };
+                    // Normalize consumer_quote (singular) to consumer_quotes (array)
+                    if (item.consumer_quote && !item.consumer_quotes) {
+                        item.consumer_quotes = [item.consumer_quote];
+                    }
+                    if (item.consumer_quotes) {
+                        item.consumer_quotes = ensureArray(item.consumer_quotes);
+                    }
                     return item;
                 });
             }

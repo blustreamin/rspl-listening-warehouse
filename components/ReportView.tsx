@@ -197,12 +197,71 @@ export const ReportView: React.FC<Props> = ({ projectId, injectedEvidence }) => 
                 <SectionRenderer key={section.title} data={section} projectId={projectId} />
             );
         })}
-        {sections.length < (TEMPLATE_REGISTRY[projectId]?.sections.length || 0) && (
-             <div className="text-center py-12">
-                 <div className="animate-spin inline-block w-8 h-8 border-4 border-slate-200 border-t-indigo-600 rounded-full mb-4"></div>
-                 <p className="text-slate-400 font-mono text-sm">Synthesizing next section...</p>
-             </div>
-        )}
+        {sections.length < (TEMPLATE_REGISTRY[projectId]?.sections.length || 0) && (() => {
+             const totalSections = TEMPLATE_REGISTRY[projectId]?.sections.length || 6;
+             const completed = sections.length;
+             const pct = Math.round((completed / totalSections) * 100);
+             const allSections = TEMPLATE_REGISTRY[projectId]?.sections || [];
+             const completedIds = sections.map(s => s.sectionId);
+             const pending = allSections.filter((s: any) => !completedIds.includes(s.sectionId));
+             const currentSection = pending[0];
+             const elapsed = Math.round((Date.now() - (window as any).__reportStartTime) / 1000) || 0;
+             if (completed === 0 && !(window as any).__reportStartTime) (window as any).__reportStartTime = Date.now();
+             
+             return (
+                 <div className="py-10">
+                     {/* Progress Bar */}
+                     <div className="max-w-lg mx-auto mb-6">
+                         <div className="flex justify-between text-[10px] font-mono text-slate-400 mb-2">
+                             <span>{completed} of {totalSections} sections</span>
+                             <span>{pct}%</span>
+                         </div>
+                         <div className="h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                             <div className="h-full bg-indigo-500 rounded-full transition-all duration-700" style={{ width: `${pct}%` }}></div>
+                         </div>
+                     </div>
+
+                     {/* Telemetry */}
+                     <div className="max-w-lg mx-auto bg-slate-50 border border-slate-200 rounded-lg p-4">
+                         <div className="flex items-center gap-3 mb-3">
+                             <div className="animate-spin w-4 h-4 border-2 border-slate-300 border-t-indigo-600 rounded-full"></div>
+                             <span className="text-xs font-bold text-slate-700">
+                                 {currentSection ? `Synthesizing: ${currentSection.title}` : 'Processing...'}
+                             </span>
+                         </div>
+                         <div className="space-y-1.5 font-mono text-[10px] text-slate-400">
+                             {completedIds.map((id: string) => {
+                                 const sec = allSections.find((s: any) => s.sectionId === id);
+                                 return (
+                                     <div key={id} className="flex items-center gap-2">
+                                         <span className="text-emerald-500">&#10003;</span>
+                                         <span className="text-slate-600">{sec?.title || id}</span>
+                                         <span className="text-slate-300">completed</span>
+                                     </div>
+                                 );
+                             })}
+                             {pending.map((s: any, i: number) => (
+                                 <div key={s.sectionId} className="flex items-center gap-2">
+                                     {i === 0 ? (
+                                         <span className="text-indigo-400 animate-pulse">&#9679;</span>
+                                     ) : (
+                                         <span className="text-slate-300">&#9675;</span>
+                                     )}
+                                     <span className={i === 0 ? 'text-indigo-600' : 'text-slate-400'}>{s.title}</span>
+                                     {i === 0 && <span className="text-indigo-400">in progress</span>}
+                                     {i > 0 && <span className="text-slate-300">queued</span>}
+                                 </div>
+                             ))}
+                         </div>
+                         {elapsed > 0 && (
+                             <div className="mt-3 pt-2 border-t border-slate-200 text-[10px] text-slate-400 font-mono">
+                                 Elapsed: {elapsed}s | Model: gemini-3-pro | Thinking: 24k-32k tokens
+                             </div>
+                         )}
+                     </div>
+                 </div>
+             );
+        })()}
       </div>
 
       {/* Data Ingestion Analysis - at bottom of report */}
