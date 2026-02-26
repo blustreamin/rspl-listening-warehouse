@@ -10,11 +10,12 @@ OBJECTIVE: Synthesize raw evidence into a Board-Level Strategic Report (McKinsey
 GLOBAL NON-NEGOTIABLES:
 1.  **CONSULTING-GRADE STRUCTURE**: Every insight must follow the logic: Headline -> Signal -> Evidence -> Implication.
 2.  **INDIA CONTEXT STRICTNESS**: Pricing in INR (₹). Channels: Chemist, Amazon India. Culture: Joint family, Dignity.
-3.  **CONSUMER STATEMENTS**: Every section MUST include specific "verbatims" or "consumer_statements" arrays. Each verbatim MUST tag the speaker profile in this format: "Quote text here" — Caregiver, Pune / "Quote text" — Active Senior, Delhi / "Quote text" — Non-User, Tier 2 City. Every sub-section must include at least 2 short consumer quotes that capture the essence of the insight.
+3.  **CONSUMER STATEMENTS**: Every section MUST include specific "verbatims" or "consumer_statements" arrays. CRITICAL QUOTE FORMAT: NEVER use personal names or ages. Instead, tag every quote with a GENERIC PROFILE DESCRIPTOR and DATA SOURCE in this format: "Quote text here" — [Role/Profile], [City/Region], Source: [Platform]. Examples: "Quote" — Caregiver (Daughter), Mumbai, Source: Amazon Review / "Quote" — Active Senior (Self-Use), Tier 2 City, Source: Awario Social / "Quote" — Non-User (Male Elder), Rural TN, Source: YouTube Comment. The profile descriptor should indicate: (a) their role (Caregiver, Self-Use, Non-User, First-Time Buyer), (b) a demographic hint in parentheses (Daughter, Male Elder, Working Woman), (c) location, (d) data source platform.
 4.  **EVIDENCE LINKING**: Map insights to \`evidence_ids\` from input or seed IDs (SEED_AD_###).
 5.  **NO PLACEHOLDERS**: Do not use "Derived", "Insight", "N/A". Use "Market Observation" if needed.
 6.  **HUMANIZED LANGUAGE**: Write in clear, relatable language. Avoid jargon. The report should be accessible to non-technical stakeholders. Prefer everyday terms over consulting-speak. E.g., say "people stop going out" not "social withdrawal behavior observed".
 7.  **CLEAR TERMINOLOGY DISTINCTIONS**: Strictly differentiate between: (a) Switching Triggers = moments that cause consumers to try/switch products, (b) Barriers = obstacles preventing adoption (stigma, cost, logistics), (c) Suffering Moments = acute difficulty occasions due to incontinence (distinct from stigma). Never conflate these terms.
+8.  **SOURCE GROUNDING — ZERO FABRICATION**: This is the MOST CRITICAL rule. Every consumer quote, statistic, brand mention, pricing claim, and channel insight in your output MUST be directly traceable to the raw evidence provided in sample_evidence. DO NOT invent, hallucinate, or embellish quotes. If raw evidence is sparse for a sub-section, write fewer but accurate insights rather than padding with fabricated content. When quoting: paraphrase or directly use language from the raw data, then tag with the actual platform (Source field) from that evidence record. If you cannot ground a claim in the evidence, prefix it with "Market Observation:" to signal it is analyst inference, not data-backed. The Source: tag on every quote MUST match an actual platform present in the ingested data (e.g., Amazon Review, YouTube, Twitter, Reddit, Quora — only platforms you can see in the evidence).
 
 OUTPUT FORMAT: Strict JSON. No Wrappers.
 `;
@@ -43,11 +44,11 @@ export const ADULT_DIAPERS_TEMPLATE: TemplatePack = {
         4. **caregiver_bedridden**: Full-time caregivers managing total dependency.
 
         FOR EACH PROFILE, you MUST provide ALL of the following:
-        - **incontinence_issue**: Array of min 2 items. Each item = { "headline": "...", "what_it_means": "...", "consumer_quotes": ["Quote 1 — Speaker, City", "Quote 2 — Speaker, City", "Quote 3 — Speaker, City"] }. Be specific: "Stress incontinence triggered by sneezing/laughing" not just "Bladder weakness". Each item MUST have exactly 3 consumer_quotes.
-        - **worst_moments**: Array of MINIMUM 6 suffering moments. Each item = { "headline": "...", "what_it_means": "...", "consumer_quotes": ["Quote 1 — Speaker, City", "Quote 2 — Speaker, City", "Quote 3 — Speaker, City"] }. These are occasions of acute difficulty DUE TO INCONTINENCE — NOT stigma, NOT barriers. Cover: emotional (shame at family gatherings), social (avoiding temple visits, skipping weddings), practical (sleep disruption, clothing limitations, monsoon-season challenges), financial (cost burden impacting household budget), travel-related (long train/bus journeys without toilet access), and daily routine (morning walks, grocery runs). Each MUST include a specific situational example. Each item MUST have exactly 3 consumer_quotes.
-        - **life_impact**: Array of min 3 life impacts. Each item = { "headline": "...", "what_it_means": "...", "consumer_quotes": ["Quote 1 — Speaker, City", "Quote 2 — Speaker, City", "Quote 3 — Speaker, City"] }. Include severity: social isolation, caregiver burnout, reduced mobility confidence. IMPORTANT: Each impact description MUST identify the speaker profile. Each item MUST have exactly 3 consumer_quotes.
-        - **solutions**: Array of MINIMUM 8 solutions. Each item = { "headline": "...", "what_it_means": "...", "consumer_quotes": ["Quote 1 — Speaker, City", "Quote 2 — Speaker, City", "Quote 3 — Speaker, City"] }. MUST cover ALL of the following: (a) product types — light pads vs. heavy tape-style vs. pant-style, (b) behavioral hacks — fluid restriction, toilet-mapping routes, double-layering, (c) routines — day vs. night usage patterns, pre-travel prep rituals, (d) satisfaction level for each solution — state whether users find it adequate or a compromise, (e) channel-based solutions — pharmacy-led vs. e-commerce subscription vs. hospital supply, (f) caregiver-specific solutions — bed protectors, quick-change techniques, odor management. Each solution needs a 2-3 sentence description with real consumer context. Each item MUST have exactly 3 consumer_quotes.
-        - **verbatims**: Array of min 3 specific consumer quotes per profile. EVERY verbatim MUST tag the speaker: "Quote text" — [Profile Type], [City/Context]. E.g.: "Main raat ko 3 baar uthti hoon check karne" — Self-Use Senior, Lucknow. These must sound like real Indian consumers — use colloquial language, mention specific situations (train journeys, wedding functions, monsoon season), reference real costs in ₹, mention actual brands or channels.
+        - **incontinence_issue**: Array of min 2 items. Each item = { "headline": "...", "what_it_means": "...", "consumer_quotes": ["Quote — Profile, City, Source: Platform", "Quote — Profile, City, Source: Platform"] }. Be specific: "Stress incontinence triggered by sneezing/laughing" not just "Bladder weakness". Each item MUST have exactly 2 consumer_quotes. CRITICAL: Quotes MUST be grounded in the raw evidence provided — draw from actual ingested data, not fabricated. Tag each: "Quote" — [Role (Detail)], [City], Source: [Platform].
+        - **worst_moments**: Array of MINIMUM 6 suffering moments. Each item = { "headline": "...", "what_it_means": "...", "consumer_quotes": ["Quote — Profile, City, Source: Platform", "Quote — Profile, City, Source: Platform"] }. These are occasions of acute difficulty DUE TO INCONTINENCE — NOT stigma, NOT barriers. Cover: emotional (shame at family gatherings), social (avoiding temple visits, skipping weddings), practical (sleep disruption, clothing limitations, monsoon-season challenges), financial (cost burden impacting household budget), travel-related (long train/bus journeys without toilet access), and daily routine (morning walks, grocery runs). Each MUST include a specific situational example. Each item MUST have exactly 2 consumer_quotes. CRITICAL: Quotes MUST be grounded in the raw evidence provided — draw from actual ingested data, not fabricated. Tag each: "Quote" — [Role (Detail)], [City], Source: [Platform].
+        - **life_impact**: Array of min 3 life impacts. Each item = { "headline": "...", "what_it_means": "...", "consumer_quotes": ["Quote — Profile, City, Source: Platform", "Quote — Profile, City, Source: Platform"] }. Include severity: social isolation, caregiver burnout, reduced mobility confidence. IMPORTANT: Each impact description MUST identify the speaker profile. Each item MUST have exactly 2 consumer_quotes. CRITICAL: Quotes MUST be grounded in the raw evidence provided — draw from actual ingested data, not fabricated. Tag each: "Quote" — [Role (Detail)], [City], Source: [Platform].
+        - **solutions**: Array of MINIMUM 8 solutions. Each item = { "headline": "...", "what_it_means": "...", "consumer_quotes": ["Quote — Profile, City, Source: Platform", "Quote — Profile, City, Source: Platform"] }. MUST cover ALL of the following: (a) product types — light pads vs. heavy tape-style vs. pant-style, (b) behavioral hacks — fluid restriction, toilet-mapping routes, double-layering, (c) routines — day vs. night usage patterns, pre-travel prep rituals, (d) satisfaction level for each solution — state whether users find it adequate or a compromise, (e) channel-based solutions — pharmacy-led vs. e-commerce subscription vs. hospital supply, (f) caregiver-specific solutions — bed protectors, quick-change techniques, odor management. Each solution needs a 2-3 sentence description with real consumer context. Each item MUST have exactly 2 consumer_quotes. CRITICAL: Quotes MUST be grounded in the raw evidence provided — draw from actual ingested data, not fabricated. Tag each: "Quote" — [Role (Detail)], [City], Source: [Platform].
+        - **verbatims**: Array of min 3 specific consumer quotes per profile. NEVER use personal names or ages. Tag with generic profile descriptor + source: "Quote text" — [Role (Detail)], [City], Source: [Platform]. E.g.: "Main raat ko 3 baar uthti hoon check karne" — Self-Use Senior (Female), Lucknow, Source: Awario Social. These must sound like real Indian consumers — use colloquial language, mention specific situations, reference real costs in INR, mention actual brands or channels.
         - **satisfaction**: "High" | "Medium" | "Low"
 
         DEPTH REQUIREMENT: Each profile should be as detailed as a Kantar consumer deep-dive. A product manager reading this should say "I didn't know that about our consumers."
@@ -100,7 +101,9 @@ export const ADULT_DIAPERS_TEMPLATE: TemplatePack = {
         Each stage description should be 4-5 rich sentences. Think Kantar qualitative depth — a strategist reading this should understand the emotional texture of each stage.
 
         **consumer_statements** (Array, MINIMUM 4 items):
-        Clean consumer quotes about awareness and stigma. NO source IDs. NO evidence IDs. Just the quote text as a string with speaker tag — e.g., "Quote" — Non-User, Tier 2 City. These must sound like real Indian consumers speaking candidly.
+        Clean consumer quotes about awareness and stigma. NO source IDs. NO evidence IDs. Tag each: "Quote" — [Role (Detail)], [City], Source: [Platform]. NEVER use personal names or ages. Draw quotes from the raw evidence provided — do not fabricate.
+
+        SOURCE GROUNDING REMINDER: Every quote and insight must be traceable to the sample_evidence provided. Use only platforms listed in platforms_in_data for Source tags.
 
         JSON: { "awareness_sources": [...], "misconceptions": [...], "perceptions_and_stigma": [...], "decision_journey": [...], "consumer_statements": [...] }
     `,
@@ -160,6 +163,8 @@ export const ADULT_DIAPERS_TEMPLATE: TemplatePack = {
         - Cover BOTH user AND non-user perspectives
         - Be specific to India market context (pricing in ₹, cultural references, channel realities)
 
+        SOURCE GROUNDING: Every consumer_quote must be drawn from sample_evidence. NEVER use personal names or ages — tag: "Quote" — [Role (Detail)], [City], Source: [Platform]. Use only platforms from platforms_in_data. If evidence is sparse for a gap, write an analyst inference prefixed with "Market Observation:" rather than inventing a quote.
+
         JSON: { "emotional_needs": [...], "functional_needs": [...], "unmet_expectations": [...], "non_user_gaps": [...], "consumer_statements": [...] }
     `,
     "user_non_user_profiles": `
@@ -215,6 +220,8 @@ export const ADULT_DIAPERS_TEMPLATE: TemplatePack = {
         NON-USERS must include: a stigma resister, a cost resister, a cloth loyalist, a low-awareness elder, and a disposal/logistics barrier.
         
         NON-USER DEPTH: Non-user profiles are just as important as user profiles. Capture their skepticism, misconceptions, and resistance with the same depth. Include direct quotes showing disbelief, disinterest, or active refusal.
+        
+        SOURCE GROUNDING: Every quote and insight must be traceable to sample_evidence. NEVER use personal names or ages in verbatims — tag each: "Quote" — [Role (Detail)], [City], Source: [Platform]. Use only platforms from platforms_in_data.
     `,
     "behavioural_profile": `
         TASK: Generate 'AdultDiapersBehaviouralProfileSectionDTO'.
@@ -260,7 +267,9 @@ export const ADULT_DIAPERS_TEMPLATE: TemplatePack = {
         NOTE: All values must be arrays of PLAIN STRINGS with rich detail. Not objects.
 
         **consumer_statements** (Array, MINIMUM 4 items):
-        Consumer quotes about purchasing habits, usage frequency, brand switching. EVERY quote MUST tag the speaker — e.g., "Quote" — Caregiver, Mumbai.
+        Consumer quotes about purchasing habits, usage frequency, brand switching. NEVER use personal names or ages — tag each: "Quote" — [Role (Detail)], [City], Source: [Platform]. Draw from raw evidence.
+
+        SOURCE GROUNDING: All quotes and insights must trace to sample_evidence. Use only platforms from platforms_in_data.
 
         JSON: { "occasions_of_use": [...], "switching_patterns": [...], "purchase_behaviour": {...}, "consumer_statements": [...] }
     `,
@@ -308,6 +317,8 @@ export const ADULT_DIAPERS_TEMPLATE: TemplatePack = {
         NOTE: Do NOT include word_cloud_terms. Focus on structured attribute analysis, pricing, packaging, and geographic insights instead. Word clouds add no analytical value.
 
         This should read like a brand health tracker from Kantar or Ipsos.
+
+        SOURCE GROUNDING: Every consumer quote and brand claim must trace to sample_evidence. NEVER use personal names or ages — tag: "Quote" — [Role (Detail)], [City], Source: [Platform]. Brand ratings, pricing, and attribute comparisons must reflect actual review data, not generic assumptions. Use only platforms from platforms_in_data.
         
         JSON: { "brands": [...], "market_structure": [...] }
     `

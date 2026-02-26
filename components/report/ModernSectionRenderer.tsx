@@ -103,7 +103,7 @@ const AdultIncontinenceSection = ({ data }: { data: any }) => {
                                 <div key={i} className="bg-amber-50/50 border border-amber-100 rounded-lg p-3">
                                     <div className="text-xs font-semibold text-slate-800"><SafeText content={extractText(t)} /></div>
                                     {extractDetail(t) && <div className="text-[10px] text-slate-500 mt-1"><SafeText content={extractDetail(t)} /></div>}
-                                    <QuoteBlock quotes={ensureArray(t.consumer_quotes)} limit={3} />
+                                    <QuoteBlock quotes={ensureArray(t.consumer_quotes)} limit={2} />
                                 </div>
                             ))}
                         </div>
@@ -122,7 +122,7 @@ const AdultIncontinenceSection = ({ data }: { data: any }) => {
                                             {extractDetail(m) && <div className="text-[10px] text-slate-500 mt-0.5"><SafeText content={extractDetail(m)} /></div>}
                                         </div>
                                     </div>
-                                    <QuoteBlock quotes={ensureArray(m.consumer_quotes)} limit={3} />
+                                    <QuoteBlock quotes={ensureArray(m.consumer_quotes)} limit={2} />
                                 </div>
                             ))}
                         </div>
@@ -141,7 +141,7 @@ const AdultIncontinenceSection = ({ data }: { data: any }) => {
                                             {extractDetail(imp) && <div className="text-[10px] text-slate-500 mt-0.5"><SafeText content={extractDetail(imp)} /></div>}
                                         </div>
                                     </div>
-                                    <QuoteBlock quotes={ensureArray(imp.consumer_quotes)} limit={3} />
+                                    <QuoteBlock quotes={ensureArray(imp.consumer_quotes)} limit={2} />
                                 </div>
                             ))}
                         </div>
@@ -151,11 +151,11 @@ const AdultIncontinenceSection = ({ data }: { data: any }) => {
                     <div className="mb-4">
                         <SectionLabel color="bg-emerald-500">Solutions</SectionLabel>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                            {ensureArray(p.solutions).slice(0, 8).map((sol: any, i: number) => (
+                            {ensureArray(p.solutions).slice(0, 6).map((sol: any, i: number) => (
                                 <div key={i} className="bg-emerald-50/40 border border-emerald-100/60 rounded-lg p-3">
                                     <div className="text-xs font-semibold text-slate-800"><SafeText content={extractText(sol)} /></div>
                                     {extractDetail(sol) && <div className="text-[10px] text-slate-500 mt-1 leading-relaxed"><SafeText content={extractDetail(sol)} /></div>}
-                                    <QuoteBlock quotes={ensureArray(sol.consumer_quotes)} limit={3} />
+                                    <QuoteBlock quotes={ensureArray(sol.consumer_quotes)} limit={2} />
                                 </div>
                             ))}
                         </div>

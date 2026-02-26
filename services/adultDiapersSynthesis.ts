@@ -38,10 +38,13 @@ const scoreEvent = (e: EvidenceEventV1, keywords: string[]): number => {
         if (text.includes(k)) score += 2;
     });
 
-    // Metadata value
+    // Metadata value — prefer records with rich provenance for source grounding
     if (e.commerce?.rating) score += 1;
     if (e.commerce?.brand && e.commerce.brand !== "Generic/Other") score += 2;
     if (text.length > 50 && text.length < 500) score += 1; // Sweet spot length
+    if (text.length > 100) score += 1; // Longer text = richer quotes
+    if (e.geo?.city) score += 1; // Has location = better for tagging
+    if (e.content?.platform) score += 1; // Has platform = better for source tag
 
     return score;
 };
@@ -84,15 +87,35 @@ const prepareTargetedEvidence = (graph: EvidenceGraph, sectionId: string): { jso
     const simplifiedSample = sample.map(e => ({
         text: e.content.text,
         source: e.sourceTag,
+        platform: e.content?.platform || e.sourceTag,
+        geo: e.geo?.city ? `${e.geo.city}, ${e.geo.country || 'India'}` : (e.geo?.country || ''),
         brand: e.commerce?.brand,
         rating: e.commerce?.rating,
         id: e.evidenceId
     }));
     
+    // Build platform distribution for source grounding
+    const platformCounts: Record<string, number> = {};
+    simplifiedSample.forEach(e => {
+        const p = (e.platform || e.source || 'unknown').toString().toLowerCase();
+        const label = p.includes('amazon') ? 'Amazon Review' 
+                    : p.includes('flipkart') ? 'Flipkart Review'
+                    : p.includes('youtube') ? 'YouTube' 
+                    : p.includes('twitter') || p.includes('x.com') ? 'Twitter/X'
+                    : p.includes('reddit') ? 'Reddit'
+                    : p.includes('quora') ? 'Quora'
+                    : p.includes('instagram') ? 'Instagram'
+                    : p.includes('facebook') ? 'Facebook'
+                    : p.includes('blog') ? 'Blog'
+                    : p || 'Social Listening';
+        platformCounts[label] = (platformCounts[label] || 0) + 1;
+    });
+
     const json = JSON.stringify({
         stats: graph.aggregations,
+        platforms_in_data: platformCounts,
         sample_evidence: simplifiedSample,
-        note: `Targeted evidence for '${sectionId}'. Pool: ${events.length}. Sampled: ${simplifiedSample.length}.`
+        note: `Targeted evidence for '${sectionId}'. Pool: ${events.length}. Sampled: ${simplifiedSample.length}. IMPORTANT: Every consumer quote in your output must be drawn from the sample_evidence texts. Tag Source: using only the platforms listed in platforms_in_data.`
     });
 
     return { json, count: sample.length, ids: sample.map(e => e.evidenceId) };
