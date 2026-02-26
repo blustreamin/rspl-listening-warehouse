@@ -103,10 +103,10 @@ const AdultIncontinenceSection = ({ data }: { data: any }) => {
                                 <div key={i} className="bg-amber-50/50 border border-amber-100 rounded-lg p-3">
                                     <div className="text-xs font-semibold text-slate-800"><SafeText content={extractText(t)} /></div>
                                     {extractDetail(t) && <div className="text-[10px] text-slate-500 mt-1"><SafeText content={extractDetail(t)} /></div>}
+                                    <QuoteBlock quotes={ensureArray(t.consumer_quotes)} limit={3} />
                                 </div>
                             ))}
                         </div>
-                        <QuoteBlock quotes={ensureArray(p.verbatims).slice(0, 2)} />
                     </div>
 
                     {/* Suffering Moments */}
@@ -114,16 +114,18 @@ const AdultIncontinenceSection = ({ data }: { data: any }) => {
                         <SectionLabel color="bg-red-500">Suffering Moments</SectionLabel>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                             {ensureArray(p.worst_moments).slice(0, 6).map((m: any, i: number) => (
-                                <div key={i} className="flex gap-2.5 p-2.5 bg-red-50/40 border border-red-100/60 rounded-lg">
-                                    <span className="text-red-400 font-bold text-[10px] mt-0.5">{'0' + (i+1)}</span>
-                                    <div>
-                                        <div className="text-xs font-medium text-slate-800"><SafeText content={extractText(m)} /></div>
-                                        {extractDetail(m) && <div className="text-[10px] text-slate-500 mt-0.5"><SafeText content={extractDetail(m)} /></div>}
+                                <div key={i} className="p-2.5 bg-red-50/40 border border-red-100/60 rounded-lg">
+                                    <div className="flex gap-2.5">
+                                        <span className="text-red-400 font-bold text-[10px] mt-0.5">{'0' + (i+1)}</span>
+                                        <div className="flex-1">
+                                            <div className="text-xs font-medium text-slate-800"><SafeText content={extractText(m)} /></div>
+                                            {extractDetail(m) && <div className="text-[10px] text-slate-500 mt-0.5"><SafeText content={extractDetail(m)} /></div>}
+                                        </div>
                                     </div>
+                                    <QuoteBlock quotes={ensureArray(m.consumer_quotes)} limit={3} />
                                 </div>
                             ))}
                         </div>
-                        <QuoteBlock quotes={ensureArray(p.verbatims).slice(2, 4)} />
                     </div>
 
                     {/* Impact */}
@@ -131,16 +133,18 @@ const AdultIncontinenceSection = ({ data }: { data: any }) => {
                         <SectionLabel color="bg-rose-500">Impact</SectionLabel>
                         <div className="space-y-2.5">
                             {ensureArray(p.life_impact).slice(0, 4).map((imp: any, k: number) => (
-                                <div key={k} className="flex gap-2.5 items-start bg-slate-50 p-3 rounded-lg border border-slate-100">
-                                    <span className="text-rose-500 font-bold text-xs mt-0.5">!</span>
-                                    <div>
-                                        <div className="text-xs font-medium text-slate-800"><SafeText content={extractText(imp)} /></div>
-                                        {extractDetail(imp) && <div className="text-[10px] text-slate-500 mt-0.5"><SafeText content={extractDetail(imp)} /></div>}
+                                <div key={k} className="bg-slate-50 p-3 rounded-lg border border-slate-100">
+                                    <div className="flex gap-2.5 items-start">
+                                        <span className="text-rose-500 font-bold text-xs mt-0.5">!</span>
+                                        <div className="flex-1">
+                                            <div className="text-xs font-medium text-slate-800"><SafeText content={extractText(imp)} /></div>
+                                            {extractDetail(imp) && <div className="text-[10px] text-slate-500 mt-0.5"><SafeText content={extractDetail(imp)} /></div>}
+                                        </div>
                                     </div>
+                                    <QuoteBlock quotes={ensureArray(imp.consumer_quotes)} limit={3} />
                                 </div>
                             ))}
                         </div>
-                        <QuoteBlock quotes={ensureArray(p.verbatims).slice(4, 6)} />
                     </div>
 
                     {/* Solutions */}
@@ -151,10 +155,10 @@ const AdultIncontinenceSection = ({ data }: { data: any }) => {
                                 <div key={i} className="bg-emerald-50/40 border border-emerald-100/60 rounded-lg p-3">
                                     <div className="text-xs font-semibold text-slate-800"><SafeText content={extractText(sol)} /></div>
                                     {extractDetail(sol) && <div className="text-[10px] text-slate-500 mt-1 leading-relaxed"><SafeText content={extractDetail(sol)} /></div>}
+                                    <QuoteBlock quotes={ensureArray(sol.consumer_quotes)} limit={3} />
                                 </div>
                             ))}
                         </div>
-                        <QuoteBlock quotes={ensureArray(p.verbatims).slice(6, 8)} />
                     </div>
                 </div>
             ))}
