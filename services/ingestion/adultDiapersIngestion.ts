@@ -47,6 +47,11 @@ export const adultDiapersIngestion = (request: IngestRequestV1): EvidenceGraph =
     request.inputs.forEach(input => {
         const sourceTag = input.sourceTag.toLowerCase();
         
+        // Debug: log what we're receiving
+        const firstRow = input.rows[0]?.raw;
+        const isArr = Array.isArray(firstRow);
+        console.log(`[ingestion] File: ${input.fileMeta?.fileName || sourceTag}, rows: ${input.rows.length}, isArray: ${isArr}, sample keys: ${!isArr && firstRow ? Object.keys(firstRow).slice(0, 5).join(', ') : 'N/A'}, textField: ${input.mapping.canonicalFieldMap.text}`);
+        
         input.rows.forEach(row => {
             totalReceived++;
             const raw = row.raw;

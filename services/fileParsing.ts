@@ -14,25 +14,21 @@ export const parseFile = async (file: File, sourceTag: FileSourceTag = 'other'):
         const firstSheetName = workbook.SheetNames[0];
         const worksheet = workbook.Sheets[firstSheetName];
         
-        // Convert to JSON - use header:1 to get arrays, then convert to objects
-        const rawArrays = XLSX.utils.sheet_to_json(worksheet, { header: 1 }) as any[][];
+        // Convert to JSON — let XLSX produce objects with column-name keys directly
+        // Default mode (no header option) uses first row as keys automatically
+        const rowObjects = XLSX.utils.sheet_to_json(worksheet) as Record<string, any>[];
         
-        if (!rawArrays || rawArrays.length === 0) {
+        if (!rowObjects || rowObjects.length === 0) {
             reject(new Error("File appears empty"));
             return;
         }
 
-        const headers = (rawArrays[0] as any[]).map(String);
-        // Convert array rows to objects with named keys for reliable field mapping
-        const rows = rawArrays.slice(1).map(row => {
-            const obj: Record<string, any> = {};
-            headers.forEach((h, i) => {
-                if (h && row[i] !== undefined && row[i] !== null) {
-                    obj[h] = row[i];
-                }
-            });
-            return obj;
-        });
+        // Extract headers from the first object's keys
+        const headers = Object.keys(rowObjects[0] || {});
+        const rows = rowObjects;
+
+        // Debug: log first row to confirm object structure
+        console.log(`[fileParsing] ${file.name}: ${rows.length} rows, headers: [${headers.slice(0, 5).join(', ')}...], sample row keys:`, rows[0] ? Object.keys(rows[0]).slice(0, 5) : 'empty');
 
         const uploadedFile: UploadedFile = {
             id: crypto.randomUUID(),
