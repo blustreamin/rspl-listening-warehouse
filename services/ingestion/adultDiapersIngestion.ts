@@ -148,29 +148,37 @@ export const adultDiapersIngestion = (request: IngestRequestV1): EvidenceGraph =
                                platformSource.includes('amazon') || platformSource.includes('flipkart');
             const resolvedPlatform = platformSource || sourceTag;
             
-            // Geo extraction from Awario data
+            // Geo extraction from Awario data (City, State, Country columns)
             let city = '';
             let country = 'IN';
             if (!Array.isArray(raw)) {
-                const loc = raw['location'] || raw['Location'] || raw['country'] || raw['Country'] || '';
-                if (loc) {
-                    city = loc.toString();
-                    if (loc.toString().toLowerCase().includes('india')) country = 'IN';
-                }
+                const cityVal = raw['City'] || raw['city'] || '';
+                const stateVal = raw['State'] || raw['state'] || '';
+                const countryVal = raw['Country'] || raw['country'] || raw['location'] || raw['Location'] || '';
+                
+                city = cityVal.toString().trim();
+                if (!city && stateVal) city = stateVal.toString().trim();
+                if (countryVal && countryVal.toString().toLowerCase().includes('india')) country = 'IN';
+                else if (countryVal) country = countryVal.toString().trim();
             }
             
-            // Date extraction
+            // Date extraction — try direct column names first, then canonical map
             let dateISO = new Date().toISOString();
-            const dateField = input.mapping.canonicalFieldMap.createdAtISO;
-            if (dateField) {
-                let dateVal: any;
-                if (Array.isArray(raw) && typeof dateField === 'number') dateVal = raw[dateField];
-                else if (!Array.isArray(raw) && typeof dateField === 'string') dateVal = raw[dateField];
-                if (!dateVal && !Array.isArray(raw)) {
-                    dateVal = raw['Mention Date'] || raw['date'] || raw['Date'] || '';
+            if (!Array.isArray(raw)) {
+                const directDate = raw['Mention Date'] || raw['date'] || raw['Date'] || raw['publishedAt'] || '';
+                if (directDate) {
+                    try { dateISO = new Date(directDate).toISOString(); } catch {}
                 }
-                if (dateVal) {
-                    try { dateISO = new Date(dateVal).toISOString(); } catch {}
+            }
+            if (dateISO === new Date().toISOString()) {
+                const dateField = input.mapping.canonicalFieldMap.createdAtISO;
+                if (dateField) {
+                    let dateVal: any;
+                    if (Array.isArray(raw) && typeof dateField === 'number') dateVal = raw[dateField];
+                    else if (!Array.isArray(raw) && typeof dateField === 'string') dateVal = raw[dateField];
+                    if (dateVal) {
+                        try { dateISO = new Date(dateVal).toISOString(); } catch {}
+                    }
                 }
             }
 

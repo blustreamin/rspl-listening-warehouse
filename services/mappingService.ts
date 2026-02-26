@@ -16,10 +16,10 @@ export const CANONICAL_FIELDS = [
 
 const SOURCE_HEURISTICS: Record<string, Record<keyof CanonicalFieldMap, string[]>> = {
   amazon: {
-    text: ['reviewText', 'text', 'content', 'review', 'body'],
+    text: ['reviewDescription', 'reviewText', 'text', 'content', 'review', 'body'],
     title: ['reviewTitle', 'title', 'headline', 'summary'],
-    rating: ['rating', 'stars', 'reviewRating', 'star_rating'],
-    createdAtISO: ['reviewDate', 'date', 'publishedAt', 'timestamp', 'date_posted'],
+    rating: ['ratingScore', 'rating', 'stars', 'reviewRating', 'star_rating'],
+    createdAtISO: ['date', 'reviewDate', 'publishedAt', 'timestamp', 'date_posted'],
     author: ['reviewerName', 'author', 'userName', 'name'],
     brand: ['brand', 'manufacturer'],
     product: ['productTitle', 'productName', 'titleProduct', 'asin_name'],
@@ -48,23 +48,23 @@ const SOURCE_HEURISTICS: Record<string, Record<keyof CanonicalFieldMap, string[]
     price: ['price', 'selling_price']
   },
   awario: {
-    text: ['text', 'mention', 'content', 'snippet', 'post_text', 'Post Snippet', 'postsnippet', 'post snippet', 'body', 'description'],
-    title: ['title', 'post_title'],
+    text: ['Post Snippet', 'postsnippet', 'post snippet', 'snippet', 'post_text', 'text', 'content', 'mention_text', 'body', 'description'],
+    title: ['title', 'post_title', 'Title'],
     rating: [], // Rarely has rating
-    createdAtISO: ['date', 'published', 'created_at', 'time'],
-    author: ['author', 'username', 'source_name', 'screen_name'],
+    createdAtISO: ['Mention Date', 'date', 'published', 'created_at', 'time'],
+    author: ['Author Name', 'author', 'username', 'source_name', 'screen_name', 'Author Username'],
     brand: ['brand_name', 'keyword'],
     product: [],
-    url: ['url', 'link', 'permalink', 'original_url'],
-    platform: ['source', 'network', 'source_type'],
-    location: ['country', 'location', 'place'],
-    language: ['language', 'lang'],
+    url: ['Mention URL', 'url', 'link', 'permalink', 'original_url'],
+    platform: ['Source', 'source', 'network', 'source_type'],
+    location: ['Country', 'country', 'location', 'place', 'City', 'State'],
+    language: ['Language', 'language', 'lang'],
     variant: [],
     sku: [],
     price: []
   },
   other: {
-    text: ['review', 'body', 'content', 'text', 'comment', 'description', 'snippet', 'message', 'Post Snippet', 'postsnippet', 'post snippet', 'reviewDescription'],
+    text: ['Post Snippet', 'postsnippet', 'reviewDescription', 'review', 'body', 'content', 'text', 'comment', 'description', 'snippet', 'message'],
     title: ['title', 'subject', 'headline', 'summary', 'reviewTitle'],
     rating: ['rating', 'stars', 'score', 'grade'],
     createdAtISO: ['date', 'time', 'posted', 'created'],
