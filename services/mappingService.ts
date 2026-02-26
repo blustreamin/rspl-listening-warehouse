@@ -48,7 +48,7 @@ const SOURCE_HEURISTICS: Record<string, Record<keyof CanonicalFieldMap, string[]
     price: ['price', 'selling_price']
   },
   awario: {
-    text: ['text', 'mention', 'content', 'snippet', 'post_text'],
+    text: ['text', 'mention', 'content', 'snippet', 'post_text', 'Post Snippet', 'postsnippet', 'post snippet', 'body', 'description'],
     title: ['title', 'post_title'],
     rating: [], // Rarely has rating
     createdAtISO: ['date', 'published', 'created_at', 'time'],
@@ -64,8 +64,8 @@ const SOURCE_HEURISTICS: Record<string, Record<keyof CanonicalFieldMap, string[]
     price: []
   },
   other: {
-    text: ['review', 'body', 'content', 'text', 'comment', 'description', 'snippet', 'message'],
-    title: ['title', 'subject', 'headline', 'summary'],
+    text: ['review', 'body', 'content', 'text', 'comment', 'description', 'snippet', 'message', 'Post Snippet', 'postsnippet', 'post snippet', 'reviewDescription'],
+    title: ['title', 'subject', 'headline', 'summary', 'reviewTitle'],
     rating: ['rating', 'stars', 'score', 'grade'],
     createdAtISO: ['date', 'time', 'posted', 'created'],
     author: ['author', 'user', 'reviewer', 'handle'],

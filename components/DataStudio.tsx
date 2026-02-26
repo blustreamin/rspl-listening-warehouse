@@ -149,8 +149,8 @@ export const DataStudio: React.FC<Props> = ({ projectId, onDataIngested }) => {
                   canonicalFieldMap: mappings[f.id].fieldMap,
                   constants: mappings[f.id].constants as any
               },
-              // Limit rows for demo performance, in real app stream or larger chunks
-              rows: f.rawContent.slice(0, 500).map((row, i) => ({
+              // Process ALL rows - no limit for full coverage
+              rows: f.rawContent.map((row, i) => ({
                   rowId: `r_${i}`,
                   raw: row
               }))

@@ -38,6 +38,8 @@ export const adultDiapersIngestion = (request: IngestRequestV1): EvidenceGraph =
     const events: EvidenceEventV1[] = [];
     const brandCounts: Record<string, number> = {};
     const ratings: number[] = [];
+    let totalReceived = 0;
+    let totalDropped = 0;
     
     // Deduplication Set: Store hashes of "normalized_text|brand|source"
     const seenHashes = new Set<string>();
@@ -46,6 +48,7 @@ export const adultDiapersIngestion = (request: IngestRequestV1): EvidenceGraph =
         const sourceTag = input.sourceTag.toLowerCase();
         
         input.rows.forEach(row => {
+            totalReceived++;
             const raw = row.raw;
             // Map via Canonical Field Map
             const textField = input.mapping.canonicalFieldMap.text;
@@ -57,12 +60,28 @@ export const adultDiapersIngestion = (request: IngestRequestV1): EvidenceGraph =
             } else if (!Array.isArray(raw) && typeof textField === 'string') {
                 text = raw[textField];
             }
+            
+            // FALLBACK: If text field mapping failed, try common column names directly
+            if (!text && !Array.isArray(raw)) {
+                text = raw['Post Snippet'] || raw['post snippet'] || raw['Snippet'] || 
+                       raw['reviewDescription'] || raw['review'] || raw['text'] || 
+                       raw['content'] || raw['body'] || raw['comment'] || raw['description'] || '';
+            }
 
             // Filter garbage / short text
-            if (!text || typeof text !== 'string' || text.length < 5) return;
+            if (!text || typeof text !== 'string' || text.trim().length < 5) {
+                totalDropped++;
+                return;
+            }
             
             // Clean text for hashing
             const cleanText = text.trim().toLowerCase();
+
+            // Platform extraction from Source column (Awario data has Source = "youtube.com", "amazon.in", etc.)
+            let platformSource = '';
+            if (!Array.isArray(raw)) {
+                platformSource = (raw['Source'] || raw['source'] || raw['platform'] || raw['network'] || '').toString().toLowerCase();
+            }
 
             // Brand Extraction
             let brand = "Generic/Other";
@@ -125,19 +144,49 @@ export const adultDiapersIngestion = (request: IngestRequestV1): EvidenceGraph =
             }
 
             // Construct Event
+            const isCommerce = sourceTag.includes('amazon') || sourceTag.includes('flipkart') || 
+                               platformSource.includes('amazon') || platformSource.includes('flipkart');
+            const resolvedPlatform = platformSource || sourceTag;
+            
+            // Geo extraction from Awario data
+            let city = '';
+            let country = 'IN';
+            if (!Array.isArray(raw)) {
+                const loc = raw['location'] || raw['Location'] || raw['country'] || raw['Country'] || '';
+                if (loc) {
+                    city = loc.toString();
+                    if (loc.toString().toLowerCase().includes('india')) country = 'IN';
+                }
+            }
+            
+            // Date extraction
+            let dateISO = new Date().toISOString();
+            const dateField = input.mapping.canonicalFieldMap.createdAtISO;
+            if (dateField) {
+                let dateVal: any;
+                if (Array.isArray(raw) && typeof dateField === 'number') dateVal = raw[dateField];
+                else if (!Array.isArray(raw) && typeof dateField === 'string') dateVal = raw[dateField];
+                if (!dateVal && !Array.isArray(raw)) {
+                    dateVal = raw['Mention Date'] || raw['date'] || raw['Date'] || '';
+                }
+                if (dateVal) {
+                    try { dateISO = new Date(dateVal).toISOString(); } catch {}
+                }
+            }
+
             const event: EvidenceEventV1 = {
                 evidenceId: `ev_${events.length}_${Date.now().toString(36)}`,
-                eventType: sourceTag.includes('amazon') || sourceTag.includes('flipkart') ? 'COMMERCE_REVIEW' : 'SOCIAL_MENTION',
-                sourceTag: sourceTag.includes('amazon') ? 'amazon' : sourceTag.includes('flipkart') ? 'flipkart' : 'social',
-                content: { text: text.trim() }, // Keep original casing
+                eventType: isCommerce ? 'COMMERCE_REVIEW' : 'SOCIAL_MENTION',
+                sourceTag: isCommerce ? (platformSource.includes('flipkart') ? 'flipkart' : 'amazon') : (platformSource || 'social'),
+                content: { text: text.trim(), title: (!Array.isArray(raw) ? (raw['Title'] || raw['title'] || raw['reviewTitle'] || '') : '').toString() },
                 commerce: {
                     brand,
-                    platform: sourceTag,
+                    platform: resolvedPlatform,
                     rating,
                     currency: 'INR'
                 },
-                geo: { country: 'IN' },
-                time: { createdAtISO: new Date().toISOString() } // simplified
+                geo: { country, city: city || undefined },
+                time: { createdAtISO: dateISO }
             };
             events.push(event);
         });
@@ -150,6 +199,15 @@ export const adultDiapersIngestion = (request: IngestRequestV1): EvidenceGraph =
         schemaVersion: "evidence_graph_v1",
         projectId: request.projectId,
         generatedAtISO: new Date().toISOString(),
+        qualityReport: {
+            status: events.length > 50 ? 'ok' : events.length > 10 ? 'partial' : 'failed',
+            rowCounts: {
+                received: totalReceived,
+                accepted: events.length,
+                dropped: totalDropped + (totalReceived - events.length - totalDropped) // deduped
+            },
+            warnings: totalDropped > totalReceived * 0.1 ? [{ code: 'HIGH_DROP', message: `${totalDropped} rows dropped (empty/short text)` }] : []
+        },
         events,
         aggregations: {
             brandCounts: Object.entries(brandCounts).map(([k,v]) => ({ brand: k, count: v })),
