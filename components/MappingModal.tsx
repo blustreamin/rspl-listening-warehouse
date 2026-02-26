@@ -146,6 +146,9 @@ export const MappingModal: React.FC<Props> = ({ isOpen, onClose, files, projectI
                             >
                                 <option value="amazon">Amazon Reviews (Apify XLSX)</option>
                                 <option value="flipkart">Flipkart Reviews (Apify XLSX)</option>
+                                <option value="flipkart_apify">Flipkart Reviews (Apify Scraper)</option>
+                                <option value="instagram_apify">Instagram Posts (Apify)</option>
+                                <option value="facebook_apify">Facebook Posts (Apify)</option>
                                 <option value="awario">Awario Mentions (CSV)</option>
                                 <option value="other">Other / Custom</option>
                             </select>

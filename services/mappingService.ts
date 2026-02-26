@@ -16,10 +16,10 @@ export const CANONICAL_FIELDS = [
 
 const SOURCE_HEURISTICS: Record<string, Record<keyof CanonicalFieldMap, string[]>> = {
   amazon: {
-    text: ['reviewDescription', 'reviewText', 'text', 'content', 'review', 'body'],
+    text: ['reviewText', 'text', 'content', 'review', 'body'],
     title: ['reviewTitle', 'title', 'headline', 'summary'],
-    rating: ['ratingScore', 'rating', 'stars', 'reviewRating', 'star_rating'],
-    createdAtISO: ['date', 'reviewDate', 'publishedAt', 'timestamp', 'date_posted'],
+    rating: ['rating', 'stars', 'reviewRating', 'star_rating'],
+    createdAtISO: ['reviewDate', 'date', 'publishedAt', 'timestamp', 'date_posted'],
     author: ['reviewerName', 'author', 'userName', 'name'],
     brand: ['brand', 'manufacturer'],
     product: ['productTitle', 'productName', 'titleProduct', 'asin_name'],
@@ -47,25 +47,73 @@ const SOURCE_HEURISTICS: Record<string, Record<keyof CanonicalFieldMap, string[]
     sku: ['pid', 'sku'],
     price: ['price', 'selling_price']
   },
+  flipkart_apify: {
+    text: ['review_text', 'text', 'content'],
+    title: ['title', 'heading'],
+    rating: ['rating', 'stars'],
+    createdAtISO: ['date', 'createdAt'],
+    author: ['author', 'reviewer'],
+    brand: ['brand'],
+    product: ['product_name', 'productName'],
+    url: ['url', 'reviewUrl'],
+    platform: ['platform'],
+    location: ['location'],
+    language: [],
+    variant: [],
+    sku: [],
+    price: ['price']
+  },
+  facebook_apify: {
+    text: ['text', 'content', 'message', 'post'],
+    title: [],
+    rating: [],
+    createdAtISO: ['date', 'timestamp'],
+    author: ['author', 'page_name'],
+    brand: ['brand'],
+    product: [],
+    url: ['url', 'permalink'],
+    platform: ['platform'],
+    location: ['location'],
+    language: [],
+    variant: [],
+    sku: [],
+    price: []
+  },
+  instagram_apify: {
+    text: ['text', 'caption', 'content'],
+    title: [],
+    rating: [],
+    createdAtISO: ['date', 'timestamp'],
+    author: ['author', 'ownerUsername'],
+    brand: ['brand'],
+    product: [],
+    url: ['url', 'permalink'],
+    platform: ['platform'],
+    location: ['location', 'locationName'],
+    language: [],
+    variant: [],
+    sku: [],
+    price: []
+  },
   awario: {
-    text: ['Post Snippet', 'postsnippet', 'post snippet', 'snippet', 'post_text', 'text', 'content', 'mention_text', 'body', 'description'],
-    title: ['title', 'post_title', 'Title'],
+    text: ['text', 'mention', 'content', 'snippet', 'post_text'],
+    title: ['title', 'post_title'],
     rating: [], // Rarely has rating
-    createdAtISO: ['Mention Date', 'date', 'published', 'created_at', 'time'],
-    author: ['Author Name', 'author', 'username', 'source_name', 'screen_name', 'Author Username'],
+    createdAtISO: ['date', 'published', 'created_at', 'time'],
+    author: ['author', 'username', 'source_name', 'screen_name'],
     brand: ['brand_name', 'keyword'],
     product: [],
-    url: ['Mention URL', 'url', 'link', 'permalink', 'original_url'],
-    platform: ['Source', 'source', 'network', 'source_type'],
-    location: ['Country', 'country', 'location', 'place', 'City', 'State'],
-    language: ['Language', 'language', 'lang'],
+    url: ['url', 'link', 'permalink', 'original_url'],
+    platform: ['source', 'network', 'source_type'],
+    location: ['country', 'location', 'place'],
+    language: ['language', 'lang'],
     variant: [],
     sku: [],
     price: []
   },
   other: {
-    text: ['Post Snippet', 'postsnippet', 'reviewDescription', 'review', 'body', 'content', 'text', 'comment', 'description', 'snippet', 'message'],
-    title: ['title', 'subject', 'headline', 'summary', 'reviewTitle'],
+    text: ['review', 'body', 'content', 'text', 'comment', 'description', 'snippet', 'message'],
+    title: ['title', 'subject', 'headline', 'summary'],
     rating: ['rating', 'stars', 'score', 'grade'],
     createdAtISO: ['date', 'time', 'posted', 'created'],
     author: ['author', 'user', 'reviewer', 'handle'],
@@ -118,6 +166,9 @@ export const generateAutoMapping = (file: UploadedFile): InputMapping => {
   
   if (file.sourceTag === 'amazon') constants.platform = 'Amazon';
   if (file.sourceTag === 'flipkart') constants.platform = 'Flipkart';
+  if (file.sourceTag === 'flipkart_apify') constants.platform = 'Flipkart';
+  if (file.sourceTag === 'facebook_apify') constants.platform = 'Facebook';
+  if (file.sourceTag === 'instagram_apify') constants.platform = 'Instagram';
 
   const mapping: InputMapping = {
     fileId: file.id,

@@ -391,7 +391,7 @@ export interface EvidenceGraph {
 
 // --- FILE UPLOAD & INGESTION TYPES ---
 
-export type FileSourceTag = 'awario' | 'amazon' | 'flipkart' | 'other';
+export type FileSourceTag = 'awario' | 'amazon' | 'flipkart' | 'flipkart_apify' | 'facebook_apify' | 'instagram_apify' | 'other';
 
 export interface UploadedFile {
   id: string;

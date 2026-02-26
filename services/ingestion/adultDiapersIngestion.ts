@@ -38,8 +38,6 @@ export const adultDiapersIngestion = (request: IngestRequestV1): EvidenceGraph =
     const events: EvidenceEventV1[] = [];
     const brandCounts: Record<string, number> = {};
     const ratings: number[] = [];
-    let totalReceived = 0;
-    let totalDropped = 0;
     
     // Deduplication Set: Store hashes of "normalized_text|brand|source"
     const seenHashes = new Set<string>();
@@ -47,13 +45,7 @@ export const adultDiapersIngestion = (request: IngestRequestV1): EvidenceGraph =
     request.inputs.forEach(input => {
         const sourceTag = input.sourceTag.toLowerCase();
         
-        // Debug: log what we're receiving
-        const firstRow = input.rows[0]?.raw;
-        const isArr = Array.isArray(firstRow);
-        console.log(`[ingestion] File: ${input.fileMeta?.fileName || sourceTag}, rows: ${input.rows.length}, isArray: ${isArr}, sample keys: ${!isArr && firstRow ? Object.keys(firstRow).slice(0, 5).join(', ') : 'N/A'}, textField: ${input.mapping.canonicalFieldMap.text}`);
-        
         input.rows.forEach(row => {
-            totalReceived++;
             const raw = row.raw;
             // Map via Canonical Field Map
             const textField = input.mapping.canonicalFieldMap.text;
@@ -65,28 +57,12 @@ export const adultDiapersIngestion = (request: IngestRequestV1): EvidenceGraph =
             } else if (!Array.isArray(raw) && typeof textField === 'string') {
                 text = raw[textField];
             }
-            
-            // FALLBACK: If text field mapping failed, try common column names directly
-            if (!text && !Array.isArray(raw)) {
-                text = raw['Post Snippet'] || raw['post snippet'] || raw['Snippet'] || 
-                       raw['reviewDescription'] || raw['review'] || raw['text'] || 
-                       raw['content'] || raw['body'] || raw['comment'] || raw['description'] || '';
-            }
 
             // Filter garbage / short text
-            if (!text || typeof text !== 'string' || text.trim().length < 5) {
-                totalDropped++;
-                return;
-            }
+            if (!text || typeof text !== 'string' || text.length < 5) return;
             
             // Clean text for hashing
             const cleanText = text.trim().toLowerCase();
-
-            // Platform extraction from Source column (Awario data has Source = "youtube.com", "amazon.in", etc.)
-            let platformSource = '';
-            if (!Array.isArray(raw)) {
-                platformSource = (raw['Source'] || raw['source'] || raw['platform'] || raw['network'] || '').toString().toLowerCase();
-            }
 
             // Brand Extraction
             let brand = "Generic/Other";
@@ -149,57 +125,28 @@ export const adultDiapersIngestion = (request: IngestRequestV1): EvidenceGraph =
             }
 
             // Construct Event
-            const isCommerce = sourceTag.includes('amazon') || sourceTag.includes('flipkart') || 
-                               platformSource.includes('amazon') || platformSource.includes('flipkart');
-            const resolvedPlatform = platformSource || sourceTag;
-            
-            // Geo extraction from Awario data (City, State, Country columns)
-            let city = '';
-            let country = 'IN';
-            if (!Array.isArray(raw)) {
-                const cityVal = raw['City'] || raw['city'] || '';
-                const stateVal = raw['State'] || raw['state'] || '';
-                const countryVal = raw['Country'] || raw['country'] || raw['location'] || raw['Location'] || '';
-                
-                city = cityVal.toString().trim();
-                if (!city && stateVal) city = stateVal.toString().trim();
-                if (countryVal && countryVal.toString().toLowerCase().includes('india')) country = 'IN';
-                else if (countryVal) country = countryVal.toString().trim();
-            }
-            
-            // Date extraction — try direct column names first, then canonical map
-            let dateISO = new Date().toISOString();
-            if (!Array.isArray(raw)) {
-                const directDate = raw['Mention Date'] || raw['date'] || raw['Date'] || raw['publishedAt'] || '';
-                if (directDate) {
-                    try { dateISO = new Date(directDate).toISOString(); } catch {}
-                }
-            }
-            if (dateISO === new Date().toISOString()) {
-                const dateField = input.mapping.canonicalFieldMap.createdAtISO;
-                if (dateField) {
-                    let dateVal: any;
-                    if (Array.isArray(raw) && typeof dateField === 'number') dateVal = raw[dateField];
-                    else if (!Array.isArray(raw) && typeof dateField === 'string') dateVal = raw[dateField];
-                    if (dateVal) {
-                        try { dateISO = new Date(dateVal).toISOString(); } catch {}
-                    }
-                }
-            }
-
+            const isCommerce = sourceTag.includes('amazon') || sourceTag.includes('flipkart');
+            const isSocial = sourceTag.includes('instagram') || sourceTag.includes('facebook') || sourceTag.includes('awario');
             const event: EvidenceEventV1 = {
                 evidenceId: `ev_${events.length}_${Date.now().toString(36)}`,
                 eventType: isCommerce ? 'COMMERCE_REVIEW' : 'SOCIAL_MENTION',
-                sourceTag: isCommerce ? (platformSource.includes('flipkart') ? 'flipkart' : 'amazon') : (platformSource || 'social'),
-                content: { text: text.trim(), title: (!Array.isArray(raw) ? (raw['Title'] || raw['title'] || raw['reviewTitle'] || '') : '').toString() },
+                sourceTag: sourceTag.includes('amazon') ? 'amazon' 
+                         : sourceTag.includes('flipkart') ? 'flipkart' 
+                         : sourceTag.includes('instagram') ? 'instagram'
+                         : sourceTag.includes('facebook') ? 'facebook'
+                         : 'social',
+                content: { text: text.trim() }, // Keep original casing
                 commerce: {
                     brand,
-                    platform: resolvedPlatform,
+                    platform: isCommerce ? (sourceTag.includes('amazon') ? 'Amazon' : 'Flipkart') 
+                            : sourceTag.includes('instagram') ? 'Instagram'
+                            : sourceTag.includes('facebook') ? 'Facebook'
+                            : sourceTag,
                     rating,
                     currency: 'INR'
                 },
-                geo: { country, city: city || undefined },
-                time: { createdAtISO: dateISO }
+                geo: { country: 'IN' },
+                time: { createdAtISO: new Date().toISOString() } // simplified
             };
             events.push(event);
         });
@@ -212,15 +159,6 @@ export const adultDiapersIngestion = (request: IngestRequestV1): EvidenceGraph =
         schemaVersion: "evidence_graph_v1",
         projectId: request.projectId,
         generatedAtISO: new Date().toISOString(),
-        qualityReport: {
-            status: events.length > 50 ? 'ok' : events.length > 10 ? 'partial' : 'failed',
-            rowCounts: {
-                received: totalReceived,
-                accepted: events.length,
-                dropped: totalDropped + (totalReceived - events.length - totalDropped) // deduped
-            },
-            warnings: totalDropped > totalReceived * 0.1 ? [{ code: 'HIGH_DROP', message: `${totalDropped} rows dropped (empty/short text)` }] : []
-        },
         events,
         aggregations: {
             brandCounts: Object.entries(brandCounts).map(([k,v]) => ({ brand: k, count: v })),

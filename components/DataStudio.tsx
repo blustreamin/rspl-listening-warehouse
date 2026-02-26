@@ -128,12 +128,6 @@ export const DataStudio: React.FC<Props> = ({ projectId, onDataIngested }) => {
     setSuccess(false);
 
     try {
-      // CROSS-FILE DEDUP: Remove duplicate rows across all files before ingestion
-      // Awario alert CSVs overlap heavily — same mention appears in multiple alert exports
-      const TEXT_FIELDS = ['Post Snippet', 'postsnippet', 'reviewDescription', 'text', 'content', 'review', 'body', 'snippet'];
-      const globalSeenTexts = new Set<string>();
-      let totalDeduped = 0;
-
       // Construct IngestRequestV1 using uniqueFiles
       const requestPayload: IngestRequestV1 = {
           schemaVersion: "ingest_request_v1",
@@ -143,42 +137,25 @@ export const DataStudio: React.FC<Props> = ({ projectId, onDataIngested }) => {
               trigger: "ui_upload",
               requestedAtISO: new Date().toISOString()
           },
-          inputs: uniqueFiles.map(f => {
-              const dedupedRows: { rowId: string; raw: any }[] = [];
-              f.rawContent.forEach((row, i) => {
-                  // Extract text for dedup fingerprint
-                  let text = '';
-                  if (typeof row === 'object' && row !== null && !Array.isArray(row)) {
-                      for (const tf of TEXT_FIELDS) {
-                          if (row[tf]) { text = String(row[tf]).trim().toLowerCase(); break; }
-                      }
-                  }
-                  // Skip empty/short text
-                  if (!text || text.length < 5) { totalDeduped++; return; }
-                  // Skip cross-file duplicates
-                  const fingerprint = text.slice(0, 200); // First 200 chars for fast matching
-                  if (globalSeenTexts.has(fingerprint)) { totalDeduped++; return; }
-                  globalSeenTexts.add(fingerprint);
-                  dedupedRows.push({ rowId: `r_${i}`, raw: row });
-              });
-              return {
-                  inputId: f.id,
-                  sourceTag: f.sourceTag,
-                  fileMeta: {
-                      fileId: f.id,
-                      fileName: f.name,
-                      rowCount: dedupedRows.length
-                  },
-                  mapping: {
-                      canonicalFieldMap: mappings[f.id].fieldMap,
-                      constants: mappings[f.id].constants as any
-                  },
-                  rows: dedupedRows
-              };
-          })
+          inputs: uniqueFiles.map(f => ({
+              inputId: f.id,
+              sourceTag: f.sourceTag,
+              fileMeta: {
+                  fileId: f.id,
+                  fileName: f.name,
+                  rowCount: f.parsedPreview?.rowCount || 0
+              },
+              mapping: {
+                  canonicalFieldMap: mappings[f.id].fieldMap,
+                  constants: mappings[f.id].constants as any
+              },
+              // Limit rows for demo performance, in real app stream or larger chunks
+              rows: f.rawContent.slice(0, 500).map((row, i) => ({
+                  rowId: `r_${i}`,
+                  raw: row
+              }))
+          }))
       };
-
-      console.log(`[DataStudio] Cross-file dedup: ${totalDeduped} duplicates/empty removed before ingestion. Sending ${requestPayload.inputs.reduce((s, inp) => s + inp.rows.length, 0)} unique rows.`);
 
       // 2. Send to Gemini Ingestion Engine
       const result = await ingestRawData(requestPayload);
@@ -322,6 +299,9 @@ export const DataStudio: React.FC<Props> = ({ projectId, onDataIngested }) => {
                                             <option value="awario">Awario (Social)</option>
                                             <option value="amazon">Amazon</option>
                                             <option value="flipkart">Flipkart</option>
+                                            <option value="flipkart_apify">Flipkart (Apify)</option>
+                                            <option value="instagram_apify">Instagram (Apify)</option>
+                                            <option value="facebook_apify">Facebook (Apify)</option>
                                         </select>
                                         <button 
                                             onClick={() => handleRemoveFile(file.id)}
