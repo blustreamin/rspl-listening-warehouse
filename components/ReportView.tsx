@@ -6,7 +6,7 @@ import { runPipelineForSection } from '../services/pipeline';
 import { SectionRenderer } from './SectionRenderer';
 import { ModernSectionRenderer } from './report/ModernSectionRenderer';
 import { RunInspector } from './RunInspector';
-import { DataIngestionInfographic } from './report/DataIngestionInfographic';
+import { DataIngestionInfographic, CustomDataBadge } from './report/DataIngestionInfographic';
 
 interface Props {
   projectId: ProjectId;
@@ -174,10 +174,7 @@ export const ReportView: React.FC<Props> = ({ projectId, injectedEvidence }) => 
                 </div>
             </div>
             {validEvidence && (
-                <div className="bg-indigo-50 text-indigo-700 px-3 py-1 rounded text-xs font-bold border border-indigo-100 flex items-center gap-2">
-                    <div className="w-2 h-2 bg-indigo-500 rounded-full animate-pulse"></div>
-                    CUSTOM DATA LOADED
-                </div>
+                <CustomDataBadge evidence={validEvidence} />
             )}
         </div>
       </header>

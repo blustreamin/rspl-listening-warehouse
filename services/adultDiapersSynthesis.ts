@@ -143,7 +143,7 @@ const prepareTargetedEvidence = (graph: EvidenceGraph, sectionId: string): { jso
     }));
     
     // Inject curated Instagram/Facebook evidence (compensates for Awario gaps)
-    const curatedSocial = sampleCuratedEvidence(sectionId, 12).map((item, idx) => ({
+    const curatedSocial = sampleCuratedEvidence(sectionId, 6).map((item, idx) => ({
         text: item.text,
         source: 'social',
         platform: item.platform,
@@ -177,7 +177,7 @@ const prepareTargetedEvidence = (graph: EvidenceGraph, sectionId: string): { jso
         stats: graph.aggregations,
         platforms_in_data: platformCounts,
         sample_evidence: combinedEvidence,
-        note: `Targeted evidence for '${sectionId}'. Ingested: ${simplifiedSample.length}. Curated social (Instagram/Facebook): ${curatedSocial.length}. Total: ${combinedEvidence.length}. IMPORTANT: Every consumer quote in your output must be drawn from the sample_evidence texts. Tag Source: using only the platforms listed in platforms_in_data. Curated social items (CURATED_SOCIAL_*) are from Instagram and Facebook Groups — use them to enrich sections where Awario data is sparse.`
+        note: `Targeted evidence for '${sectionId}'. Ingested: ${simplifiedSample.length}. Curated social (Instagram/Facebook): ${curatedSocial.length}. Total: ${combinedEvidence.length}. IMPORTANT: (1) Every consumer quote must be drawn from sample_evidence texts. (2) Tag Source: using only platforms in platforms_in_data. (3) FAIR DISTRIBUTION: Draw quotes proportionally from ALL platforms — Amazon, YouTube, Reddit, Quora, Twitter, Blogs should all be represented. Curated social (CURATED_SOCIAL_*) should supplement, not dominate. Aim for 4+ different Source: platforms per section.`
     });
 
     return { json, count: combinedEvidence.length, ids: sample.map(e => e.evidenceId) };
