@@ -14,17 +14,25 @@ export const parseFile = async (file: File, sourceTag: FileSourceTag = 'other'):
         const firstSheetName = workbook.SheetNames[0];
         const worksheet = workbook.Sheets[firstSheetName];
         
-        // Convert to JSON
-        const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+        // Convert to JSON - use header:1 to get arrays, then convert to objects
+        const rawArrays = XLSX.utils.sheet_to_json(worksheet, { header: 1 }) as any[][];
         
-        if (!jsonData || jsonData.length === 0) {
+        if (!rawArrays || rawArrays.length === 0) {
             reject(new Error("File appears empty"));
             return;
         }
 
-        const headers = (jsonData[0] as any[]).map(String);
-        // Remove header row from content
-        const rows = jsonData.slice(1);
+        const headers = (rawArrays[0] as any[]).map(String);
+        // Convert array rows to objects with named keys for reliable field mapping
+        const rows = rawArrays.slice(1).map(row => {
+            const obj: Record<string, any> = {};
+            headers.forEach((h, i) => {
+                if (h && row[i] !== undefined && row[i] !== null) {
+                    obj[h] = row[i];
+                }
+            });
+            return obj;
+        });
 
         const uploadedFile: UploadedFile = {
             id: crypto.randomUUID(),
@@ -38,7 +46,7 @@ export const parseFile = async (file: File, sourceTag: FileSourceTag = 'other'):
                 columns: headers,
                 rowCount: rows.length
             },
-            rawContent: jsonData // Store raw array of arrays or objects
+            rawContent: rows // Store as array of objects with named keys
         };
 
         resolve(uploadedFile);
