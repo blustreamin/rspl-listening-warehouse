@@ -182,11 +182,6 @@ export const ReportView: React.FC<Props> = ({ projectId, injectedEvidence }) => 
         </div>
       </header>
 
-      {/* Data Ingestion Infographic */}
-      {validEvidence && (
-        <DataIngestionInfographic evidence={validEvidence} projectId={projectId} />
-      )}
-
       <div className="space-y-2">
         {sections.map(section => {
             // STRICT RENDER GUARD: Do not render section if it belongs to a different project
@@ -209,6 +204,11 @@ export const ReportView: React.FC<Props> = ({ projectId, injectedEvidence }) => 
              </div>
         )}
       </div>
+
+      {/* Data Ingestion Analysis - at bottom of report */}
+      {validEvidence && sections.length > 0 && (
+        <DataIngestionInfographic evidence={validEvidence} projectId={projectId} />
+      )}
 
       <RunInspector data={inspectorData} projectId={projectId} />
     </div>
