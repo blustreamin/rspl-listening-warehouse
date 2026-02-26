@@ -6,6 +6,13 @@ interface Props {
     projectId: string;
 }
 
+const NON_INDIA_LOCATIONS = new Set([
+    'Kansas', 'Connecticut', 'California', 'New York', 'Illinois', 'Arizona', 'Colorado',
+    'Jacksonville', 'Atlanta', 'Yankton', 'Singapore', 'Ikeja', 'Shkoder', 'Dambulla',
+    'Taiwan Province', 'Sindh', 'Texas', 'Florida', 'Ohio', 'Michigan', 'Pennsylvania',
+    'London', 'Dubai', 'Tokyo', 'Sydney', 'Toronto', 'Kuala Lumpur', 'Bangkok',
+]);
+
 // ── Detailed stats computation ──────────────────────────────────────────────
 const computeStats = (evidence: EvidenceGraph) => {
     const events = evidence.events || evidence.evidence_graph_v1?.events || [];
@@ -70,12 +77,14 @@ const computeStats = (evidence: EvidenceGraph) => {
         eventTypes[eType] = (eventTypes[eType] || 0) + 1;
 
         // Geo
-        // Geo — use city, fallback to state for broader coverage
-        if (e.geo?.city) {
-            cities[e.geo.city] = (cities[e.geo.city] || 0) + 1;
-        } else if (e.geo?.state) {
-            // Use state as location when city is not available
-            cities[e.geo.state] = (cities[e.geo.state] || 0) + 1;
+        // Geo — India only, use city with state fallback
+        const isIndia = !e.geo?.country || e.geo.country === 'IN' || e.geo.country === 'India';
+        if (isIndia) {
+            if (e.geo?.city && !NON_INDIA_LOCATIONS.has(e.geo.city)) {
+                cities[e.geo.city] = (cities[e.geo.city] || 0) + 1;
+            } else if (e.geo?.state && !NON_INDIA_LOCATIONS.has(e.geo.state)) {
+                cities[e.geo.state] = (cities[e.geo.state] || 0) + 1;
+            }
         }
 
         // Rating
