@@ -26,8 +26,8 @@ export const validateIncontinenceManagement = (data: any): boolean => {
 
 export const validateAwarenessPerception = (data: any): boolean => {
     const errors: string[] = [];
-    if (!hasLength(data.awareness_depth, 1) && !hasLength(data.awareness_sources, 1)) errors.push("awareness_depth/awareness_sources empty");
-    if (!hasLength(data.perceptions_and_stigma, 1) && !hasLength(data.misconceptions, 1)) errors.push("perceptions_and_stigma/misconceptions empty");
+    if (!hasLength(data.awareness_depth, 1)) errors.push("awareness_depth empty");
+    if (!hasLength(data.perceptions_and_stigma, 1)) errors.push("perceptions_and_stigma empty");
     
     if (errors.length > 0) {
         console.warn("[Validator][Awareness] Errors:", errors.join(", "));
@@ -66,7 +66,9 @@ export const validateBehavioural = (data: any): boolean => {
     const errors: string[] = [];
     
     if (!hasLength(data.occasions_of_use, 1)) errors.push("occasions_of_use empty");
-    if (!hasLength(data.switching_patterns, 1)) errors.push("switching_patterns empty");
+    // V2: accept format_switching OR brand_switching OR legacy switching_patterns
+    const hasSwitching = hasLength(data.format_switching, 1) || hasLength(data.brand_switching, 1) || hasLength(data.switching_patterns, 1);
+    if (!hasSwitching) errors.push("no switching data");
     
     if (!data.purchase_behaviour) errors.push("purchase_behaviour missing");
     else {
@@ -88,20 +90,6 @@ export const validateBrandLandscape = (data: any): boolean => {
     
     if (errors.length > 0) {
         console.warn("[Validator][BrandLandscape] Errors:", errors.join(", "));
-        return false;
-    }
-    return true;
-};
-
-export const validateGapAnalysis = (data: any): boolean => {
-    if (!data) return false;
-    const errors: string[] = [];
-    
-    if (!hasLength(data.emotional_needs, 1)) errors.push("emotional_needs empty");
-    if (!hasLength(data.functional_needs, 1)) errors.push("functional_needs empty");
-    
-    if (errors.length > 0) {
-        console.warn("[Validator][GapAnalysis] Errors:", errors.join(", "));
         return false;
     }
     return true;

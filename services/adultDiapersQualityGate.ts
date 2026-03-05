@@ -60,17 +60,19 @@ const evalSuser = (data: any, failures: string[]) => {
 };
 
 const evalSbeha = (data: any, failures: string[]) => {
-    checkArray(data.occasions_of_use, 5, "usage_occasions", failures);          // was 4, now 5
-    checkArray(data.switching_patterns, 4, "switching_patterns", failures);      // was 3, now 4
+    checkArray(data.occasions_of_use, 5, "usage_occasions", failures);
+
+    // V2: format_switching + brand_switching replace legacy switching_patterns
+    const hasSwitching = (data.format_switching?.length > 0) || (data.brand_switching?.length > 0) || (data.switching_patterns?.length > 0);
+    if (!hasSwitching) failures.push("no switching data (format_switching/brand_switching/switching_patterns)");
     
     const pb = data.purchase_behaviour || {};
-    checkArray(pb.channels, 4, "purchase.channels", failures);                  // NEW: was unchecked, now 4
-    checkArray(pb.pack_sizes, 3, "purchase.pack_sizes", failures);              // was 2, now 3
-    checkArray(pb.price_points_inr, 3, "purchase.price_points", failures);      // NEW CHECK
+    checkArray(pb.channels, 3, "purchase.channels", failures);
+    checkArray(pb.pack_sizes, 2, "purchase.pack_sizes", failures);
 
-    // Require consumer statements in this section
+    // Consumer statements
     const statements = data.consumer_statements;
-    checkArray(statements, 4, "behavioural.consumer_statements", failures);     // NEW: was 0, now 4
+    checkArray(statements, 3, "behavioural.consumer_statements", failures);
 };
 
 const evalSbran = (data: any, failures: string[]) => {

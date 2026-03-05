@@ -43,30 +43,16 @@ export const AD_FALLBACKS = {
         section_id: "behavioural_profile",
         heaviness_of_use: [{ headline: "Night Only", what_it_means: "1 pad per day usage pattern.", confidence: "HIGH", evidence: { quotes: [] } }],
         occasions_of_use: [{ headline: "Travel (Train/Bus)", what_it_means: "Usage spikes during long journeys.", confidence: "HIGH", evidence: { quotes: [] } }],
-        switching_patterns: [{ headline: "Cloth -> Pad -> Pant", what_it_means: "Evolution of usage.", confidence: "MED", evidence: { quotes: [] } }],
+        format_switching: [{ from_product: "Cloth/Rags", to_product: "Disposable Diaper", trigger: "Convenience and hygiene", data_points: 120, verbatims: ["Cloth was so much hassle", "Switched when mother got bedridden"] }],
+        brand_switching: [{ from_brand: "Friends", to_brand: "Lifree", reason: "Better fit and softness", trigger: "Amazon review", data_points: 85, verbatims: ["Lifree fits better for Indian body", "Friends leaked, tried Lifree"] }],
+        switching_patterns: [{ headline: "Cloth → Disposable Pant — convenience and hygiene" }],
         purchase_behaviour: {
-            channels: [{ channel: "pharmacy", why: "Immediate need & Trust", evidence: { quotes: [] } }],
-            pack_sizes: [{ pack: "small_6_10", why: "Low cash outlay", evidence: { quotes: [] } }],
+            channels: [{ channel: "Pharmacy / Chemist", detail: "Immediate need & trust", data_points: 150, verbatims: ["Buy from the medical store near home"] }],
+            pack_sizes: [{ size: "Trial (6-10 units)", who_buys: "First-time buyers", data_points: 80 }],
             sizing: [],
-            price_points_inr: []
-        }
-    },
-    "gap_analysis": {
-        section_id: "gap_analysis",
-        emotional_needs: [
-            { need: "Dignity in Social Settings", who_feels_it: "Active seniors, caregivers", current_gap: "Products are bulky and visible under clothing.", consumer_quote: "\"Sab ko pata chal jaata hai\" — Active Senior, Pune", opportunity: "Ultra-thin discreet designs for social occasions." },
-            { need: "Caregiver Emotional Relief", who_feels_it: "Family caregivers", current_gap: "No support ecosystem for caregivers managing daily changes.", consumer_quote: "\"Main thak gayi hoon, koi samajhta nahi\" — Caregiver, Delhi", opportunity: "Caregiver support programs and easy-change products." }
-        ],
-        functional_needs: [
-            { need: "Overnight Leak Protection", who_feels_it: "Self-use seniors, bedridden patients", current_gap: "Most products last 4-5 hours, not full 8-hour night.", consumer_quote: "\"Raat mein 2 baar badalna padta hai\" — Self-Use, Lucknow", opportunity: "True 8-hour overnight product with wetness indicator." },
-            { need: "Affordable Daily Use", who_feels_it: "Tier 2-3 families, cost-sensitive segments", current_gap: "₹25-40/piece makes daily use unaffordable for many.", consumer_quote: "\"Mahine ka ₹3000 sirf isme jaata hai\" — Caregiver, Indore", opportunity: "Economy line at ₹12-15/piece for daily users." }
-        ],
-        unmet_expectations: [
-            { expectation: "Expected discretion, got bulk", segment: "User", severity: "HIGH", consumer_quote: "\"Pant style bhi dikhta hai saree mein\" — Active Senior, Chennai", brand_implication: "Need ultra-thin product line for Indian clothing." }
-        ],
-        non_user_gaps: [
-            { gap: "Product looks and feels like a baby diaper", barrier_type: "stigma", consumer_quote: "\"Bacchon wala diaper nahi pehenunga\" — Non-User, Jaipur", conversion_lever: "Adult-specific branding and form factor that looks like underwear." }
-        ]
+            price_points_inr: [{ tier: "Value", range: "₹8-12/pc", per_piece: "₹10 avg", data_points: 100 }]
+        },
+        consumer_statements: ["SEED: Buying from pharmacy is still most common", "SEED: Pack of 10 is standard monthly purchase", "SEED: Price per piece matters more than pack price"]
     },
     "brand_landscape": {
         section_id: "brand_landscape",
