@@ -6,6 +6,7 @@ import { runPipelineForSection } from '../services/pipeline';
 import { SectionRenderer } from './SectionRenderer';
 import { ModernSectionRenderer } from './report/ModernSectionRenderer';
 import { RunInspector } from './RunInspector';
+import { DataIngestionInfographic, CustomDataBadge } from './report/DataIngestionInfographic';
 
 interface Props {
   projectId: ProjectId;
@@ -31,6 +32,7 @@ export const ReportView: React.FC<Props> = ({ projectId, injectedEvidence }) => 
   });
   
   const [sections, setSections] = useState<SectionOutput[]>([]);
+  const [showEvidenceModal, setShowEvidenceModal] = useState(false);
   
   // FEATURE FLAG: Enable modern renderer for specific projects
   const useModernRenderer = ['disposable-period-panties', 'reusable-period-panties', 'adult-diapers'].includes(projectId);
@@ -160,13 +162,23 @@ export const ReportView: React.FC<Props> = ({ projectId, injectedEvidence }) => 
                 </div>
             </div>
             {validEvidence && (
-                <div className="bg-indigo-50 text-indigo-700 px-3 py-1 rounded text-xs font-bold border border-indigo-100 flex items-center gap-2">
+                <button 
+                    onClick={() => setShowEvidenceModal(!showEvidenceModal)}
+                    className="bg-indigo-50 text-indigo-700 px-3 py-1 rounded text-xs font-bold border border-indigo-100 flex items-center gap-2 hover:bg-indigo-100 transition-colors cursor-pointer"
+                >
                     <div className="w-2 h-2 bg-indigo-500 rounded-full animate-pulse"></div>
-                    CUSTOM DATA LOADED
-                </div>
+                    CUSTOM DATA LOADED · VIEW EVIDENCE
+                </button>
             )}
         </div>
       </header>
+
+      {/* Evidence Repository & Data Ingestion Analysis */}
+      {validEvidence && showEvidenceModal && (
+          <div className="mb-6">
+              <DataIngestionInfographic evidence={validEvidence} projectId={projectId} />
+          </div>
+      )}
 
       <div className="space-y-2">
         {sections

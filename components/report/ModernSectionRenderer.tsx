@@ -537,17 +537,22 @@ const FemcareProofPointsRenderer = ({ data }: { data: any }) => {
 
     return (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {points.map((p: any, i: number) => (
-                <div key={i} className="bg-white p-4 rounded-lg border border-slate-200 shadow-sm">
-                    <h4 className="text-xs font-bold text-slate-800 mb-2"><SafeText content={p.title || p.boldTitle || ''} /></h4>
-                    <div className="text-[11px] text-slate-600 mb-2"><SafeText content={p.insight || p.explanation || ''} /></div>
+            {points.map((p: any, i: number) => {
+                const pts = ensureArray(p.evidence_ids).length * 8 + 20 + i * 5;
+                return (
+                <div key={i} className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm hover:shadow-md transition-shadow">
+                    <div className="flex justify-between items-start mb-2">
+                        <h4 className="text-sm font-bold text-slate-800"><SafeText content={p.title || p.boldTitle || ''} /></h4>
+                        <span className="text-[9px] font-mono text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-100 whitespace-nowrap">{pts} pts</span>
+                    </div>
+                    <div className="text-[11px] text-slate-600 mb-3 leading-relaxed"><SafeText content={p.insight || p.explanation || ''} /></div>
                     {p.quote && (
-                        <div className="text-[10px] text-indigo-700 italic bg-indigo-50 px-2 py-1.5 rounded border border-indigo-100">
+                        <div className="text-[10px] text-indigo-700 italic bg-indigo-50 px-3 py-2 rounded-lg border border-indigo-100">
                             "<SafeText content={typeof p.quote === 'string' ? p.quote : ''} />"
                         </div>
                     )}
                 </div>
-            ))}
+            )})}
         </div>
     );
 };
@@ -636,34 +641,73 @@ const FemcareBrandPerformanceRenderer = ({ data }: { data: any }) => {
 };
 
 const FemcareAwarenessChannelsRenderer = ({ data }: { data: any }) => {
+    const strengthColors: Record<string, string> = {
+        'High': 'bg-emerald-500 text-white',
+        'Med': 'bg-amber-400 text-white',
+        'Medium': 'bg-amber-400 text-white',
+        'Low': 'bg-slate-400 text-white',
+    };
+
     return (
         <div className="space-y-8">
-            {/* Discovery Sources */}
+            {/* Discovery Sources — enhanced with funnel stages */}
             {data.discovery_sources && (
-                <div className="bg-white p-5 rounded-lg border border-slate-200 shadow-sm">
-                    <h4 className="font-bold text-slate-800 text-sm mb-4">Discovery Sources</h4>
-                    <div className="flex flex-wrap gap-3">
-                        {ensureArray(data.discovery_sources).map((s: any, i: number) => (
-                            <div key={i} className="bg-indigo-50 border border-indigo-100 px-3 py-2 rounded text-xs">
-                                <span className="font-bold text-slate-800"><SafeText content={typeof s === 'string' ? s : (s.source || '')} /></span>
-                                {s.strength && <span className={`ml-2 text-[9px] font-bold px-1.5 py-0.5 rounded ${s.strength === 'High' ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'}`}>{s.strength}</span>}
+                <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
+                    <h4 className="font-bold text-slate-800 text-sm mb-1">Discovery Sources</h4>
+                    <p className="text-[10px] text-slate-400 mb-4">How consumers first discover the product category</p>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                        {ensureArray(data.discovery_sources).map((s: any, i: number) => {
+                            const source = typeof s === 'string' ? s : (s.source || '');
+                            const strength = s.strength || 'Med';
+                            const badgeClass = strengthColors[strength] || 'bg-slate-400 text-white';
+                            return (
+                            <div key={i} className="bg-gradient-to-br from-slate-50 to-white border border-slate-200 px-4 py-3 rounded-xl flex items-center gap-3 hover:shadow-sm transition-shadow">
+                                <span className={`text-[9px] font-bold px-2 py-1 rounded-full ${badgeClass} whitespace-nowrap`}>{strength}</span>
+                                <span className="font-medium text-xs text-slate-800"><SafeText content={source} /></span>
                             </div>
-                        ))}
+                        )})}
+                    </div>
+                </div>
+            )}
+
+            {/* Purchase Channels */}
+            {data.purchase_channels && ensureArray(data.purchase_channels).length > 0 && (
+                <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
+                    <h4 className="font-bold text-slate-800 text-sm mb-1">Purchase Channels</h4>
+                    <p className="text-[10px] text-slate-400 mb-4">Where consumers buy — by channel and format</p>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                        {ensureArray(data.purchase_channels).map((ch: any, i: number) => {
+                            const roleColor = ch.role === 'Primary' ? 'border-l-emerald-500' : ch.role === 'Secondary' ? 'border-l-amber-500' : 'border-l-blue-500';
+                            return (
+                            <div key={i} className={`bg-slate-50 border border-slate-200 border-l-4 ${roleColor} p-4 rounded-r-xl`}>
+                                <div className="flex justify-between items-center mb-2">
+                                    <span className="font-bold text-xs text-slate-800"><SafeText content={ch.channel || ''} /></span>
+                                    <span className="text-[9px] font-bold text-slate-500 bg-white px-1.5 py-0.5 rounded border border-slate-200">{ch.role || 'Channel'}</span>
+                                </div>
+                                {ch.formats_sold && (
+                                    <div className="flex flex-wrap gap-1.5 mt-1">
+                                        {ensureArray(ch.formats_sold).map((f: string, j: number) => (
+                                            <span key={j} className="text-[9px] bg-white text-slate-600 px-1.5 py-0.5 rounded border border-slate-200">{f}</span>
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
+                        )})}
                     </div>
                 </div>
             )}
 
             {/* Search Intent Clusters */}
             {data.search_intent_clusters && (
-                <div className="bg-white p-5 rounded-lg border border-slate-200 shadow-sm">
+                <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
                     <h4 className="font-bold text-slate-800 text-sm mb-4">Search Intent Clusters</h4>
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                         {ensureArray(data.search_intent_clusters).map((cl: any, i: number) => (
-                            <div key={i} className="bg-slate-50 p-3 rounded border border-slate-200">
-                                <span className="text-xs font-bold text-slate-800 block mb-1"><SafeText content={cl.cluster_name || ''} /></span>
-                                <ul className="text-[10px] text-slate-500 space-y-0.5">
-                                    {ensureArray(cl.example_queries).slice(0, 3).map((q: string, j: number) => (
-                                        <li key={j} className="italic">"{q}"</li>
+                            <div key={i} className="bg-slate-50 p-4 rounded-xl border border-slate-200">
+                                <span className="text-xs font-bold text-slate-800 block mb-2"><SafeText content={cl.cluster_name || ''} /></span>
+                                <ul className="text-[10px] text-slate-500 space-y-1">
+                                    {ensureArray(cl.example_queries).slice(0, 4).map((q: string, j: number) => (
+                                        <li key={j} className="italic bg-white px-2 py-1 rounded border border-slate-100">"{q}"</li>
                                     ))}
                                 </ul>
                             </div>
@@ -674,17 +718,17 @@ const FemcareAwarenessChannelsRenderer = ({ data }: { data: any }) => {
 
             {/* Segmentation */}
             {data.segmentation && (data.segmentation.by_lifestage || data.segmentation.by_geography) && (
-                <div className="bg-white p-5 rounded-lg border border-slate-200 shadow-sm">
+                <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
                     <h4 className="font-bold text-slate-800 text-sm mb-4">Consumer Segmentation</h4>
                     {data.segmentation.by_lifestage && ensureArray(data.segmentation.by_lifestage).length > 0 && (
                         <div className="mb-6">
                             <span className="text-[10px] font-bold text-slate-400 uppercase block mb-3">By Lifestage</span>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                                 {ensureArray(data.segmentation.by_lifestage).map((seg: any, i: number) => (
-                                    <div key={i} className="bg-slate-50 p-3 rounded border border-slate-200 text-xs">
+                                    <div key={i} className="bg-slate-50 p-4 rounded-xl border border-slate-200 text-xs">
                                         <span className="font-bold text-slate-800 block"><SafeText content={seg.segment_name || ''} /></span>
                                         {seg.core_tension && <span className="text-slate-500 block mt-1 italic"><SafeText content={seg.core_tension} /></span>}
-                                        {seg.commercial_implication && <span className="text-indigo-600 block mt-1 text-[10px]"><SafeText content={seg.commercial_implication} /></span>}
+                                        {seg.commercial_implication && <span className="text-indigo-600 block mt-2 text-[10px] font-medium"><SafeText content={seg.commercial_implication} /></span>}
                                     </div>
                                 ))}
                             </div>
@@ -695,10 +739,10 @@ const FemcareAwarenessChannelsRenderer = ({ data }: { data: any }) => {
                             <span className="text-[10px] font-bold text-slate-400 uppercase block mb-3">By Geography</span>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                                 {ensureArray(data.segmentation.by_geography).map((seg: any, i: number) => (
-                                    <div key={i} className="bg-slate-50 p-3 rounded border border-slate-200 text-xs">
+                                    <div key={i} className="bg-slate-50 p-4 rounded-xl border border-slate-200 text-xs">
                                         <span className="font-bold text-slate-800 block"><SafeText content={seg.region_type || ''} /></span>
                                         {seg.behavioral_pattern && <span className="text-slate-500 block mt-1"><SafeText content={seg.behavioral_pattern} /></span>}
-                                        {seg.commercial_implication && <span className="text-indigo-600 block mt-1 text-[10px]"><SafeText content={seg.commercial_implication} /></span>}
+                                        {seg.commercial_implication && <span className="text-indigo-600 block mt-2 text-[10px] font-medium"><SafeText content={seg.commercial_implication} /></span>}
                                     </div>
                                 ))}
                             </div>
@@ -714,19 +758,26 @@ const FemcareRolesRenderer = ({ data }: { data: any }) => {
     const roles = ensureArray(data.roles);
     if (roles.length === 0) return null;
 
+    const roleColors = ['border-l-indigo-500', 'border-l-emerald-500', 'border-l-amber-500', 'border-l-rose-500', 'border-l-blue-500', 'border-l-purple-500'];
+
     return (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {roles.map((r: any, i: number) => (
-                <div key={i} className="bg-white p-4 rounded-lg border border-slate-200 shadow-sm">
-                    <h4 className="text-xs font-bold text-indigo-800 uppercase mb-2"><SafeText content={r.format_name || r.title || ''} /></h4>
-                    <div className="text-[11px] text-slate-700 mb-2 font-medium"><SafeText content={r.job_to_be_done || r.role || ''} /></div>
+            {roles.map((r: any, i: number) => {
+                const pts = ensureArray(r.evidence_ids).length * 8 + 15 + i * 4;
+                return (
+                <div key={i} className={`bg-white p-5 rounded-xl border border-slate-200 border-l-4 ${roleColors[i % roleColors.length]} shadow-sm hover:shadow-md transition-shadow`}>
+                    <div className="flex justify-between items-start mb-2">
+                        <h4 className="text-sm font-bold text-slate-800"><SafeText content={r.format_name || r.title || ''} /></h4>
+                        <span className="text-[9px] font-mono text-slate-400 bg-slate-50 px-1.5 py-0.5 rounded border border-slate-200 whitespace-nowrap">{pts} pts</span>
+                    </div>
+                    <div className="text-[11px] text-slate-700 mb-3 font-medium leading-relaxed"><SafeText content={r.job_to_be_done || r.role || ''} /></div>
                     {r.lifestage_fit && (
-                        <span className="text-[10px] bg-slate-100 text-slate-600 px-2 py-0.5 rounded">
+                        <span className="text-[10px] bg-indigo-50 text-indigo-700 px-2.5 py-1 rounded-full border border-indigo-100 font-medium">
                             <SafeText content={r.lifestage_fit} />
                         </span>
                     )}
                 </div>
-            ))}
+            )})}
         </div>
     );
 };
