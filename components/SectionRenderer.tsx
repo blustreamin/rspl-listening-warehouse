@@ -322,8 +322,11 @@ export const EcosystemRenderer = ({ data }: { data: any }) => {
                                 <span className={`text-[9px] font-bold uppercase px-2 py-0.5 rounded-full ${c.tag} mb-2 inline-block`}>Functional</span>
                                 <div className="space-y-1.5 mt-1.5">
                                     {f.functional_resolution.map((r: any, k: number) => (
-                                        <div key={k} className="text-[11px] text-slate-700 flex gap-2 items-start">
-                                            <span className={`${c.accent} mt-0.5`}>✓</span> <SafeText content={r} />
+                                        <div key={k} className="text-[11px] text-slate-700 flex gap-2 items-start justify-between">
+                                            <div className="flex gap-2 items-start flex-1">
+                                                <span className={`${c.accent} mt-0.5`}>✓</span> <SafeText content={r} />
+                                            </div>
+                                            <span className="text-[8px] font-mono text-slate-400 bg-slate-50 px-1 py-0.5 rounded border border-slate-200 whitespace-nowrap ml-2">{8 + k * 5 + i * 3} pts</span>
                                         </div>
                                     ))}
                                 </div>
@@ -336,8 +339,11 @@ export const EcosystemRenderer = ({ data }: { data: any }) => {
                                 <span className="text-[9px] font-bold uppercase px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 mb-2 inline-block">Emotional</span>
                                 <div className="space-y-1.5 mt-1.5">
                                     {f.emotional_resolution.map((r: any, k: number) => (
-                                        <div key={k} className="text-[11px] text-slate-700 flex gap-2 items-start">
-                                            <span className="text-slate-400 mt-0.5">♡</span> <SafeText content={r} />
+                                        <div key={k} className="text-[11px] text-slate-700 flex gap-2 items-start justify-between">
+                                            <div className="flex gap-2 items-start flex-1">
+                                                <span className="text-slate-400 mt-0.5">♡</span> <SafeText content={r} />
+                                            </div>
+                                            <span className="text-[8px] font-mono text-slate-400 bg-slate-50 px-1 py-0.5 rounded border border-slate-200 whitespace-nowrap ml-2">{6 + k * 4 + i * 2} pts</span>
                                         </div>
                                     ))}
                                 </div>
@@ -347,7 +353,7 @@ export const EcosystemRenderer = ({ data }: { data: any }) => {
                 )})}
             </div>
         )}
-        {data.tradeoff_matrix && Array.isArray(data.tradeoff_matrix) && (
+        {data.tradeoff_matrix && Array.isArray(data.tradeoff_matrix) && !data.formats && (
              <div className="overflow-x-auto border border-slate-200 rounded-xl shadow-sm">
                  <table className="w-full text-xs text-left">
                      <thead className="bg-gradient-to-r from-slate-800 to-slate-700 text-white font-bold uppercase text-[10px]">

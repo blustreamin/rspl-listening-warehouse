@@ -214,12 +214,17 @@ export const ReportView: React.FC<Props> = ({ projectId, injectedEvidence }) => 
                 <SectionRenderer key={section.title} data={section} projectId={projectId} />
             );
         })}
-        {sections.length < (TEMPLATE_REGISTRY[projectId]?.sections.length || 0) && (
-             <div className="text-center py-12">
-                 <div className="animate-spin inline-block w-8 h-8 border-4 border-slate-200 border-t-indigo-600 rounded-full mb-4"></div>
-                 <p className="text-slate-400 font-mono text-sm">Synthesizing next section...</p>
-             </div>
-        )}
+        {(() => {
+            const templateSections = TEMPLATE_REGISTRY[projectId]?.sections || [];
+            const isFemcare = ['disposable-period-panties', 'reusable-period-panties'].includes(projectId);
+            const expectedCount = isFemcare ? templateSections.filter(s => s.sectionId !== '10').length : templateSections.length;
+            return sections.length < expectedCount ? (
+                 <div className="text-center py-12">
+                     <div className="animate-spin inline-block w-8 h-8 border-4 border-slate-200 border-t-indigo-600 rounded-full mb-4"></div>
+                     <p className="text-slate-400 font-mono text-sm">Synthesizing next section...</p>
+                 </div>
+            ) : null;
+        })()}
       </div>
 
       <RunInspector data={inspectorData} projectId={projectId} />
