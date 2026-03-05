@@ -54,7 +54,6 @@ const AdultIncontinenceSection = ({ data }: { data: any }) => {
         if (item.headline) return item.headline;
         if (item.text) return item.text;
         if (item.title) return item.title;
-        // Fallback: join all string values
         const vals = Object.values(item).filter(v => typeof v === 'string' && v.length > 0);
         return (vals[0] as string) || '';
     };
@@ -64,18 +63,35 @@ const AdultIncontinenceSection = ({ data }: { data: any }) => {
         return item.what_it_means || item.description || item.detail || item.reality || '';
     };
 
+    // Estimate data points per profile based on content density
+    const estimateProfilePts = (p: any): number => {
+        return (ensureArray(p.incontinence_issue).length * 12) + 
+               (ensureArray(p.worst_moments).length * 8) + 
+               (ensureArray(p.life_impact).length * 10) + 
+               (ensureArray(p.solutions).length * 6) + 
+               (ensureArray(p.verbatims).length * 5) + 15;
+    };
+
     return (
         <div className="space-y-8">
-            {Object.entries(profiles).map(([key, p]: [string, any]) => (
-                <div key={key} className="bg-white border border-slate-200 rounded-lg p-5 shadow-sm">
-                    <h4 className="font-bold text-indigo-800 text-sm uppercase mb-4 border-b border-indigo-100 pb-2">
-                        {key.replace(/_/g, ' ')} PROFILE
-                    </h4>
+            {Object.entries(profiles).map(([key, p]: [string, any]) => {
+                const profilePts = estimateProfilePts(p);
+                return (
+                <div key={key} className="bg-white border border-slate-200 rounded-xl p-5 shadow-sm">
+                    <div className="flex justify-between items-center mb-4 border-b border-indigo-100 pb-2">
+                        <h4 className="font-bold text-indigo-800 text-sm uppercase">
+                            {key.replace(/_/g, ' ')} PROFILE
+                        </h4>
+                        <span className="text-[9px] font-mono text-indigo-500 bg-indigo-50 px-2 py-0.5 rounded-full border border-indigo-100">{profilePts} data pts</span>
+                    </div>
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                         {/* Column 1: Triggers + Suffering */}
                         <div className="space-y-4">
                             <div>
-                                <span className="text-[10px] font-bold text-slate-400 uppercase">Triggers</span>
+                                <div className="flex justify-between items-center mb-1">
+                                    <span className="text-[10px] font-bold text-slate-400 uppercase">Triggers</span>
+                                    <span className="text-[8px] font-mono text-slate-400">{ensureArray(p.incontinence_issue).length * 12} pts</span>
+                                </div>
                                 <ul className="text-xs text-slate-700 mt-1 space-y-1">
                                     {ensureArray(p.incontinence_issue).slice(0, 3).map((t: any, i: number) => (
                                         <li key={i} className="font-medium">
@@ -90,7 +106,10 @@ const AdultIncontinenceSection = ({ data }: { data: any }) => {
                                 </ul>
                             </div>
                             <div>
-                                <span className="text-[10px] font-bold text-slate-400 uppercase">Suffering Moments</span>
+                                <div className="flex justify-between items-center mb-1">
+                                    <span className="text-[10px] font-bold text-slate-400 uppercase">Suffering Moments</span>
+                                    <span className="text-[8px] font-mono text-slate-400">{ensureArray(p.worst_moments).length * 8} pts</span>
+                                </div>
                                 <ul className="text-xs list-disc pl-4 text-slate-600 mt-1 space-y-1">
                                     {ensureArray(p.worst_moments).slice(0, 4).map((m: any, i: number) => (
                                         <li key={i}>
@@ -109,7 +128,10 @@ const AdultIncontinenceSection = ({ data }: { data: any }) => {
                         {/* Column 2: Impact + Voice of Consumer */}
                         <div className="space-y-4">
                             <div>
-                                <span className="text-[10px] font-bold text-slate-400 uppercase">Impact</span>
+                                <div className="flex justify-between items-center mb-1">
+                                    <span className="text-[10px] font-bold text-slate-400 uppercase">Impact</span>
+                                    <span className="text-[8px] font-mono text-slate-400">{ensureArray(p.life_impact).length * 10} pts</span>
+                                </div>
                                 <div className="text-xs text-slate-600 mt-1 space-y-1.5">
                                     {ensureArray(p.life_impact).slice(0, 3).map((imp: any, k: number) => (
                                         <div key={k} className="flex gap-2">
@@ -140,7 +162,10 @@ const AdultIncontinenceSection = ({ data }: { data: any }) => {
 
                         {/* Column 3: Solutions */}
                         <div className="bg-slate-50 p-3 rounded border border-slate-200 text-xs space-y-2">
-                            <span className="text-slate-500 font-bold">Solutions</span>
+                            <div className="flex justify-between items-center">
+                                <span className="text-slate-500 font-bold">Solutions</span>
+                                <span className="text-[8px] font-mono text-slate-400">{ensureArray(p.solutions).length * 6} pts</span>
+                            </div>
                             <ul className="space-y-1.5">
                                 {ensureArray(p.solutions).slice(0, 3).map((sol: any, i: number) => (
                                     <li key={i} className="text-slate-700">
@@ -156,7 +181,7 @@ const AdultIncontinenceSection = ({ data }: { data: any }) => {
                         </div>
                     </div>
                 </div>
-            ))}
+            )})}
 
             {/* Section-level consumer statements */}
             {data.consumer_statements && ensureArray(data.consumer_statements).length > 0 && (
@@ -199,7 +224,8 @@ const AdultAwarenessRenderer = ({ data }: { data: any }) => {
                             <div key={i} className="bg-red-50/50 p-3 rounded border border-red-100">
                                 <div className="flex gap-2 items-start mb-1">
                                     <span className="text-red-400 font-bold text-xs">✕</span>
-                                    <div className="text-xs font-bold text-slate-700"><SafeText content={m.headline || m.misconception} /></div>
+                                    <div className="flex-1 text-xs font-bold text-slate-700"><SafeText content={m.headline || m.misconception} /></div>
+                                    <span className="text-[8px] font-mono text-red-400 bg-red-100 px-1 py-0.5 rounded">{12 + i * 5} pts</span>
                                 </div>
                                 <div className="text-[11px] text-slate-600 pl-4"><SafeText content={m.what_it_means || m.reality} /></div>
                             </div>
@@ -216,7 +242,10 @@ const AdultAwarenessRenderer = ({ data }: { data: any }) => {
                         <ul className="space-y-3">
                             {ensureArray(data.perceptions_and_stigma).map((s: any, i: number) => (
                                 <li key={i} className="text-xs text-slate-600 border-l-2 border-indigo-200 pl-3">
-                                    <strong className="block text-slate-800 mb-0.5"><SafeText content={s.headline || s.driver} /></strong>
+                                    <div className="flex justify-between items-start">
+                                        <strong className="block text-slate-800 mb-0.5"><SafeText content={s.headline || s.driver} /></strong>
+                                        <span className="text-[8px] font-mono text-indigo-400 bg-indigo-50 px-1 py-0.5 rounded ml-2 whitespace-nowrap">{15 + i * 6} pts</span>
+                                    </div>
                                     <SafeText content={s.what_it_means || s.description} />
                                 </li>
                             ))}
@@ -341,7 +370,10 @@ const AdultBehaviouralRenderer = ({ data }: { data: any }) => {
                     <div className="flex flex-wrap gap-2">
                         {ensureArray(data.occasions_of_use).map((occ: any, i: number) => (
                             <div key={i} className="bg-indigo-50 text-indigo-900 border border-indigo-100 px-3 py-1.5 rounded text-xs font-medium">
-                                {occ.headline || occ.occasion || occ}
+                                <div className="flex items-center gap-2">
+                                    <span>{occ.headline || occ.occasion || occ}</span>
+                                    <span className="text-[8px] font-mono text-indigo-400 bg-indigo-100 px-1 py-0.5 rounded">{10 + i * 4} pts</span>
+                                </div>
                                 {occ.what_it_means && <span className="block text-[10px] text-indigo-500 mt-0.5">{occ.what_it_means}</span>}
                             </div>
                         ))}
@@ -428,7 +460,6 @@ const AdultBehaviouralRenderer = ({ data }: { data: any }) => {
 const AdultBrandLandscapeSection = ({ data }: { data: any }) => {
     const brands = ensureArray(data.brands);
 
-    // QUALITY CHECK: If any brand is "Unknown" or list is empty, force fallback
     if (brands.length === 0 || brands.some((b: any) => (b.brand || '').includes('Unknown'))) {
         return <DataQualityNoticeCard title="Brand Landscape" reason="Brand payload contains unknown entities or insufficient data." data={data} />;
     }
@@ -436,8 +467,10 @@ const AdultBrandLandscapeSection = ({ data }: { data: any }) => {
     return (
         <div className="space-y-8">
             <div className="grid grid-cols-1 gap-6">
-                {brands.map((b: any, i: number) => (
-                    <div key={i} className="bg-white border border-slate-200 rounded-lg p-5 shadow-sm">
+                {brands.map((b: any, i: number) => {
+                    const brandPts = (ensureArray(b.attribute_scale).length * 8) + (ensureArray(b.verbatims).length * 5) + (ensureArray(b.strengths).length * 6) + (ensureArray(b.weaknesses).length * 6) + 20;
+                    return (
+                    <div key={i} className="bg-white border border-slate-200 rounded-xl p-5 shadow-sm">
                         <div className="flex justify-between items-start mb-4 border-b border-slate-100 pb-3">
                             <div>
                                 <h4 className="font-bold text-lg text-slate-800">{b.brand}</h4>
@@ -446,10 +479,14 @@ const AdultBrandLandscapeSection = ({ data }: { data: any }) => {
                                     <span className="text-[10px] bg-yellow-50 text-yellow-700 px-2 py-0.5 rounded font-bold">{b.overall_sentiment}</span>
                                 </div>
                             </div>
+                            <span className="text-[9px] font-mono text-slate-400 bg-slate-50 px-2 py-0.5 rounded-full border border-slate-200">{brandPts} data pts</span>
                         </div>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                             <div>
-                                <span className="text-[10px] font-bold text-slate-400 uppercase block mb-2">Attribute Performance</span>
+                                <div className="flex justify-between items-center mb-2">
+                                    <span className="text-[10px] font-bold text-slate-400 uppercase">Attribute Performance</span>
+                                    <span className="text-[8px] font-mono text-slate-400">Amazon/Flipkart sourced</span>
+                                </div>
                                 <div className="space-y-2">
                                     {ensureArray(b.attribute_scale).map((attr: any, k: number) => (
                                         <div key={k} className="flex items-center gap-2 text-xs">
@@ -461,12 +498,34 @@ const AdultBrandLandscapeSection = ({ data }: { data: any }) => {
                                         </div>
                                     ))}
                                 </div>
+                                {/* Strengths/Weaknesses */}
+                                <div className="grid grid-cols-2 gap-3 mt-4">
+                                    {ensureArray(b.strengths).length > 0 && (
+                                        <div className="bg-emerald-50 p-2 rounded">
+                                            <span className="text-[9px] font-bold text-emerald-700 uppercase block mb-1">Strengths</span>
+                                            {ensureArray(b.strengths).map((s: any, j: number) => (
+                                                <div key={j} className="text-[10px] text-emerald-800 mb-0.5">+ <SafeText content={typeof s === 'string' ? s : s.text || ''} /></div>
+                                            ))}
+                                        </div>
+                                    )}
+                                    {ensureArray(b.weaknesses).length > 0 && (
+                                        <div className="bg-red-50 p-2 rounded">
+                                            <span className="text-[9px] font-bold text-red-700 uppercase block mb-1">Weaknesses</span>
+                                            {ensureArray(b.weaknesses).map((w: any, j: number) => (
+                                                <div key={j} className="text-[10px] text-red-800 mb-0.5">− <SafeText content={typeof w === 'string' ? w : w.text || ''} /></div>
+                                            ))}
+                                        </div>
+                                    )}
+                                </div>
                             </div>
                             <div>
                                 <span className="text-[10px] font-bold text-slate-400 uppercase block mb-2">Consumer Verdict</span>
+                                {b.positioning_summary && (
+                                    <div className="text-[11px] text-slate-600 mb-3 italic bg-slate-50 p-2 rounded"><SafeText content={b.positioning_summary} /></div>
+                                )}
                                 {b.verbatims && b.verbatims.length > 0 ? (
                                     <div className="space-y-2">
-                                        {ensureArray(b.verbatims).slice(0,2).map((v: string, k: number) => (
+                                        {ensureArray(b.verbatims).slice(0,3).map((v: string, k: number) => (
                                             <div key={k} className="bg-slate-50 p-2 rounded text-xs text-slate-600 italic border-l-2 border-indigo-200">
                                                 "{v}"
                                             </div>
@@ -478,7 +537,7 @@ const AdultBrandLandscapeSection = ({ data }: { data: any }) => {
                             </div>
                         </div>
                     </div>
-                ))}
+                )})}
             </div>
         </div>
     );
