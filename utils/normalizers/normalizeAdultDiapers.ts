@@ -64,8 +64,44 @@ export const normalizeAdultDiapersData = (sectionId: string, rawData: any): any 
     
     // 1. Structure Adaptation
     let adapted: any = {};
-    if (sectionId === 'incontinence_management') {
-        adapted = fillIncontinenceGaps(data); // Uses existing minfill
+    if (sectionId === 'gap_analysis') {
+        // NEW: Gap Analysis for Adult Diapers — pass through with defensive normalization
+        adapted = { ...data };
+        const normBlock = (block: any, heading: string) => {
+            if (!block) return { heading, bullets: [] };
+            return {
+                heading: block.heading || heading,
+                bullets: ensureArray(block.bullets || block.points || block.challenges).map((b: any) => ({
+                    claim: b.claim || b.text || b.headline || 'Unspecified',
+                    explanation: b.explanation || b.description || '',
+                    consumer_evidence: ensureArray(b.consumer_evidence || b.evidence).map((e: any) => 
+                        typeof e === 'string' ? { quote: e, source: 'Consumer' } : { quote: e.quote || e.text || '', source: e.source || '' }
+                    ),
+                    severity: b.severity || 'MED',
+                    data_points: b.data_points || 0,
+                    impacted_segments: ensureArray(b.impacted_segments)
+                }))
+            };
+        };
+        adapted.current_challenges = normBlock(data.current_challenges, 'Current Challenges');
+        adapted.resolved_challenges = normBlock(data.resolved_challenges, 'What Has Been Resolved');
+        adapted.unresolved_challenges = normBlock(data.unresolved_challenges, 'Persistent Unresolved Issues');
+        adapted.need_gap = {
+            heading: data.need_gap?.heading || 'White Space & Need Gaps',
+            need_statements: ensureArray(data.need_gap?.need_statements || data.need_gap?.needs).map((n: any) => ({
+                need: n.need || n.text || '',
+                why_now: n.why_now || n.reason || '',
+                who: n.who || n.segment || '',
+                data_points: n.data_points || 0,
+                consumer_evidence: ensureArray(n.consumer_evidence).map((e: any) => 
+                    typeof e === 'string' ? { quote: e, source: 'Consumer' } : { quote: e.quote || '', source: e.source || '' }
+                ),
+                priority: n.priority || 'P1'
+            }))
+        };
+    }
+    else if (sectionId === 'incontinence_management') {
+        adapted = fillIncontinenceGaps(data);
     }
     else if (sectionId === 'user_non_user_profiles') {
         // Map old DTO style to new flat style if needed
@@ -74,45 +110,12 @@ export const normalizeAdultDiapersData = (sectionId: string, rawData: any): any 
         adapted = { 
             ...data, 
             user_profiles: u, 
-            non_user_profiles: n,
-            // Preserve failure/delight stories (new fields)
-            failure_stories: ensureArray(data.failure_stories || data.users_trialists?.failure_stories),
-            delight_stories: ensureArray(data.delight_stories || data.users_trialists?.delight_stories),
+            non_user_profiles: n 
         };
         adapted = fillUserProfileGaps(adapted);
-
-        // Normalize switching_trigger field name (was trigger_event)
-        if (adapted.user_profiles) {
-            adapted.user_profiles = ensureArray(adapted.user_profiles).map((p: any) => ({
-                ...p,
-                switching_trigger: p.switching_trigger || p.trigger_event || p.trigger || '',
-            }));
-        }
     }
     else if (sectionId === 'awareness_perception') {
         adapted = { ...data };
-
-        // Normalize awareness_sources (new field)
-        if (!adapted.awareness_sources) {
-            const sourcesData = adapted.information_sources || adapted.awareness_channels || adapted.discovery_sources || adapted.awareness_depth;
-            if (sourcesData) {
-                adapted.awareness_sources = ensureArray(sourcesData).map((s: any) => {
-                    if (typeof s === 'string') return { headline: s, what_it_means: '' };
-                    return {
-                        headline: s.headline || s.source || s.channel || s.title || '',
-                        what_it_means: s.what_it_means || s.description || s.detail || s.impact || '',
-                    };
-                });
-            }
-        } else {
-            adapted.awareness_sources = ensureArray(adapted.awareness_sources).map((s: any) => {
-                if (typeof s === 'string') return { headline: s, what_it_means: '' };
-                return {
-                    headline: s.headline || s.source || s.channel || s.title || '',
-                    what_it_means: s.what_it_means || s.description || s.detail || '',
-                };
-            });
-        }
 
         // Fix Stigma Drivers key mismatch
         if (!adapted.perceptions_and_stigma) {
@@ -150,29 +153,40 @@ export const normalizeAdultDiapersData = (sectionId: string, rawData: any): any 
             });
         }
     }
-    else if (sectionId === 'gap_analysis') {
-        adapted = { ...data };
-        // Normalize emotional/functional needs arrays defensively
-        ['emotional_needs', 'functional_needs', 'unmet_expectations', 'non_user_gaps'].forEach(key => {
-            if (adapted[key]) {
-                adapted[key] = ensureArray(adapted[key]).map((item: any) => {
-                    if (typeof item === 'string') return { need: item, who_feels_it: '', current_gap: '', consumer_quotes: [], opportunity: '' };
-                    // Normalize consumer_quote (singular) to consumer_quotes (array)
-                    if (item.consumer_quote && !item.consumer_quotes) {
-                        item.consumer_quotes = [item.consumer_quote];
-                    }
-                    if (item.consumer_quotes) {
-                        item.consumer_quotes = ensureArray(item.consumer_quotes);
-                    }
-                    return item;
-                });
-            }
-        });
-    }
     else if (sectionId === 'behavioural_profile') {
         adapted = { ...data };
 
-        // Fix Switching Patterns: convert {from_product, to_product, trigger} → readable string
+        // Format Switching (NEW V2) — pass through with normalization
+        if (adapted.format_switching) {
+            adapted.format_switching = ensureArray(adapted.format_switching).map((sw: any) => ({
+                ...sw,
+                from_product: sw.from_product || sw.from || '',
+                to_product: sw.to_product || sw.to || '',
+                trigger: sw.trigger || sw.reason || '',
+                data_points: sw.data_points || 0,
+                verbatims: ensureArray(sw.verbatims)
+            }));
+        }
+
+        // Brand Switching (NEW V2) — pass through
+        if (adapted.brand_switching) {
+            adapted.brand_switching = ensureArray(adapted.brand_switching).map((sw: any) => ({
+                ...sw,
+                from_brand: sw.from_brand || sw.from || '',
+                to_brand: sw.to_brand || sw.to || '',
+                reason: sw.reason || '',
+                trigger: sw.trigger || '',
+                data_points: sw.data_points || 0,
+                verbatims: ensureArray(sw.verbatims)
+            }));
+        }
+
+        // Geographic Patterns (NEW V2) — pass through
+        if (adapted.geographic_patterns) {
+            // Already structured, just ensure it passes
+        }
+
+        // Legacy: Fix Switching Patterns for backward compat
         if (adapted.switching_patterns) {
             adapted.switching_patterns = ensureArray(adapted.switching_patterns).map((sw: any) => {
                 if (typeof sw === 'string') return { headline: sw };
@@ -183,20 +197,6 @@ export const normalizeAdultDiapersData = (sectionId: string, rawData: any): any 
                     return { headline: `${from} → ${to}${trigger}` };
                 }
                 return { headline: sw.headline || sw.pattern || sw.description || '' };
-            });
-        }
-
-        // Normalize brand_switching (new field)
-        if (adapted.brand_switching) {
-            adapted.brand_switching = ensureArray(adapted.brand_switching).map((bs: any) => {
-                if (typeof bs === 'string') return { headline: bs };
-                const from = bs.from_brand || bs.from || '';
-                const to = bs.to_brand || bs.to || '';
-                if (from && to) {
-                    const reason = bs.reason ? ` — ${bs.reason}` : '';
-                    return { headline: `${from} → ${to}${reason}` };
-                }
-                return { headline: bs.headline || bs.reason || '' };
             });
         }
 
@@ -253,11 +253,10 @@ export const normalizeAdultDiapersData = (sectionId: string, rawData: any): any 
                 return c.channel || c.name || c.type || c.channel_focus || JSON.stringify(c);
             });
 
-            // Fix Pack Sizes — preserve structured objects { headline, insight, consumer_quotes }, convert legacy to strings
+            // Fix Pack Sizes — convert rich objects to "Name (Count)" strings
             if (adapted.purchase_behaviour.pack_sizes) {
                 adapted.purchase_behaviour.pack_sizes = ensureArray(adapted.purchase_behaviour.pack_sizes).map((p: any) => {
                     if (typeof p === 'string') return p;
-                    if (p.headline && p.insight) return p; // new structured format — keep as-is
                     if (p.pack) return p.pack;
                     const name = p.size_type || p.name || p.label || '';
                     const count = p.count || p.units || '';
@@ -267,36 +266,15 @@ export const normalizeAdultDiapersData = (sectionId: string, rawData: any): any 
                 });
             }
 
-            // Pass through pack_sizes_by_brand (new structured sub-section)
-            if (adapted.purchase_behaviour.pack_sizes_by_brand) {
-                adapted.purchase_behaviour.pack_sizes_by_brand = ensureArray(adapted.purchase_behaviour.pack_sizes_by_brand);
-            }
-
-            // Defensive: normalize price_points_inr — preserve structured objects
+            // Defensive: normalize price_points_inr too
             if (adapted.purchase_behaviour.price_points_inr) {
                 adapted.purchase_behaviour.price_points_inr = ensureArray(adapted.purchase_behaviour.price_points_inr).map((pr: any) => {
                     if (typeof pr === 'string') return pr;
-                    if (pr.headline && pr.insight) return pr; // new structured format — keep as-is
                     if (pr.range_label || pr.price) return pr;
                     const label = pr.tier || pr.segment || pr.category || '';
                     const range = pr.range || pr.price_range || pr.inr || '';
                     if (label && range) return { range_label: `${range} (${label})` };
                     return pr;
-                });
-            }
-
-            // Pass through price_by_brand (new structured sub-section)
-            if (adapted.purchase_behaviour.price_by_brand) {
-                adapted.purchase_behaviour.price_by_brand = ensureArray(adapted.purchase_behaviour.price_by_brand);
-            }
-
-            // Normalize geographic_patterns — preserve structured objects with sub_factors
-            if (adapted.purchase_behaviour.geographic_patterns) {
-                adapted.purchase_behaviour.geographic_patterns = ensureArray(adapted.purchase_behaviour.geographic_patterns).map((gp: any) => {
-                    if (typeof gp === 'string') return gp;
-                    if (gp.headline && gp.sub_factors) return gp; // new structured format — keep as-is
-                    if (gp.headline && gp.insight) return gp; // structured without sub_factors — still fine
-                    return gp;
                 });
             }
         }
