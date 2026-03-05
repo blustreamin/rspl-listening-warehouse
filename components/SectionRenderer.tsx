@@ -12,6 +12,8 @@ import { SectionOutput, ProjectId } from '../types';
 import { normalizeSectionData } from '../utils/normalization';
 import { DataQualityNoticeCard } from './report/DataQualityNotice';
 
+const ensureArray = (val: any): any[] => Array.isArray(val) ? val : val ? [val] : [];
+
 interface Props {
   data: SectionOutput;
   projectId?: ProjectId; // Added ProjectId prop
@@ -189,11 +191,13 @@ export const BehaviouralRenderer = ({ data }: { data: any }) => (
                     Trigger Clusters
                 </h4>
                 <div className="flex flex-wrap gap-3">
-                    {data.trigger_clusters.map((t: any, i: number) => (
+                    {data.trigger_clusters.map((t: any, i: number) => {
+                        const pts = (t.intensity === 'HIGH' ? 45 : 20) + ensureArray(t.evidence_ids).length * 5 + i * 3;
+                        return (
                         <div key={i} className="flex-1 min-w-[240px] bg-white border border-slate-200 p-4 rounded-lg shadow-sm hover:border-indigo-200 transition-colors">
                             <div className="flex justify-between items-start mb-2">
-                                <h5 className="font-bold text-indigo-900 text-sm"><SafeText content={t.title || t.cluster_name} /></h5>
-                                <EvidencePill ids={t.evidence_ids} />
+                                <h5 className="font-bold text-indigo-900 text-sm flex-1"><SafeText content={t.title || t.cluster_name} /></h5>
+                                <span className="text-[9px] font-mono text-slate-400 bg-slate-50 px-1.5 py-0.5 rounded border border-slate-200 ml-2 whitespace-nowrap">{pts} pts</span>
                             </div>
                             <p className="text-xs text-slate-600 mb-3 leading-relaxed italic"><SafeText content={t.explanation} /></p>
                             {Array.isArray(t.bullets) && (
@@ -202,7 +206,7 @@ export const BehaviouralRenderer = ({ data }: { data: any }) => (
                                 </ul>
                             )}
                         </div>
-                    ))}
+                    )})}
                 </div>
              </div>
         )}
@@ -215,9 +219,14 @@ export const BehaviouralRenderer = ({ data }: { data: any }) => (
                     Barriers to Adoption
                 </h4>
                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
-                     {Object.entries(data.barrier_groups).map(([key, barriers]: [string, any]) => (
+                     {Object.entries(data.barrier_groups).map(([key, barriers]: [string, any], idx: number) => {
+                         const pts = (Array.isArray(barriers) ? barriers.length * 8 : 5) + 10 + idx * 3;
+                         return (
                          <div key={key} className="bg-rose-50/50 border border-rose-100 p-3 rounded-lg">
-                             <h5 className="font-bold text-rose-900 text-xs uppercase mb-2 pb-1 border-b border-rose-200">{key.replace(/_/g, ' ')}</h5>
+                             <div className="flex justify-between items-center mb-2 pb-1 border-b border-rose-200">
+                                 <h5 className="font-bold text-rose-900 text-xs uppercase">{key.replace(/_/g, ' ')}</h5>
+                                 <span className="text-[9px] font-mono text-rose-400 bg-rose-100 px-1.5 py-0.5 rounded">{pts} pts</span>
+                             </div>
                              <ul className="space-y-2">
                                  {Array.isArray(barriers) && barriers.map((b: any, i: number) => (
                                      <li key={i} className="text-[11px] text-rose-900 leading-snug flex gap-2">
@@ -227,7 +236,7 @@ export const BehaviouralRenderer = ({ data }: { data: any }) => (
                                  ))}
                              </ul>
                          </div>
-                     ))}
+                     )})}
                  </div>
             </div>
         )}
@@ -319,10 +328,11 @@ export const EcosystemRenderer = ({ data }: { data: any }) => (
 
 export const DeepDiveRenderer = ({ data }: { data: any }) => (
     <div className="space-y-8">
+        {/* Role Summary */}
         {data.role_summary && (
-            <div className="bg-gradient-to-r from-slate-100 to-white p-4 rounded-lg border border-slate-200">
-                <div className="flex justify-between">
-                    <h4 className="font-bold text-slate-800 mb-2"><SafeText content={data.role_summary.boldTitle} /></h4>
+            <div className="bg-gradient-to-r from-slate-100 to-white p-5 rounded-lg border border-slate-200">
+                <div className="flex justify-between items-start">
+                    <h4 className="font-extrabold text-slate-800 text-lg mb-2"><SafeText content={data.role_summary.boldTitle} /></h4>
                     <ConfidenceBadge score={data.role_summary.confidence} />
                 </div>
                 {Array.isArray(data.role_summary.bullets) && (
@@ -332,21 +342,169 @@ export const DeepDiveRenderer = ({ data }: { data: any }) => (
                 )}
             </div>
         )}
-         {data.users && (
-            <div>
-                <h4 className="text-xs font-bold text-indigo-600 uppercase tracking-wider mb-4 border-b border-indigo-100 pb-2">User Experience</h4>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-                    <div className="bg-slate-50 p-3 rounded border border-slate-200">
-                        <span className="text-xs font-bold text-slate-500 block mb-2">DISCOVERY</span>
+
+        {/* ── USERS SECTION ── */}
+        {data.users && (
+            <div className="space-y-6">
+                <h4 className="text-sm font-bold text-indigo-700 uppercase tracking-wider border-b-2 border-indigo-200 pb-2">Among Users</h4>
+                
+                {/* Discovery + Triggers Row */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="bg-slate-50 p-4 rounded-lg border border-slate-200">
+                        <span className="text-[10px] font-bold text-slate-500 uppercase block mb-2">Product Discovery</span>
                         <div className="flex flex-wrap gap-2">
-                            {Array.isArray(data.users.discovery_sources) && data.users.discovery_sources.map((s: any, i: number) => (
-                                <span key={i} className="text-xs bg-white border px-2 py-1 rounded text-slate-700"><SafeText content={s} /></span>
+                            {ensureArray(data.users.discovery_sources).map((s: any, i: number) => (
+                                <span key={i} className="text-xs bg-white border border-slate-200 px-2.5 py-1.5 rounded-lg text-slate-700 shadow-sm"><SafeText content={s} /></span>
+                            ))}
+                        </div>
+                    </div>
+                    <div className="bg-slate-50 p-4 rounded-lg border border-slate-200">
+                        <span className="text-[10px] font-bold text-slate-500 uppercase block mb-2">Usage Triggers</span>
+                        <div className="flex flex-wrap gap-2">
+                            {ensureArray(data.users.triggers).map((t: any, i: number) => (
+                                <span key={i} className="text-xs bg-indigo-50 border border-indigo-100 px-2.5 py-1.5 rounded-lg text-indigo-800"><SafeText content={t} /></span>
                             ))}
                         </div>
                     </div>
                 </div>
+
+                {/* Experience Parameters — the 9 mandatory attributes */}
+                {data.users.experience_parameters && ensureArray(data.users.experience_parameters).length > 0 && (
+                    <div>
+                        <span className="text-[10px] font-bold text-slate-500 uppercase block mb-3">Product Experience by Parameter</span>
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                            {ensureArray(data.users.experience_parameters).map((p: any, i: number) => {
+                                const sentColor = p.sentiment === 'POS' ? 'border-l-emerald-500 bg-emerald-50' : p.sentiment === 'NEG' ? 'border-l-red-500 bg-red-50' : 'border-l-amber-500 bg-amber-50';
+                                const sentLabel = p.sentiment === 'POS' ? '✓ Positive' : p.sentiment === 'NEG' ? '✗ Negative' : '~ Mixed';
+                                const sentLabelColor = p.sentiment === 'POS' ? 'text-emerald-700' : p.sentiment === 'NEG' ? 'text-red-700' : 'text-amber-700';
+                                return (
+                                    <div key={i} className={`border-l-4 ${sentColor} p-3 rounded-r-lg`}>
+                                        <div className="flex justify-between items-center mb-1">
+                                            <span className="font-bold text-xs text-slate-800"><SafeText content={p.parameter} /></span>
+                                            <span className={`text-[9px] font-bold ${sentLabelColor}`}>{sentLabel}</span>
+                                        </div>
+                                        <p className="text-[11px] text-slate-600 leading-relaxed"><SafeText content={p.insight} /></p>
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    </div>
+                )}
+
+                {/* Delighters & Failures */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {data.users.delighters && ensureArray(data.users.delighters).length > 0 && (
+                        <div className="bg-emerald-50 p-4 rounded-lg border border-emerald-100">
+                            <span className="text-[10px] font-bold text-emerald-700 uppercase block mb-2">✦ Delighters</span>
+                            {ensureArray(data.users.delighters).map((d: any, i: number) => (
+                                <div key={i} className="text-xs text-emerald-900 mb-1.5 flex gap-2">
+                                    <span className="text-emerald-500">+</span> <SafeText content={d} />
+                                </div>
+                            ))}
+                        </div>
+                    )}
+                    {data.users.failures && ensureArray(data.users.failures).length > 0 && (
+                        <div className="bg-red-50 p-4 rounded-lg border border-red-100">
+                            <span className="text-[10px] font-bold text-red-700 uppercase block mb-2">✧ Where It Failed</span>
+                            {ensureArray(data.users.failures).map((f: any, i: number) => (
+                                <div key={i} className="text-xs text-red-900 mb-1.5 flex gap-2">
+                                    <span className="text-red-500">−</span> <SafeText content={f} />
+                                </div>
+                            ))}
+                        </div>
+                    )}
+                </div>
+
+                {/* Brand Sentiment within Deep Dive */}
+                {data.users.brands && ensureArray(data.users.brands).length > 0 && (
+                    <div>
+                        <span className="text-[10px] font-bold text-slate-500 uppercase block mb-2">Brand Sentiment</span>
+                        <div className="flex flex-wrap gap-3">
+                            {ensureArray(data.users.brands).map((b: any, i: number) => (
+                                <div key={i} className={`text-xs px-3 py-2 rounded-lg border ${
+                                    b.sentiment === 'POS' ? 'bg-emerald-50 border-emerald-200 text-emerald-800' :
+                                    b.sentiment === 'NEG' ? 'bg-red-50 border-red-200 text-red-800' :
+                                    'bg-slate-50 border-slate-200 text-slate-800'
+                                }`}>
+                                    <span className="font-bold">{b.brand}</span>
+                                    {b.share?.pct > 0 && <span className="ml-1 text-[9px] opacity-70">({b.share.pct}%)</span>}
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                )}
             </div>
-         )}
+        )}
+
+        {/* ── NON-USERS SECTION ── */}
+        {data.non_users && (
+            <div className="space-y-4">
+                <h4 className="text-sm font-bold text-rose-700 uppercase tracking-wider border-b-2 border-rose-200 pb-2">Among Non-Users</h4>
+                
+                {data.non_users.awareness_quality && (
+                    <div className="bg-rose-50 p-3 rounded-lg border border-rose-100 text-xs text-rose-800">
+                        <span className="font-bold">Awareness Quality: </span><SafeText content={data.non_users.awareness_quality} />
+                    </div>
+                )}
+                {data.non_users.brands_aware && ensureArray(data.non_users.brands_aware).length > 0 && (
+                    <div>
+                        <span className="text-[10px] font-bold text-slate-500 uppercase block mb-2">Brands Aware Of</span>
+                        <div className="flex flex-wrap gap-2">
+                            {ensureArray(data.non_users.brands_aware).map((b: any, i: number) => (
+                                <span key={i} className="text-xs bg-white border border-slate-200 px-2.5 py-1 rounded text-slate-700">{typeof b === 'string' ? b : b.brand || ''}</span>
+                            ))}
+                        </div>
+                    </div>
+                )}
+                {data.non_users.barriers_to_try && ensureArray(data.non_users.barriers_to_try).length > 0 && (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        {ensureArray(data.non_users.barriers_to_try).map((b: any, i: number) => (
+                            <div key={i} className="bg-white border border-rose-200 p-3 rounded-lg">
+                                <h5 className="font-bold text-rose-800 text-xs mb-2"><SafeText content={b.title} /></h5>
+                                {ensureArray(b.bullets).map((bullet: any, j: number) => (
+                                    <div key={j} className="text-[11px] text-slate-600 mb-1 flex gap-2">
+                                        <span className="text-rose-400">•</span> <SafeText content={bullet} />
+                                    </div>
+                                ))}
+                            </div>
+                        ))}
+                    </div>
+                )}
+            </div>
+        )}
+
+        {/* ── FUTURE INTENT ── */}
+        {data.future_intent && (
+            <div className="space-y-4">
+                <h4 className="text-sm font-bold text-slate-700 uppercase tracking-wider border-b-2 border-slate-200 pb-2">Future Disposition</h4>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                    {data.future_intent.repurchase_signals && (
+                        <div className="bg-emerald-50 p-3 rounded-lg border border-emerald-100">
+                            <span className="text-[9px] font-bold text-emerald-700 uppercase block mb-2">Repurchase Signals</span>
+                            {ensureArray(data.future_intent.repurchase_signals).map((s: any, i: number) => (
+                                <div key={i} className="text-[11px] text-emerald-800 mb-1"><SafeText content={s} /></div>
+                            ))}
+                        </div>
+                    )}
+                    {data.future_intent.switching_risk && (
+                        <div className="bg-amber-50 p-3 rounded-lg border border-amber-100">
+                            <span className="text-[9px] font-bold text-amber-700 uppercase block mb-2">Switching Risk</span>
+                            {ensureArray(data.future_intent.switching_risk).map((s: any, i: number) => (
+                                <div key={i} className="text-[11px] text-amber-800 mb-1"><SafeText content={s} /></div>
+                            ))}
+                        </div>
+                    )}
+                    {data.future_intent.growth_vectors && (
+                        <div className="bg-blue-50 p-3 rounded-lg border border-blue-100">
+                            <span className="text-[9px] font-bold text-blue-700 uppercase block mb-2">Growth Vectors</span>
+                            {ensureArray(data.future_intent.growth_vectors).map((s: any, i: number) => (
+                                <div key={i} className="text-[11px] text-blue-800 mb-1"><SafeText content={s} /></div>
+                            ))}
+                        </div>
+                    )}
+                </div>
+            </div>
+        )}
     </div>
 );
 

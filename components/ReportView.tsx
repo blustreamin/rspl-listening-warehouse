@@ -6,7 +6,6 @@ import { runPipelineForSection } from '../services/pipeline';
 import { SectionRenderer } from './SectionRenderer';
 import { ModernSectionRenderer } from './report/ModernSectionRenderer';
 import { RunInspector } from './RunInspector';
-import { DataIngestionInfographic, CustomDataBadge } from './report/DataIngestionInfographic';
 
 interface Props {
   projectId: ProjectId;
@@ -64,81 +63,68 @@ export const ReportView: React.FC<Props> = ({ projectId, injectedEvidence }) => 
 
       const localSections: SectionOutput[] = [];
       
-      // Execute Section Jobs in PARALLEL BATCHES for speed
-      // Batch 1: independent sections that can run simultaneously
-      // Batch 2: sections that may benefit from seeing batch 1 context
-      const batch1 = template.sections.filter((s: any) => 
-        ['incontinence_management', 'awareness_perception', 'brand_landscape'].includes(s.sectionId)
-      );
-      const batch2 = template.sections.filter((s: any) => 
-        ['gap_analysis', 'user_non_user_profiles', 'behavioural_profile'].includes(s.sectionId)
-      );
-      // Any remaining sections not in batches
-      const batch3 = template.sections.filter((s: any) => 
-        !batch1.some((b: any) => b.sectionId === s.sectionId) && 
-        !batch2.some((b: any) => b.sectionId === s.sectionId)
-      );
+      // Execute Section Jobs Sequentially
+      for (const sec of template.sections) {
+        if (!active) { console.debug(`[ReportView] ABORT ${projectId}`); break; }
 
-      const runBatch = async (batch: any[]) => {
-        if (!active) return;
-        
-        // Mark all in batch as pending
-        batch.forEach((sec: any) => {
-          setInspectorData(prev => ({
-            ...prev,
-            perSectionStatus: { ...prev.perSectionStatus, [sec.sectionId]: 'PENDING' }
-          }));
-        });
-
-        const results = await Promise.allSettled(
-          batch.map(async (sec: any) => {
-            if (!active) throw new Error('ABORT');
-            
-            const result = await runPipelineForSection(
-              projectId,
-              sec.sectionId,
-              (update) => {
-                if (active && projectId === lastProjectIdRef.current) {
-                  setInspectorData(prev => ({ ...prev, ...update }));
-                }
-              },
-              validEvidence || undefined
-            );
-            return { sec, result };
-          })
-        );
-
-        for (const r of results) {
-          if (!active || projectId !== lastProjectIdRef.current) break;
-          if (r.status === 'fulfilled') {
-            localSections.push(r.value.result);
-            setSections([...localSections]);
-            setInspectorData(prev => ({
-              ...prev,
-              perSectionStatus: { ...prev.perSectionStatus, [r.value.sec.sectionId]: r.value.result.status }
-            }));
-          } else {
-            const secId = 'unknown';
-            console.error(`Pipeline failed for batch section`, r.reason);
-            setInspectorData(prev => ({
-              ...prev,
-              retryLog: [...prev.retryLog, `BATCH FAIL: ${r.reason}`]
-            }));
-          }
+        // Skip Visual Synthesis for femcare projects (redundant)
+        if (['disposable-period-panties', 'reusable-period-panties'].includes(projectId) && sec.sectionId === '10') {
+            continue;
         }
-      };
 
-      // Run batches
-      await runBatch(batch1);
-      if (active) {
-        await new Promise(r => setTimeout(r, 300));
-        await runBatch(batch2);
-      }
-      if (active && batch3.length > 0) {
-        await new Promise(r => setTimeout(r, 300));
-        await runBatch(batch3);
-      }
+        // Mark pending
+        setInspectorData(prev => ({
+          ...prev,
+          perSectionStatus: { ...prev.perSectionStatus, [sec.sectionId]: 'PENDING' }
+        }));
 
+        // Artificial delay for realism (and to allow race conditions to manifest if unprotected)
+        await new Promise(r => setTimeout(r, 500));
+        
+        if (!active) break; // Check again after await
+
+        try {
+            // Run Pipeline
+            const result = await runPipelineForSection(
+                projectId, 
+                sec.sectionId, 
+                (update) => {
+                    // HARDENED CALLBACK: Check strict isolation
+                    if (active) {
+                        // Double check: is this update meant for the current project context?
+                        if (projectId !== lastProjectIdRef.current) {
+                            console.warn("[Synthesis] ISOLATION_VIOLATION: Callback for stale project ignored");
+                            return;
+                        }
+                        setInspectorData(prev => ({ ...prev, ...update }));
+                    }
+                },
+                validEvidence || undefined
+            );
+
+            if (!active) break;
+            if (projectId !== lastProjectIdRef.current) break; // Extra guard
+
+            localSections.push(result);
+            setSections([...localSections]); // Incremental update
+            
+            // Update Inspector Status
+            setInspectorData(prev => ({
+              ...prev,
+              perSectionStatus: { ...prev.perSectionStatus, [sec.sectionId]: result.status }
+            }));
+
+        } catch (err) {
+            console.error(`Pipeline failed for ${sec.sectionId}`, err);
+            if (active) {
+                setInspectorData(prev => ({
+                    ...prev,
+                    perSectionStatus: { ...prev.perSectionStatus, [sec.sectionId]: 'FAILED' },
+                    retryLog: [...prev.retryLog, `CRITICAL FAIL S${sec.sectionId}: ${err}`]
+                }));
+            }
+        }
+      }
     };
 
     loadReport();
@@ -174,97 +160,55 @@ export const ReportView: React.FC<Props> = ({ projectId, injectedEvidence }) => 
                 </div>
             </div>
             {validEvidence && (
-                <CustomDataBadge evidence={validEvidence} />
+                <div className="bg-indigo-50 text-indigo-700 px-3 py-1 rounded text-xs font-bold border border-indigo-100 flex items-center gap-2">
+                    <div className="w-2 h-2 bg-indigo-500 rounded-full animate-pulse"></div>
+                    CUSTOM DATA LOADED
+                </div>
             )}
         </div>
       </header>
 
       <div className="space-y-2">
-        {sections.map(section => {
-            // STRICT RENDER GUARD: Do not render section if it belongs to a different project
-            // This catches race conditions where state might not have been cleared yet
-            if (section.projectId && section.projectId !== projectId) {
-                console.warn(`[ReportView] Render blocked for stale section from ${section.projectId}`);
-                return null;
-            }
-
+        {sections
+            .filter(section => {
+                if (section.projectId && section.projectId !== projectId) {
+                    console.warn(`[ReportView] Render blocked for stale section from ${section.projectId}`);
+                    return false;
+                }
+                return true;
+            })
+            .sort((a, b) => {
+                // Sort by template section order to guarantee correct sequence
+                const template = TEMPLATE_REGISTRY[projectId];
+                if (!template) return 0;
+                const order = template.sections.map(s => s.sectionId);
+                const aIdx = order.indexOf(a.sectionId || '');
+                const bIdx = order.indexOf(b.sectionId || '');
+                return (aIdx === -1 ? 999 : aIdx) - (bIdx === -1 ? 999 : bIdx);
+            })
+            .filter(section => {
+                // Remove Visual Synthesis section for femcare projects
+                if (['disposable-period-panties', 'reusable-period-panties'].includes(projectId)) {
+                    if (section.sectionId === '10' || (section.title && section.title.toLowerCase().includes('visual synthesis'))) {
+                        return false;
+                    }
+                }
+                return true;
+            })
+            .map(section => {
             return useModernRenderer ? (
                 <ModernSectionRenderer key={section.title} data={section} projectId={projectId} />
             ) : (
                 <SectionRenderer key={section.title} data={section} projectId={projectId} />
             );
         })}
-        {sections.length < (TEMPLATE_REGISTRY[projectId]?.sections.length || 0) && (() => {
-             const totalSections = TEMPLATE_REGISTRY[projectId]?.sections.length || 6;
-             const completed = sections.length;
-             const pct = Math.round((completed / totalSections) * 100);
-             const allSections = TEMPLATE_REGISTRY[projectId]?.sections || [];
-             const completedIds = sections.map(s => s.sectionId);
-             const pending = allSections.filter((s: any) => !completedIds.includes(s.sectionId));
-             const currentSection = pending[0];
-             const elapsed = Math.round((Date.now() - (window as any).__reportStartTime) / 1000) || 0;
-             if (completed === 0 && !(window as any).__reportStartTime) (window as any).__reportStartTime = Date.now();
-             
-             return (
-                 <div className="py-10">
-                     {/* Progress Bar */}
-                     <div className="max-w-lg mx-auto mb-6">
-                         <div className="flex justify-between text-[10px] font-mono text-slate-400 mb-2">
-                             <span>{completed} of {totalSections} sections</span>
-                             <span>{pct}%</span>
-                         </div>
-                         <div className="h-1.5 bg-slate-100 rounded-full overflow-hidden">
-                             <div className="h-full bg-indigo-500 rounded-full transition-all duration-700" style={{ width: `${pct}%` }}></div>
-                         </div>
-                     </div>
-
-                     {/* Telemetry */}
-                     <div className="max-w-lg mx-auto bg-slate-50 border border-slate-200 rounded-lg p-4">
-                         <div className="flex items-center gap-3 mb-3">
-                             <div className="animate-spin w-4 h-4 border-2 border-slate-300 border-t-indigo-600 rounded-full"></div>
-                             <span className="text-xs font-bold text-slate-700">
-                                 {currentSection ? `Synthesizing: ${currentSection.title}` : 'Processing...'}
-                             </span>
-                         </div>
-                         <div className="space-y-1.5 font-mono text-[10px] text-slate-400">
-                             {completedIds.map((id: string) => {
-                                 const sec = allSections.find((s: any) => s.sectionId === id);
-                                 return (
-                                     <div key={id} className="flex items-center gap-2">
-                                         <span className="text-emerald-500">&#10003;</span>
-                                         <span className="text-slate-600">{sec?.title || id}</span>
-                                         <span className="text-slate-300">completed</span>
-                                     </div>
-                                 );
-                             })}
-                             {pending.map((s: any, i: number) => (
-                                 <div key={s.sectionId} className="flex items-center gap-2">
-                                     {i === 0 ? (
-                                         <span className="text-indigo-400 animate-pulse">&#9679;</span>
-                                     ) : (
-                                         <span className="text-slate-300">&#9675;</span>
-                                     )}
-                                     <span className={i === 0 ? 'text-indigo-600' : 'text-slate-400'}>{s.title}</span>
-                                     {i === 0 && <span className="text-indigo-400">in progress</span>}
-                                     {i > 0 && <span className="text-slate-300">queued</span>}
-                                 </div>
-                             ))}
-                         </div>
-                         {elapsed > 0 && (
-                             <div className="mt-3 pt-2 border-t border-slate-200 text-[10px] text-slate-400 font-mono">
-                                 Elapsed: {elapsed}s | Model: gemini-3-pro | Thinking: 24k-32k tokens
-                             </div>
-                         )}
-                     </div>
-                 </div>
-             );
-        })()}
+        {sections.length < (TEMPLATE_REGISTRY[projectId]?.sections.length || 0) && (
+             <div className="text-center py-12">
+                 <div className="animate-spin inline-block w-8 h-8 border-4 border-slate-200 border-t-indigo-600 rounded-full mb-4"></div>
+                 <p className="text-slate-400 font-mono text-sm">Synthesizing next section...</p>
+             </div>
+        )}
       </div>
-
-      {/* Data Ingestion Analysis - at bottom of report */}
-      {validEvidence && sections.length > 0 && (
-        <DataIngestionInfographic evidence={validEvidence} projectId={projectId} />
-      )}
 
       <RunInspector data={inspectorData} projectId={projectId} />
     </div>
