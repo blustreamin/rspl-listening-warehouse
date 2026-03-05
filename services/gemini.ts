@@ -3,6 +3,7 @@ import { GoogleGenAI } from "@google/genai";
 import { ProjectId, TemplatePack, EvidenceGraph, IngestRequestV1 } from "../types";
 import { INGESTION_SYSTEM_PROMPT } from "./prompts";
 import { adultDiapersIngestion } from "./ingestion/adultDiapersIngestion";
+import { disposablePeriodPantiesIngestion } from "./ingestion/disposablePeriodPantiesIngestion";
 
 const API_KEY = process.env.API_KEY || "";
 
@@ -91,6 +92,12 @@ export const ingestRawData = async (ingestRequest: string | IngestRequestV1): Pr
   if (requestObj.projectId === 'adult-diapers') {
       console.log("Using Deterministic Ingestion for Adult Diapers");
       return adultDiapersIngestion(requestObj);
+  }
+
+  // BRANCH: Disposable Period Panties Deterministic Ingestion
+  if (requestObj.projectId === 'disposable-period-panties') {
+      console.log("Using Deterministic Ingestion for Disposable Period Panties");
+      return disposablePeriodPantiesIngestion(requestObj);
   }
 
   if (!API_KEY) return null;
