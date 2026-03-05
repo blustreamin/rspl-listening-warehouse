@@ -161,7 +161,7 @@ export const normalizeSectionData = (
     
     // GUARD: Adult Diapers Isolation
     if ((projectId as string) === 'adult-diapers') {
-        if (templateId && templateId !== 'adult_diapers_v1') {
+        if (templateId && !templateId.startsWith('adult_diapers_v')) {
             throw new Error(`[Normalization] Critical Project/Template Mismatch: ${projectId} cannot use ${templateId}`);
         }
         // Strip prefix if present (compatibility)
@@ -171,7 +171,7 @@ export const normalizeSectionData = (
     }
 
     // GUARD: Legacy projects attempting to use Adult Diapers logic
-    if (templateId === 'adult_diapers_v1' && (projectId as string) !== 'adult-diapers') {
+    if (templateId?.startsWith('adult_diapers_v') && (projectId as string) !== 'adult-diapers') {
          throw new Error(`[Normalization] Critical: Legacy project ${projectId} attempting to use Adult Diapers template.`);
     }
 

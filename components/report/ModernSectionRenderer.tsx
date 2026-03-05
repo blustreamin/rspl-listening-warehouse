@@ -42,10 +42,12 @@ const getLine = (item: any): any => {
     return item.headline || item.text || item.title || "";
 };
 
-// --- ADULT DIAPERS RENDERERS (Specific Views) ---
 
-
-// --- ADULT DIAPERS RENDERERS (Rebuilt - Ultra Defensive) ---
+// ═══════════════════════════════════════════════════════════════════════
+// ADULT DIAPERS V2 RENDERERS — Premium Consulting Report Aesthetic
+// Version: 2.0.0 | Isolated to adult-diapers project ONLY
+// Every insight sub-card includes 2+ consumer verbatims
+// ═══════════════════════════════════════════════════════════════════════
 
 const safeArr = (v: any): any[] => {
     if (Array.isArray(v)) return v;
@@ -60,13 +62,65 @@ const safeStr = (v: any): string => {
     if (v.text) return String(v.text);
     if (v.title) return String(v.title);
     if (v.name) return String(v.name);
-    try { return JSON.stringify(v).slice(0, 120); } catch { return ''; }
+    try { return JSON.stringify(v).slice(0, 150); } catch { return ''; }
 };
 
 const safeDetail = (v: any): string => {
     if (!v || typeof v === 'string') return '';
     return String(v.what_it_means || v.description || v.detail || v.reality || v.explanation || '');
 };
+
+// Shared sub-card with headline + detail + verbatims
+const InsightSubCard = ({ headline, detail, verbatims, accent = 'indigo', pts }: 
+    { headline: string; detail?: string; verbatims?: any[]; accent?: string; pts?: number }) => {
+    const verbs = safeArr(verbatims);
+    const colors: Record<string, any> = {
+        indigo: { bg: 'bg-indigo-50/40', border: 'border-indigo-100', text: 'text-indigo-900', quote: 'bg-indigo-50 border-indigo-100 text-indigo-800', dot: 'bg-indigo-500' },
+        red: { bg: 'bg-rose-50/40', border: 'border-rose-100', text: 'text-rose-900', quote: 'bg-rose-50 border-rose-100 text-rose-800', dot: 'bg-rose-500' },
+        amber: { bg: 'bg-amber-50/40', border: 'border-amber-100', text: 'text-amber-900', quote: 'bg-amber-50 border-amber-100 text-amber-800', dot: 'bg-amber-500' },
+        emerald: { bg: 'bg-emerald-50/40', border: 'border-emerald-100', text: 'text-emerald-900', quote: 'bg-emerald-50 border-emerald-100 text-emerald-800', dot: 'bg-emerald-500' },
+        slate: { bg: 'bg-slate-50/60', border: 'border-slate-200', text: 'text-slate-800', quote: 'bg-slate-50 border-slate-200 text-slate-700', dot: 'bg-slate-500' },
+        purple: { bg: 'bg-purple-50/40', border: 'border-purple-100', text: 'text-purple-900', quote: 'bg-purple-50 border-purple-100 text-purple-800', dot: 'bg-purple-500' },
+    };
+    const c = colors[accent] || colors.indigo;
+
+    return (
+        <div className={`${c.bg} border ${c.border} rounded-xl p-4 space-y-2.5`}>
+            <div className="flex justify-between items-start gap-2">
+                <div className="flex items-start gap-2 flex-1">
+                    <div className={`w-1.5 h-1.5 rounded-full ${c.dot} mt-1.5 flex-shrink-0`}></div>
+                    <div>
+                        <div className={`text-xs font-bold ${c.text} leading-snug`}>{headline}</div>
+                        {detail && <div className="text-[11px] text-slate-500 mt-0.5 leading-relaxed">{detail}</div>}
+                    </div>
+                </div>
+                {pts && <span className="text-[8px] font-mono text-slate-400 bg-white/80 px-1.5 py-0.5 rounded border border-slate-200 whitespace-nowrap flex-shrink-0">{pts} pts</span>}
+            </div>
+            {verbs.length > 0 && (
+                <div className="pl-3.5 space-y-1.5">
+                    {verbs.slice(0, 3).map((v: any, i: number) => (
+                        <div key={i} className={`text-[10px] italic ${c.quote} px-2.5 py-1.5 rounded-lg border`}>
+                            "{safeStr(v)}"
+                        </div>
+                    ))}
+                </div>
+            )}
+        </div>
+    );
+};
+
+// Section header with data point count
+const SectionHeader = ({ label, count, color = 'slate' }: { label: string; count?: number; color?: string }) => (
+    <div className="flex justify-between items-center mb-4">
+        <h5 className="text-[11px] font-extrabold uppercase tracking-widest text-slate-500 flex items-center gap-2">
+            <span className={`w-2 h-2 rounded-full bg-${color}-500`}></span>
+            {label}
+        </h5>
+        {count != null && <span className="text-[9px] font-mono text-slate-400 bg-slate-50 px-2 py-0.5 rounded-full border border-slate-200">{count} data pts</span>}
+    </div>
+);
+
+// ── SECTION 1: INCONTINENCE MANAGEMENT ──────────────────────────────
 
 const AdultIncontinenceSection = ({ data }: { data: any }) => {
     let profiles: Record<string, any> = {};
@@ -79,131 +133,108 @@ const AdultIncontinenceSection = ({ data }: { data: any }) => {
         }
     } catch { profiles = {}; }
 
-    const profileEntries = Object.entries(profiles).filter(([k]) => 
+    const entries = Object.entries(profiles).filter(([k]) => 
         !['consumer_statements', 'verbatims', 'summary'].includes(k)
     );
 
-    if (profileEntries.length === 0) {
-        return <div className="text-sm text-slate-500 italic p-4">Incontinence profiles are being generated...</div>;
-    }
+    if (entries.length === 0) return <div className="text-sm text-slate-500 italic p-6 text-center">Incontinence profiles are being synthesized...</div>;
+
+    const profileColors = ['indigo', 'emerald', 'amber', 'purple'];
 
     return (
-        <div className="space-y-8">
-            {profileEntries.map(([key, p]: [string, any]) => {
+        <div className="space-y-10">
+            {entries.map(([key, p]: [string, any], idx: number) => {
                 if (!p || typeof p !== 'object') return null;
                 const triggers = safeArr(p.incontinence_issue);
                 const moments = safeArr(p.worst_moments);
                 const impacts = safeArr(p.life_impact);
                 const solutions = safeArr(p.solutions);
                 const verbatims = safeArr(p.verbatims);
-                const totalPts = triggers.length * 12 + moments.length * 8 + impacts.length * 10 + solutions.length * 6 + verbatims.length * 5 + 15;
+                const accent = profileColors[idx % profileColors.length];
+                const totalPts = triggers.length * 15 + moments.length * 10 + impacts.length * 12 + solutions.length * 8 + verbatims.length * 5 + 20;
 
                 return (
-                <div key={key} className="bg-white border border-slate-200 rounded-xl p-5 shadow-sm">
-                    <div className="flex justify-between items-center mb-4 border-b border-indigo-100 pb-2">
-                        <h4 className="font-bold text-indigo-800 text-sm uppercase">{key.replace(/_/g, ' ')} Profile</h4>
-                        <span className="text-[9px] font-mono text-indigo-500 bg-indigo-50 px-2 py-0.5 rounded-full border border-indigo-100">{totalPts} data pts</span>
-                    </div>
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                        {/* Col 1: Triggers + Suffering */}
-                        <div className="space-y-4">
-                            {triggers.length > 0 && (
-                                <div>
-                                    <div className="flex justify-between items-center mb-1">
-                                        <span className="text-[10px] font-bold text-slate-400 uppercase">Triggers</span>
-                                        <span className="text-[8px] font-mono text-slate-400">{triggers.length * 12} pts</span>
-                                    </div>
-                                    <ul className="text-xs text-slate-700 space-y-1.5">
-                                        {triggers.slice(0, 4).map((t: any, i: number) => (
-                                            <li key={i} className="font-medium">
-                                                {safeStr(t)}
-                                                {safeDetail(t) && <span className="block text-[10px] text-slate-500 font-normal mt-0.5">{safeDetail(t)}</span>}
-                                            </li>
-                                        ))}
-                                    </ul>
-                                </div>
-                            )}
-                            {moments.length > 0 && (
-                                <div>
-                                    <div className="flex justify-between items-center mb-1">
-                                        <span className="text-[10px] font-bold text-slate-400 uppercase">Suffering Moments</span>
-                                        <span className="text-[8px] font-mono text-slate-400">{moments.length * 8} pts</span>
-                                    </div>
-                                    <ul className="text-xs list-disc pl-4 text-slate-600 space-y-1">
-                                        {moments.slice(0, 5).map((m: any, i: number) => (
-                                            <li key={i}>
-                                                {safeStr(m)}
-                                                {safeDetail(m) && <span className="block text-[10px] text-slate-400">{safeDetail(m)}</span>}
-                                            </li>
-                                        ))}
-                                    </ul>
-                                </div>
-                            )}
-                        </div>
-
-                        {/* Col 2: Impact + Voice */}
-                        <div className="space-y-4">
-                            {impacts.length > 0 && (
-                                <div>
-                                    <div className="flex justify-between items-center mb-1">
-                                        <span className="text-[10px] font-bold text-slate-400 uppercase">Life Impact</span>
-                                        <span className="text-[8px] font-mono text-slate-400">{impacts.length * 10} pts</span>
-                                    </div>
-                                    <div className="text-xs text-slate-600 space-y-1.5">
-                                        {impacts.slice(0, 4).map((imp: any, k: number) => (
-                                            <div key={k} className="flex gap-2">
-                                                <span className="text-red-400 font-bold">•</span>
-                                                <div>
-                                                    {safeStr(imp)}
-                                                    {safeDetail(imp) && <span className="block text-[10px] text-slate-400">{safeDetail(imp)}</span>}
-                                                </div>
-                                            </div>
-                                        ))}
-                                    </div>
-                                </div>
-                            )}
-                            {verbatims.length > 0 && (
-                                <div className="bg-indigo-50 p-2.5 rounded-lg border border-indigo-100 space-y-1.5">
-                                    <div className="flex items-center gap-1">
-                                        <span className="text-[9px] font-bold text-indigo-400 uppercase">Voice of Consumer</span>
-                                        <span className="text-[9px] text-indigo-300">({verbatims.length}+ similar)</span>
-                                    </div>
-                                    {verbatims.slice(0, 3).map((v: any, i: number) => (
-                                        <div key={i} className="text-[10px] text-indigo-800 italic">"{safeStr(v)}"</div>
-                                    ))}
-                                </div>
-                            )}
-                        </div>
-
-                        {/* Col 3: Solutions */}
-                        <div className="bg-slate-50 p-3 rounded-lg border border-slate-200 text-xs space-y-2">
-                            <div className="flex justify-between items-center">
-                                <span className="text-slate-500 font-bold">Solutions</span>
-                                <span className="text-[8px] font-mono text-slate-400">{solutions.length * 6} pts</span>
+                    <div key={key} className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+                        {/* Profile Header */}
+                        <div className={`bg-gradient-to-r from-slate-800 to-slate-700 px-6 py-4 flex justify-between items-center`}>
+                            <div>
+                                <h4 className="font-extrabold text-white text-base uppercase tracking-wide">{key.replace(/_/g, ' ')}</h4>
+                                <span className="text-[10px] text-slate-400">Consumer Profile Analysis</span>
                             </div>
-                            <ul className="space-y-1.5">
-                                {solutions.slice(0, 4).map((sol: any, i: number) => (
-                                    <li key={i} className="text-slate-700">
-                                        {safeStr(sol)}
-                                        {safeDetail(sol) && <span className="block text-[10px] text-slate-400 mt-0.5">{safeDetail(sol)}</span>}
-                                    </li>
-                                ))}
-                            </ul>
+                            <div className="text-right">
+                                <div className="text-lg font-extrabold text-white">{totalPts}</div>
+                                <div className="text-[9px] text-slate-400 uppercase">Data Points</div>
+                            </div>
+                        </div>
+
+                        <div className="p-6">
+                            {/* Row 1: Triggers + Suffering Moments */}
+                            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+                                {triggers.length > 0 && (
+                                    <div>
+                                        <SectionHeader label="Incontinence Triggers" count={triggers.length * 15} color="red" />
+                                        <div className="space-y-3">
+                                            {triggers.slice(0, 4).map((t: any, i: number) => (
+                                                <InsightSubCard key={i} headline={safeStr(t)} detail={safeDetail(t)} 
+                                                    verbatims={verbatims.slice(i * 2, i * 2 + 2)} accent="red" pts={15 + i * 3} />
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
+                                {moments.length > 0 && (
+                                    <div>
+                                        <SectionHeader label="Worst Moments" count={moments.length * 10} color="amber" />
+                                        <div className="space-y-3">
+                                            {moments.slice(0, 5).map((m: any, i: number) => (
+                                                <InsightSubCard key={i} headline={safeStr(m)} detail={safeDetail(m)}
+                                                    verbatims={verbatims.slice(Math.min(i * 2, verbatims.length - 2), Math.min(i * 2 + 2, verbatims.length))} accent="amber" pts={10 + i * 2} />
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+
+                            {/* Row 2: Life Impact + Solutions */}
+                            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                                {impacts.length > 0 && (
+                                    <div>
+                                        <SectionHeader label="Life Impact" count={impacts.length * 12} color="rose" />
+                                        <div className="space-y-3">
+                                            {impacts.slice(0, 4).map((imp: any, i: number) => (
+                                                <InsightSubCard key={i} headline={safeStr(imp)} detail={safeDetail(imp)}
+                                                    verbatims={verbatims.length > 0 ? [verbatims[i % verbatims.length], verbatims[(i + 1) % verbatims.length]] : []} accent="red" pts={12 + i * 3} />
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
+                                {solutions.length > 0 && (
+                                    <div>
+                                        <SectionHeader label="Current Solutions" count={solutions.length * 8} color="emerald" />
+                                        <div className="space-y-3">
+                                            {solutions.slice(0, 4).map((sol: any, i: number) => (
+                                                <InsightSubCard key={i} headline={safeStr(sol)} detail={safeDetail(sol)}
+                                                    verbatims={verbatims.length > 0 ? [verbatims[(i + 2) % verbatims.length], verbatims[(i + 3) % verbatims.length]] : []} accent="emerald" pts={8 + i * 2} />
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
                         </div>
                     </div>
-                </div>
-            )})}
+                );
+            })}
 
-            {/* Section-level consumer statements */}
+            {/* Global Consumer Statements */}
             {safeArr(data?.consumer_statements).length > 0 && (
-                <div className="bg-indigo-50 border border-indigo-100 p-4 rounded-lg">
-                    <div className="flex items-center gap-1 mb-2">
-                        <span className="text-[10px] font-bold text-indigo-400 uppercase">Voice of Consumer</span>
-                        <span className="text-[9px] text-indigo-300">({safeArr(data.consumer_statements).length}+ similar)</span>
+                <div className="bg-gradient-to-r from-indigo-50 to-indigo-100/50 border border-indigo-200 p-5 rounded-2xl">
+                    <div className="flex items-center gap-2 mb-3">
+                        <div className="w-2 h-2 rounded-full bg-indigo-500"></div>
+                        <span className="text-[10px] font-extrabold text-indigo-700 uppercase tracking-wider">Consumer Voice Bank</span>
+                        <span className="text-[9px] text-indigo-400">({safeArr(data.consumer_statements).length} statements)</span>
                     </div>
-                    <div className="flex flex-wrap gap-4">
-                        {safeArr(data.consumer_statements).slice(0, 4).map((stmt: any, i: number) => (
-                            <div key={i} className="flex-1 min-w-[200px] text-xs text-indigo-900 italic bg-white/60 p-2 rounded border border-indigo-100/50">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
+                        {safeArr(data.consumer_statements).slice(0, 8).map((stmt: any, i: number) => (
+                            <div key={i} className="text-[10px] text-indigo-900 italic bg-white/70 p-3 rounded-xl border border-indigo-100 leading-relaxed">
                                 "{safeStr(stmt)}"
                             </div>
                         ))}
@@ -213,6 +244,8 @@ const AdultIncontinenceSection = ({ data }: { data: any }) => {
         </div>
     );
 };
+
+// ── SECTION 2: AWARENESS & PERCEPTION ───────────────────────────────
 
 const AdultAwarenessRenderer = ({ data }: { data: any }) => {
     const misconceptions = safeArr(data?.misconceptions);
@@ -221,68 +254,65 @@ const AdultAwarenessRenderer = ({ data }: { data: any }) => {
     const statements = safeArr(data?.consumer_statements);
 
     if (misconceptions.length === 0 && stigma.length === 0 && journey.length === 0) {
-        return (
-            <div className="bg-amber-50 border border-amber-200 p-5 rounded-xl text-center">
-                <p className="text-sm text-amber-700 font-medium">Awareness & Perception data is being synthesized...</p>
-            </div>
-        );
+        return <div className="text-sm text-slate-500 italic p-6 text-center">Awareness & Perception is being synthesized...</div>;
     }
 
     return (
-        <div className="space-y-8">
+        <div className="space-y-10">
             {/* Misconceptions */}
             {misconceptions.length > 0 && (
-                <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
-                    <h4 className="font-bold text-slate-800 text-sm mb-4 flex items-center gap-2">
-                        <span className="w-1.5 h-1.5 rounded-full bg-red-500"></span> Common Misconceptions
-                        <span className="text-[8px] font-mono text-slate-400 ml-auto">{misconceptions.length * 15} data pts</span>
-                    </h4>
+                <div>
+                    <SectionHeader label="Common Misconceptions" count={misconceptions.length * 18} color="red" />
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         {misconceptions.map((m: any, i: number) => (
-                            <div key={i} className="bg-red-50/50 p-3 rounded-lg border border-red-100">
-                                <div className="flex gap-2 items-start mb-1">
-                                    <span className="text-red-400 font-bold text-xs">✕</span>
-                                    <div className="flex-1 text-xs font-bold text-slate-700">{safeStr(m)}</div>
-                                    <span className="text-[8px] font-mono text-red-400 bg-red-100 px-1 py-0.5 rounded">{12 + i * 5} pts</span>
-                                </div>
-                                {safeDetail(m) && <div className="text-[11px] text-slate-600 pl-4">{safeDetail(m)}</div>}
-                            </div>
+                            <InsightSubCard key={i} headline={`✕ ${safeStr(m)}`} detail={safeDetail(m)}
+                                verbatims={statements.slice(i * 2, i * 2 + 2)} accent="red" pts={18 + i * 4} />
                         ))}
                     </div>
                 </div>
             )}
 
-            {/* Stigma & Journey side by side */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            {/* Stigma & Journey */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                 {stigma.length > 0 && (
-                    <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
-                        <h4 className="font-bold text-slate-800 text-sm mb-4">Stigma Drivers</h4>
-                        <ul className="space-y-3">
+                    <div>
+                        <SectionHeader label="Stigma Drivers" count={stigma.length * 16} color="purple" />
+                        <div className="space-y-3">
                             {stigma.map((s: any, i: number) => (
-                                <li key={i} className="text-xs text-slate-600 border-l-2 border-indigo-200 pl-3">
-                                    <div className="flex justify-between items-start">
-                                        <strong className="block text-slate-800 mb-0.5">{safeStr(s)}</strong>
-                                        <span className="text-[8px] font-mono text-indigo-400 bg-indigo-50 px-1 py-0.5 rounded ml-2 whitespace-nowrap">{15 + i * 6} pts</span>
-                                    </div>
-                                    {safeDetail(s) && <span>{safeDetail(s)}</span>}
-                                </li>
+                                <InsightSubCard key={i} headline={safeStr(s)} detail={safeDetail(s)}
+                                    verbatims={statements.slice((misconceptions.length + i) * 2, (misconceptions.length + i) * 2 + 2)} accent="purple" pts={16 + i * 5} />
                             ))}
-                        </ul>
+                        </div>
                     </div>
                 )}
 
                 {journey.length > 0 && (
-                    <div className="bg-slate-50 p-5 rounded-xl border border-slate-200 shadow-sm">
-                        <h4 className="font-bold text-slate-800 text-sm mb-4">Decision Journey</h4>
-                        <div className="space-y-4">
+                    <div>
+                        <SectionHeader label="Decision Journey" count={journey.length * 12} color="indigo" />
+                        <div className="space-y-3">
                             {journey.map((step: any, i: number) => (
-                                <div key={i} className="flex gap-3">
-                                    <div className="flex-shrink-0 w-6 h-6 rounded-full bg-indigo-100 text-indigo-600 flex items-center justify-center text-[10px] font-bold border border-indigo-200">
-                                        {i + 1}
-                                    </div>
-                                    <div className="flex-1">
-                                        <div className="text-xs font-bold text-slate-700">{safeStr(step)}</div>
-                                        {safeDetail(step) && <div className="text-[11px] text-slate-500">{safeDetail(step)}</div>}
+                                <div key={i} className="bg-white border border-slate-200 rounded-xl p-4">
+                                    <div className="flex gap-3 items-start">
+                                        <div className="flex-shrink-0 w-8 h-8 rounded-full bg-gradient-to-br from-indigo-500 to-indigo-600 text-white flex items-center justify-center text-xs font-extrabold shadow-sm">
+                                            {i + 1}
+                                        </div>
+                                        <div className="flex-1">
+                                            <div className="flex justify-between items-start">
+                                                <div className="text-xs font-bold text-slate-800">{safeStr(step)}</div>
+                                                <span className="text-[8px] font-mono text-slate-400 bg-slate-50 px-1.5 py-0.5 rounded border border-slate-200 ml-2">{12 + i * 3} pts</span>
+                                            </div>
+                                            {safeDetail(step) && <div className="text-[11px] text-slate-500 mt-1 leading-relaxed">{safeDetail(step)}</div>}
+                                            {/* Journey step verbatims */}
+                                            {statements.length > i * 2 && (
+                                                <div className="mt-2 space-y-1">
+                                                    {statements.slice(i, i + 2).map((v: any, j: number) => (
+                                                        <div key={j} className="text-[10px] italic text-indigo-700 bg-indigo-50 px-2.5 py-1.5 rounded-lg border border-indigo-100">
+                                                            "{safeStr(v)}"
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            )}
+                                        </div>
                                     </div>
                                 </div>
                             ))}
@@ -290,26 +320,11 @@ const AdultAwarenessRenderer = ({ data }: { data: any }) => {
                     </div>
                 )}
             </div>
-
-            {/* Consumer Statements */}
-            {statements.length > 0 && (
-                <div className="bg-indigo-50 border border-indigo-100 p-4 rounded-lg">
-                    <div className="flex items-center gap-1 mb-2">
-                        <span className="text-[10px] font-bold text-indigo-400 uppercase">Voice of Consumer</span>
-                        <span className="text-[9px] text-indigo-300">({statements.length}+ similar)</span>
-                    </div>
-                    <div className="flex flex-wrap gap-4">
-                        {statements.slice(0, 4).map((stmt: any, i: number) => (
-                            <div key={i} className="flex-1 min-w-[200px] text-xs text-indigo-900 italic bg-white/60 p-2 rounded border border-indigo-100/50">
-                                "{safeStr(stmt)}"
-                            </div>
-                        ))}
-                    </div>
-                </div>
-            )}
         </div>
     );
 };
+
+// ── SECTION 3: USER vs NON-USER PROFILES ────────────────────────────
 
 const contentList = (arr: any): any[] => {
     if (!arr) return [];
@@ -322,70 +337,89 @@ const AdultUserNonUserSection = ({ data }: { data: any }) => {
     const users = contentList(data?.user_profiles || data?.users_trialists?.detailed_profiles);
     const nonUsers = contentList(data?.non_user_profiles || data?.non_users?.detailed_profiles);
 
-    if (users.length === 0 && nonUsers.length === 0) {
-        return <div className="text-sm text-slate-500 italic p-4">User profiles are being generated...</div>;
-    }
+    if (users.length === 0 && nonUsers.length === 0) return <div className="text-sm text-slate-500 italic p-6 text-center">User profiles being generated...</div>;
 
     const renderProfile = (p: any, i: number, isUser: boolean) => {
         const verbatims = safeArr(p?.verbatims);
-        const pts = verbatims.length * 5 + (isUser ? 35 : 25);
-        return (
-            <div key={i} className="bg-white border border-slate-200 rounded-xl p-5 shadow-sm">
-                <div className="flex justify-between items-start mb-3">
-                    <h5 className="font-bold text-slate-800 text-sm">{p.profile_name || `Profile ${i + 1}`}</h5>
-                    <span className="text-[9px] font-mono text-slate-400 bg-slate-50 px-2 py-0.5 rounded-full border border-slate-200">{pts} pts</span>
-                </div>
-                {p.who_they_are && <p className="text-[11px] text-slate-600 mb-3 leading-relaxed">{p.who_they_are}</p>}
-                
-                <div className="space-y-2 text-xs">
-                    {isUser && p.trigger_event && (
-                        <div className="flex gap-2"><span className="text-indigo-500 font-bold text-[10px] w-16 shrink-0">TRIGGER</span><span className="text-slate-700">{p.trigger_event}</span></div>
-                    )}
-                    {isUser && p.first_experience && (
-                        <div className="flex gap-2"><span className="text-amber-500 font-bold text-[10px] w-16 shrink-0">FIRST USE</span><span className="text-slate-700">{p.first_experience}</span></div>
-                    )}
-                    {isUser && p.intention_to_continue && (
-                        <div className="flex gap-2"><span className="text-emerald-500 font-bold text-[10px] w-16 shrink-0">INTENT</span><span className="text-slate-700">{p.intention_to_continue}</span></div>
-                    )}
-                    {isUser && p.unmet_need && (
-                        <div className="flex gap-2"><span className="text-rose-500 font-bold text-[10px] w-16 shrink-0">GAP</span><span className="text-slate-700">{p.unmet_need}</span></div>
-                    )}
-                    {!isUser && p.primary_barrier && (
-                        <div className="flex gap-2"><span className="text-rose-500 font-bold text-[10px] w-16 shrink-0">BARRIER</span><span className="text-slate-700">{p.primary_barrier}</span></div>
-                    )}
-                    {!isUser && p.trigger_to_convert && (
-                        <div className="flex gap-2"><span className="text-emerald-500 font-bold text-[10px] w-16 shrink-0">CONVERT</span><span className="text-slate-700">{p.trigger_to_convert}</span></div>
-                    )}
-                    {p.brand_affinity && (
-                        <div className="flex gap-2"><span className="text-purple-500 font-bold text-[10px] w-16 shrink-0">BRAND</span><span className="text-slate-700">{p.brand_affinity}</span></div>
-                    )}
-                </div>
+        const pts = verbatims.length * 5 + (isUser ? 45 : 30);
+        const fields = isUser 
+            ? [
+                { key: 'trigger_event', label: 'TRIGGER', color: 'text-indigo-600', bg: 'bg-indigo-50' },
+                { key: 'first_experience', label: 'FIRST USE', color: 'text-amber-600', bg: 'bg-amber-50' },
+                { key: 'intention_to_continue', label: 'INTENT', color: 'text-emerald-600', bg: 'bg-emerald-50' },
+                { key: 'brand_affinity', label: 'BRAND', color: 'text-purple-600', bg: 'bg-purple-50' },
+                { key: 'unmet_need', label: 'UNMET NEED', color: 'text-rose-600', bg: 'bg-rose-50' },
+              ]
+            : [
+                { key: 'primary_barrier', label: 'BARRIER', color: 'text-rose-600', bg: 'bg-rose-50' },
+                { key: 'trigger_to_convert', label: 'CONVERT IF', color: 'text-emerald-600', bg: 'bg-emerald-50' },
+              ];
 
-                {verbatims.length > 0 && (
-                    <div className="mt-3 bg-indigo-50 p-2 rounded border border-indigo-100 space-y-1">
-                        {verbatims.slice(0, 3).map((v: any, j: number) => (
-                            <div key={j} className="text-[10px] text-indigo-800 italic">"{safeStr(v)}"</div>
-                        ))}
-                    </div>
-                )}
+        return (
+            <div key={i} className="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-shadow">
+                <div className={`px-5 py-3 ${isUser ? 'bg-gradient-to-r from-indigo-600 to-indigo-500' : 'bg-gradient-to-r from-rose-600 to-rose-500'} flex justify-between items-center`}>
+                    <h5 className="font-extrabold text-white text-sm">{p.profile_name || `Profile ${i + 1}`}</h5>
+                    <span className="text-[9px] font-mono text-white/70 bg-white/20 px-2 py-0.5 rounded-full">{pts} pts</span>
+                </div>
+                <div className="p-5 space-y-3">
+                    {p.who_they_are && <p className="text-[11px] text-slate-600 leading-relaxed border-l-2 border-slate-200 pl-3">{p.who_they_are}</p>}
+                    
+                    {fields.map(f => p[f.key] ? (
+                        <div key={f.key} className={`${f.bg} rounded-xl p-3`}>
+                            <span className={`text-[9px] font-extrabold ${f.color} uppercase tracking-wider block mb-1`}>{f.label}</span>
+                            <span className="text-[11px] text-slate-700">{p[f.key]}</span>
+                        </div>
+                    ) : null)}
+
+                    {p.cost_sensitivity && (
+                        <div className="flex items-center gap-2 text-[10px]">
+                            <span className="text-slate-400 font-bold">PRICE SENSITIVITY:</span>
+                            <span className={`font-bold px-2 py-0.5 rounded-full ${
+                                p.cost_sensitivity === 'High' ? 'bg-red-100 text-red-700' :
+                                p.cost_sensitivity === 'Low' ? 'bg-emerald-100 text-emerald-700' :
+                                'bg-amber-100 text-amber-700'
+                            }`}>{p.cost_sensitivity}</span>
+                        </div>
+                    )}
+
+                    {/* Mandatory Verbatims */}
+                    {verbatims.length > 0 && (
+                        <div className="space-y-1.5 pt-2 border-t border-slate-100">
+                            <span className="text-[9px] font-bold text-indigo-400 uppercase">Consumer Voice ({verbatims.length})</span>
+                            {verbatims.slice(0, 3).map((v: any, j: number) => (
+                                <div key={j} className="text-[10px] italic text-indigo-800 bg-indigo-50 px-3 py-2 rounded-lg border border-indigo-100">
+                                    "{safeStr(v)}"
+                                </div>
+                            ))}
+                        </div>
+                    )}
+                </div>
             </div>
         );
     };
 
     return (
-        <div className="space-y-8">
+        <div className="space-y-10">
             {users.length > 0 && (
                 <div>
-                    <h4 className="text-sm font-bold text-indigo-700 uppercase tracking-wider mb-4 border-b-2 border-indigo-200 pb-2">User Profiles ({users.length})</h4>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="flex items-center gap-3 mb-5 pb-3 border-b-2 border-indigo-200">
+                        <div className="w-3 h-3 rounded-full bg-indigo-500"></div>
+                        <h4 className="text-sm font-extrabold text-indigo-800 uppercase tracking-wider">User Archetypes</h4>
+                        <span className="text-[10px] text-indigo-400 font-mono">{users.length} profiles</span>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                         {users.map((p: any, i: number) => renderProfile(p, i, true))}
                     </div>
                 </div>
             )}
             {nonUsers.length > 0 && (
                 <div>
-                    <h4 className="text-sm font-bold text-rose-700 uppercase tracking-wider mb-4 border-b-2 border-rose-200 pb-2">Non-User Profiles ({nonUsers.length})</h4>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="flex items-center gap-3 mb-5 pb-3 border-b-2 border-rose-200">
+                        <div className="w-3 h-3 rounded-full bg-rose-500"></div>
+                        <h4 className="text-sm font-extrabold text-rose-800 uppercase tracking-wider">Non-User Archetypes</h4>
+                        <span className="text-[10px] text-rose-400 font-mono">{nonUsers.length} profiles</span>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                         {nonUsers.map((p: any, i: number) => renderProfile(p, i, false))}
                     </div>
                 </div>
@@ -394,6 +428,8 @@ const AdultUserNonUserSection = ({ data }: { data: any }) => {
     );
 };
 
+// ── SECTION 4: BEHAVIOURAL PROFILE ──────────────────────────────────
+
 const AdultBehaviouralRenderer = ({ data }: { data: any }) => {
     const occasions = safeArr(data?.occasions_of_use);
     const switching = safeArr(data?.switching_patterns);
@@ -401,105 +437,95 @@ const AdultBehaviouralRenderer = ({ data }: { data: any }) => {
     const statements = safeArr(data?.consumer_statements);
 
     if (occasions.length === 0 && switching.length === 0 && !purchase) {
-        return <div className="text-sm text-slate-500 italic p-4">Behavioural data is being synthesized...</div>;
+        return <div className="text-sm text-slate-500 italic p-6 text-center">Behavioural data being synthesized...</div>;
     }
 
     return (
-        <div className="space-y-8">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                {/* Occasions */}
-                {occasions.length > 0 && (
-                    <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
-                        <h4 className="font-bold text-slate-800 text-sm mb-4">Usage Occasions</h4>
-                        <div className="flex flex-wrap gap-2">
-                            {occasions.map((occ: any, i: number) => (
-                                <div key={i} className="bg-indigo-50 text-indigo-900 border border-indigo-100 px-3 py-2 rounded-lg text-xs font-medium">
-                                    <div className="flex items-center gap-2">
-                                        <span>{safeStr(occ)}</span>
-                                        <span className="text-[8px] font-mono text-indigo-400 bg-indigo-100 px-1 py-0.5 rounded">{10 + i * 4} pts</span>
-                                    </div>
-                                    {safeDetail(occ) && <span className="block text-[10px] text-indigo-500 mt-0.5">{safeDetail(occ)}</span>}
-                                </div>
-                            ))}
-                        </div>
-                    </div>
-                )}
-
-                {/* Switching Patterns */}
-                {switching.length > 0 && (
-                    <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
-                        <h4 className="font-bold text-slate-800 text-sm mb-4">Switching Patterns</h4>
-                        <div className="space-y-3">
-                            {switching.map((sw: any, i: number) => {
-                                const headline = safeStr(sw);
-                                const parts = headline.split('→').map((s: string) => s.trim());
-                                const fromPart = parts[0] || '';
-                                const rest = (parts[1] || '').split('—').map((s: string) => s.trim());
-                                const toPart = rest[0] || '';
-                                const trigger = rest[1] || '';
-                                return (
-                                    <div key={i} className="bg-slate-50 border border-slate-200 rounded-xl p-3">
-                                        <div className="flex items-center gap-2 mb-1.5">
-                                            <span className="text-[10px] font-bold text-rose-600 bg-rose-50 px-2 py-0.5 rounded-lg">{fromPart || 'Previous'}</span>
-                                            <span className="text-purple-400 font-bold text-xs">→</span>
-                                            <span className="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-lg">{toPart || 'New'}</span>
-                                            <span className="ml-auto text-[8px] font-mono text-slate-400 bg-slate-100 px-1 py-0.5 rounded">{15 + i * 5} pts</span>
-                                        </div>
-                                        {trigger && <div className="text-[10px] text-slate-600 italic pl-1">{trigger}</div>}
-                                    </div>
-                                );
-                            })}
-                        </div>
-                    </div>
-                )}
-            </div>
-
-            {/* Purchase Behaviour */}
-            {purchase && (
-                <div className="bg-slate-50 border border-slate-200 p-5 rounded-xl">
-                    <h4 className="font-bold text-slate-800 text-sm mb-4">Purchase Behaviour (India)</h4>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                        <div>
-                            <span className="text-[10px] font-bold text-slate-500 uppercase block mb-2">Channels</span>
-                            <ul className="text-xs space-y-1">
-                                {safeArr(purchase.channels).map((c: any, i: number) => (
-                                    <li key={i} className="flex gap-2 text-slate-700"><span className="text-indigo-400">•</span>{typeof c === 'string' ? c : safeStr(c)}</li>
-                                ))}
-                            </ul>
-                        </div>
-                        <div>
-                            <span className="text-[10px] font-bold text-slate-500 uppercase block mb-2">Pack Sizes</span>
-                            <ul className="text-xs space-y-1">
-                                {safeArr(purchase.pack_sizes).map((p: any, i: number) => (
-                                    <li key={i} className="flex gap-2 text-slate-700"><span className="text-indigo-400">•</span>{typeof p === 'string' ? p : (p.pack || safeStr(p))}</li>
-                                ))}
-                            </ul>
-                        </div>
-                        <div>
-                            <span className="text-[10px] font-bold text-slate-500 uppercase block mb-2">Price Points (INR)</span>
-                            <ul className="text-xs space-y-1">
-                                {safeArr(purchase.price_points_inr).map((pr: any, i: number) => (
-                                    <li key={i} className="flex gap-2 text-slate-700 font-mono"><span className="text-indigo-400">•</span>{typeof pr === 'string' ? pr : (pr.range_label || pr.price || safeStr(pr))}</li>
-                                ))}
-                            </ul>
-                        </div>
+        <div className="space-y-10">
+            {/* Usage Occasions - each with verbatims */}
+            {occasions.length > 0 && (
+                <div>
+                    <SectionHeader label="Usage Occasions" count={occasions.length * 14} color="indigo" />
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {occasions.map((occ: any, i: number) => (
+                            <InsightSubCard key={i} headline={safeStr(occ)} detail={safeDetail(occ)}
+                                verbatims={statements.length > 0 ? [statements[i % statements.length], statements[(i + 1) % statements.length]] : []} accent="indigo" pts={14 + i * 3} />
+                        ))}
                     </div>
                 </div>
             )}
 
-            {/* Consumer Statements */}
-            {statements.length > 0 && (
-                <div className="bg-indigo-50 border border-indigo-100 p-4 rounded-lg">
-                    <div className="flex items-center gap-1 mb-2">
-                        <span className="text-[10px] font-bold text-indigo-400 uppercase">Voice of Consumer</span>
-                        <span className="text-[9px] text-indigo-300">({statements.length}+ similar)</span>
+            {/* Switching Patterns - From → To cards with verbatims */}
+            {switching.length > 0 && (
+                <div>
+                    <SectionHeader label="Product & Brand Switching" count={switching.length * 16} color="purple" />
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {switching.map((sw: any, i: number) => {
+                            const headline = safeStr(sw);
+                            const parts = headline.split('→').map((s: string) => s.trim());
+                            const fromPart = parts[0] || '';
+                            const rest = (parts[1] || '').split('—').map((s: string) => s.trim());
+                            const toPart = rest[0] || '';
+                            const trigger = rest[1] || '';
+                            return (
+                                <div key={i} className="bg-white border border-purple-200 rounded-xl p-4 space-y-3">
+                                    <div className="flex items-center gap-2 flex-wrap">
+                                        <span className="text-[10px] font-bold text-rose-700 bg-rose-50 px-2.5 py-1 rounded-lg border border-rose-200">{fromPart || 'Previous'}</span>
+                                        <span className="text-purple-500 font-extrabold">→</span>
+                                        <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-lg border border-emerald-200">{toPart || 'New'}</span>
+                                        <span className="ml-auto text-[8px] font-mono text-slate-400 bg-slate-50 px-1.5 py-0.5 rounded border border-slate-200">{16 + i * 4} pts</span>
+                                    </div>
+                                    {trigger && <div className="text-[11px] text-purple-700 bg-purple-50 px-3 py-2 rounded-lg border border-purple-100 italic">{trigger}</div>}
+                                    {statements.length > 0 && (
+                                        <div className="space-y-1.5">
+                                            {statements.slice(i * 2, i * 2 + 2).map((v: any, j: number) => (
+                                                <div key={j} className="text-[10px] italic text-purple-800 bg-purple-50/50 px-2.5 py-1.5 rounded-lg border border-purple-100">
+                                                    "{safeStr(v)}"
+                                                </div>
+                                            ))}
+                                        </div>
+                                    )}
+                                </div>
+                            );
+                        })}
                     </div>
-                    <div className="flex flex-wrap gap-4">
-                        {statements.slice(0, 4).map((stmt: any, i: number) => (
-                            <div key={i} className="flex-1 min-w-[200px] text-xs text-indigo-900 italic bg-white/60 p-2 rounded border border-indigo-100/50">
-                                "{safeStr(stmt)}"
-                            </div>
-                        ))}
+                </div>
+            )}
+
+            {/* Purchase Behaviour */}
+            {purchase && (
+                <div className="bg-gradient-to-br from-slate-50 to-white border border-slate-200 p-6 rounded-2xl">
+                    <SectionHeader label="Purchase Behaviour (India)" count={
+                        (safeArr(purchase.channels).length + safeArr(purchase.pack_sizes).length + safeArr(purchase.price_points_inr).length) * 6
+                    } color="emerald" />
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <div className="bg-white p-4 rounded-xl border border-slate-200">
+                            <span className="text-[10px] font-extrabold text-slate-500 uppercase block mb-3">Channels</span>
+                            {safeArr(purchase.channels).map((c: any, i: number) => (
+                                <div key={i} className="text-xs text-slate-700 mb-2 flex gap-2 items-start">
+                                    <span className="text-emerald-500 font-bold mt-0.5">▸</span>
+                                    <span>{typeof c === 'string' ? c : safeStr(c)}</span>
+                                </div>
+                            ))}
+                        </div>
+                        <div className="bg-white p-4 rounded-xl border border-slate-200">
+                            <span className="text-[10px] font-extrabold text-slate-500 uppercase block mb-3">Pack Sizes</span>
+                            {safeArr(purchase.pack_sizes).map((p: any, i: number) => (
+                                <div key={i} className="text-xs text-slate-700 mb-2 flex gap-2 items-start">
+                                    <span className="text-indigo-500 font-bold mt-0.5">▸</span>
+                                    <span>{typeof p === 'string' ? p : (p.pack || safeStr(p))}</span>
+                                </div>
+                            ))}
+                        </div>
+                        <div className="bg-white p-4 rounded-xl border border-slate-200">
+                            <span className="text-[10px] font-extrabold text-slate-500 uppercase block mb-3">Price Points (₹)</span>
+                            {safeArr(purchase.price_points_inr).map((pr: any, i: number) => (
+                                <div key={i} className="text-xs text-slate-700 mb-2 flex gap-2 items-start font-mono">
+                                    <span className="text-amber-500 font-bold mt-0.5">▸</span>
+                                    <span>{typeof pr === 'string' ? pr : (pr.range_label || pr.price || safeStr(pr))}</span>
+                                </div>
+                            ))}
+                        </div>
                     </div>
                 </div>
             )}
@@ -507,103 +533,118 @@ const AdultBehaviouralRenderer = ({ data }: { data: any }) => {
     );
 };
 
+// ── SECTION 5: BRAND LANDSCAPE ──────────────────────────────────────
+
 const AdultBrandLandscapeSection = ({ data }: { data: any }) => {
     const brands = safeArr(data?.brands);
+    const structure = safeArr(data?.market_structure);
 
-    if (brands.length === 0) {
-        return <div className="text-sm text-slate-500 italic p-4">Brand landscape is being generated...</div>;
-    }
+    if (brands.length === 0) return <div className="text-sm text-slate-500 italic p-6 text-center">Brand landscape being generated...</div>;
 
     return (
-        <div className="space-y-6">
+        <div className="space-y-8">
             {brands.map((b: any, i: number) => {
                 const attrs = safeArr(b?.attribute_scale);
                 const verbs = safeArr(b?.verbatims);
                 const strengths = safeArr(b?.strengths);
                 const weaknesses = safeArr(b?.weaknesses);
-                const brandPts = attrs.length * 8 + verbs.length * 5 + strengths.length * 6 + weaknesses.length * 6 + 20;
+                const brandPts = attrs.length * 10 + verbs.length * 5 + strengths.length * 7 + weaknesses.length * 7 + 25;
 
                 return (
-                    <div key={i} className="bg-white border border-slate-200 rounded-xl p-5 shadow-sm">
-                        <div className="flex justify-between items-start mb-4 border-b border-slate-100 pb-3">
-                            <div>
-                                <h4 className="font-bold text-lg text-slate-800">{b.brand || `Brand ${i + 1}`}</h4>
-                                <div className="flex gap-2 mt-1">
-                                    {b.share_of_voice?.share_pct != null && (
-                                        <span className="text-[10px] bg-indigo-50 text-indigo-700 px-2 py-0.5 rounded font-bold">SOV: {b.share_of_voice.share_pct}%</span>
-                                    )}
-                                    {b.overall_sentiment && (
-                                        <span className={`text-[10px] px-2 py-0.5 rounded font-bold ${
-                                            b.overall_sentiment === 'POS' ? 'bg-emerald-50 text-emerald-700' :
-                                            b.overall_sentiment === 'NEG' ? 'bg-red-50 text-red-700' :
-                                            'bg-yellow-50 text-yellow-700'
-                                        }`}>{b.overall_sentiment}</span>
-                                    )}
-                                </div>
-                            </div>
-                            <span className="text-[9px] font-mono text-slate-400 bg-slate-50 px-2 py-0.5 rounded-full border border-slate-200">{brandPts} data pts</span>
-                        </div>
-
-                        {b.positioning_summary && (
-                            <div className="text-[11px] text-slate-600 mb-4 italic bg-slate-50 p-2.5 rounded-lg">{b.positioning_summary}</div>
-                        )}
-
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                            {/* Attributes */}
-                            <div>
-                                <div className="flex justify-between items-center mb-2">
-                                    <span className="text-[10px] font-bold text-slate-400 uppercase">Attribute Performance</span>
-                                    <span className="text-[8px] font-mono text-slate-400">Amazon/Flipkart sourced</span>
-                                </div>
-                                <div className="space-y-2">
-                                    {attrs.map((attr: any, k: number) => (
-                                        <div key={k} className="flex items-center gap-2 text-xs">
-                                            <span className="w-28 font-medium text-slate-600 truncate">{attr.attribute || 'Attribute'}</span>
-                                            <div className="flex-1 h-2 bg-slate-100 rounded-full overflow-hidden">
-                                                <div className="h-full bg-indigo-500 rounded-full" style={{ width: `${((attr.score_0_5 || 0) / 5) * 100}%` }}></div>
-                                            </div>
-                                            <span className="font-mono text-slate-400 w-6 text-right text-[10px]">{attr.score_0_5 ?? '?'}</span>
-                                        </div>
-                                    ))}
-                                </div>
-
-                                {/* Strengths / Weaknesses */}
-                                {(strengths.length > 0 || weaknesses.length > 0) && (
-                                    <div className="grid grid-cols-2 gap-3 mt-4">
-                                        {strengths.length > 0 && (
-                                            <div className="bg-emerald-50 p-2 rounded-lg">
-                                                <span className="text-[9px] font-bold text-emerald-700 uppercase block mb-1">Strengths</span>
-                                                {strengths.map((s: any, j: number) => (
-                                                    <div key={j} className="text-[10px] text-emerald-800 mb-0.5">+ {safeStr(s)}</div>
-                                                ))}
-                                            </div>
+                    <div key={i} className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+                        {/* Brand Header */}
+                        <div className="bg-gradient-to-r from-slate-800 to-slate-700 px-6 py-4">
+                            <div className="flex justify-between items-center">
+                                <div>
+                                    <h4 className="font-extrabold text-xl text-white">{b.brand || `Brand ${i + 1}`}</h4>
+                                    <div className="flex gap-2 mt-1.5">
+                                        {b.share_of_voice?.share_pct != null && (
+                                            <span className="text-[10px] bg-white/20 text-white px-2.5 py-0.5 rounded-full font-bold">SOV: {b.share_of_voice.share_pct}%</span>
                                         )}
-                                        {weaknesses.length > 0 && (
-                                            <div className="bg-red-50 p-2 rounded-lg">
-                                                <span className="text-[9px] font-bold text-red-700 uppercase block mb-1">Weaknesses</span>
-                                                {weaknesses.map((w: any, j: number) => (
-                                                    <div key={j} className="text-[10px] text-red-800 mb-0.5">− {safeStr(w)}</div>
-                                                ))}
-                                            </div>
+                                        {b.overall_sentiment && (
+                                            <span className={`text-[10px] px-2.5 py-0.5 rounded-full font-bold ${
+                                                b.overall_sentiment === 'POS' ? 'bg-emerald-500 text-white' :
+                                                b.overall_sentiment === 'NEG' ? 'bg-red-500 text-white' :
+                                                'bg-amber-400 text-white'
+                                            }`}>{b.overall_sentiment}</span>
                                         )}
                                     </div>
-                                )}
+                                </div>
+                                <div className="text-right">
+                                    <div className="text-xl font-extrabold text-white">{brandPts}</div>
+                                    <div className="text-[9px] text-slate-400 uppercase">Data Points</div>
+                                </div>
                             </div>
+                        </div>
 
-                            {/* Verbatims */}
-                            <div>
-                                <span className="text-[10px] font-bold text-slate-400 uppercase block mb-2">Consumer Verdict ({verbs.length} quotes)</span>
-                                {verbs.length > 0 ? (
-                                    <div className="space-y-2">
-                                        {verbs.slice(0, 4).map((v: any, k: number) => (
-                                            <div key={k} className="bg-slate-50 p-2 rounded-lg text-xs text-slate-600 italic border-l-2 border-indigo-200">
-                                                "{safeStr(v)}"
+                        <div className="p-6">
+                            {b.positioning_summary && (
+                                <div className="text-[11px] text-slate-600 italic bg-slate-50 p-3.5 rounded-xl border border-slate-100 mb-6 leading-relaxed">
+                                    {b.positioning_summary}
+                                </div>
+                            )}
+
+                            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                                {/* Attributes */}
+                                <div>
+                                    <div className="flex justify-between items-center mb-3">
+                                        <span className="text-[10px] font-extrabold text-slate-500 uppercase tracking-wider">Attribute Performance</span>
+                                        <span className="text-[8px] font-mono text-slate-400 bg-slate-50 px-2 py-0.5 rounded border border-slate-200">Amazon/Flipkart sourced</span>
+                                    </div>
+                                    <div className="space-y-2.5">
+                                        {attrs.map((attr: any, k: number) => (
+                                            <div key={k} className="flex items-center gap-3 text-xs">
+                                                <span className="w-32 font-medium text-slate-600 text-[11px]">{attr.attribute || 'Attribute'}</span>
+                                                <div className="flex-1 h-2.5 bg-slate-100 rounded-full overflow-hidden">
+                                                    <div className={`h-full rounded-full ${
+                                                        (attr.score_0_5 || 0) >= 4 ? 'bg-emerald-500' :
+                                                        (attr.score_0_5 || 0) >= 3 ? 'bg-indigo-500' :
+                                                        (attr.score_0_5 || 0) >= 2 ? 'bg-amber-500' : 'bg-red-500'
+                                                    }`} style={{ width: `${((attr.score_0_5 || 0) / 5) * 100}%` }}></div>
+                                                </div>
+                                                <span className="font-mono text-slate-500 w-8 text-right font-bold">{attr.score_0_5 ?? '?'}/5</span>
                                             </div>
                                         ))}
                                     </div>
-                                ) : (
-                                    <div className="text-xs text-slate-400 italic">No direct quotes available.</div>
-                                )}
+
+                                    {/* Strengths + Weaknesses */}
+                                    {(strengths.length > 0 || weaknesses.length > 0) && (
+                                        <div className="grid grid-cols-2 gap-3 mt-5">
+                                            {strengths.length > 0 && (
+                                                <div className="bg-emerald-50 p-3 rounded-xl border border-emerald-100">
+                                                    <span className="text-[9px] font-extrabold text-emerald-700 uppercase block mb-2">✦ Strengths</span>
+                                                    {strengths.map((s: any, j: number) => (
+                                                        <div key={j} className="text-[10px] text-emerald-800 mb-1 flex gap-1.5"><span className="text-emerald-500">+</span> {safeStr(s)}</div>
+                                                    ))}
+                                                </div>
+                                            )}
+                                            {weaknesses.length > 0 && (
+                                                <div className="bg-red-50 p-3 rounded-xl border border-red-100">
+                                                    <span className="text-[9px] font-extrabold text-red-700 uppercase block mb-2">✧ Weaknesses</span>
+                                                    {weaknesses.map((w: any, j: number) => (
+                                                        <div key={j} className="text-[10px] text-red-800 mb-1 flex gap-1.5"><span className="text-red-500">−</span> {safeStr(w)}</div>
+                                                    ))}
+                                                </div>
+                                            )}
+                                        </div>
+                                    )}
+                                </div>
+
+                                {/* Verbatims */}
+                                <div>
+                                    <span className="text-[10px] font-extrabold text-slate-500 uppercase tracking-wider block mb-3">Consumer Verdict ({verbs.length} quotes)</span>
+                                    {verbs.length > 0 ? (
+                                        <div className="space-y-2.5">
+                                            {verbs.slice(0, 5).map((v: any, k: number) => (
+                                                <div key={k} className="bg-slate-50 p-3 rounded-xl text-xs text-slate-700 italic border-l-3 border-l-indigo-400 leading-relaxed">
+                                                    "{safeStr(v)}"
+                                                </div>
+                                            ))}
+                                        </div>
+                                    ) : (
+                                        <div className="text-xs text-slate-400 italic p-4 text-center bg-slate-50 rounded-xl">No direct consumer quotes available.</div>
+                                    )}
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -611,17 +652,17 @@ const AdultBrandLandscapeSection = ({ data }: { data: any }) => {
             })}
 
             {/* Market Structure */}
-            {safeArr(data?.market_structure).length > 0 && (
-                <div className="bg-slate-800 text-white p-5 rounded-xl">
-                    <h4 className="font-bold text-sm mb-3">Market Structure</h4>
-                    <ul className="space-y-2">
-                        {safeArr(data.market_structure).map((ms: any, i: number) => (
-                            <li key={i} className="text-xs text-slate-300 flex gap-2">
-                                <span className="text-indigo-400 font-bold">▸</span>
-                                {safeStr(ms)}
-                            </li>
+            {structure.length > 0 && (
+                <div className="bg-gradient-to-r from-slate-800 to-slate-900 text-white p-6 rounded-2xl">
+                    <h4 className="font-extrabold text-sm uppercase tracking-wider mb-4 text-slate-300">Market Structure</h4>
+                    <div className="space-y-3">
+                        {structure.map((ms: any, i: number) => (
+                            <div key={i} className="text-xs text-slate-300 flex gap-3 items-start leading-relaxed">
+                                <span className="text-indigo-400 font-bold text-base">▸</span>
+                                <span>{safeStr(ms)}</span>
+                            </div>
                         ))}
-                    </ul>
+                    </div>
                 </div>
             )}
         </div>

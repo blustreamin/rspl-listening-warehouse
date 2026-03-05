@@ -25,8 +25,8 @@ OUTPUT FORMAT: Strict JSON. No Wrappers.
 `;
 
 export const ADULT_DIAPERS_TEMPLATE: TemplatePack = {
-    templateId: "adult_diapers_v1",
-    versionPolicy: { locked: true, version: "1.1.0" },
+    templateId: "adult_diapers_v2",
+    versionPolicy: { locked: true, version: "2.0.0" },
     sections: [
         { sectionId: "incontinence_management", title: "Incontinence Management Profiles", uiSpec: "adult-profile", schema: {} },
         { sectionId: "awareness_perception", title: "Awareness & Perception", uiSpec: "adult-profile", schema: {} },
