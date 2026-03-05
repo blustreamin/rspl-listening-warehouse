@@ -176,8 +176,15 @@ const AdultIncontinenceSection = ({ data }: { data: any }) => {
 };
 
 const AdultAwarenessRenderer = ({ data }: { data: any }) => {
-    // Quality check: if empty data, let main renderer handle fallback
-    if (!data.misconceptions && !data.perceptions_and_stigma && !data.decision_journey) return null;
+    // If data is completely empty, show a generating state
+    if (!data.misconceptions && !data.perceptions_and_stigma && !data.decision_journey) {
+        return (
+            <div className="bg-amber-50 border border-amber-200 p-5 rounded-xl text-center">
+                <p className="text-sm text-amber-700 font-medium">Awareness & Perception data is being synthesized...</p>
+                <p className="text-[10px] text-amber-500 mt-1">This section requires misconceptions, stigma drivers, and decision journey data.</p>
+            </div>
+        );
+    }
 
     return (
         <div className="space-y-8">
@@ -317,7 +324,13 @@ const AdultUserNonUserSection = ({ data }: { data: any }) => {
 };
 
 const AdultBehaviouralRenderer = ({ data }: { data: any }) => {
-    if (!data.occasions_of_use && !data.switching_patterns && !data.purchase_behaviour) return null;
+    if (!data.occasions_of_use && !data.switching_patterns && !data.purchase_behaviour) {
+        return (
+            <div className="bg-amber-50 border border-amber-200 p-5 rounded-xl text-center">
+                <p className="text-sm text-amber-700 font-medium">Behavioural data is being synthesized...</p>
+            </div>
+        );
+    }
 
     return (
         <div className="space-y-8">
@@ -335,17 +348,32 @@ const AdultBehaviouralRenderer = ({ data }: { data: any }) => {
                     </div>
                 </div>
 
-                {/* Switching */}
+                {/* Switching Patterns */}
                 <div className="bg-white p-5 rounded-lg border border-slate-200 shadow-sm">
                     <h4 className="font-bold text-slate-800 text-sm mb-4">Switching Patterns</h4>
-                    <ul className="space-y-2">
-                         {ensureArray(data.switching_patterns).map((sw: any, i: number) => (
-                            <li key={i} className="text-xs flex items-center gap-2 text-slate-700">
-                                <span className="text-slate-400">➜</span>
-                                <SafeText content={sw.headline || sw.pattern || sw} />
-                            </li>
-                         ))}
-                    </ul>
+                    <div className="space-y-3">
+                         {ensureArray(data.switching_patterns).map((sw: any, i: number) => {
+                            // Parse "From → To — Trigger" format from normalizer
+                            const headline = sw.headline || sw.pattern || (typeof sw === 'string' ? sw : '');
+                            const parts = headline.split('→').map((s: string) => s.trim());
+                            const fromPart = parts[0] || '';
+                            const toParts = (parts[1] || '').split('—').map((s: string) => s.trim());
+                            const toPart = toParts[0] || '';
+                            const triggerPart = toParts[1] || '';
+                            
+                            return (
+                            <div key={i} className="bg-slate-50 border border-slate-200 rounded-xl p-3">
+                                <div className="flex items-center gap-2 mb-1.5">
+                                    <span className="text-[10px] font-bold text-rose-600 bg-rose-50 px-2 py-0.5 rounded-lg">{fromPart || 'Previous'}</span>
+                                    <span className="text-purple-400 font-bold text-xs">→</span>
+                                    <span className="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-lg">{toPart || 'New'}</span>
+                                </div>
+                                {triggerPart && (
+                                    <div className="text-[10px] text-slate-600 italic pl-1"><SafeText content={triggerPart} /></div>
+                                )}
+                            </div>
+                         )})}
+                    </div>
                 </div>
             </div>
 

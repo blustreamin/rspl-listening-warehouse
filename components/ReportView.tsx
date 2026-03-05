@@ -187,6 +187,15 @@ export const ReportView: React.FC<Props> = ({ projectId, injectedEvidence }) => 
                     console.warn(`[ReportView] Render blocked for stale section from ${section.projectId}`);
                     return false;
                 }
+                // Only render sections that exist in the current project's template
+                const template = TEMPLATE_REGISTRY[projectId];
+                if (template && section.sectionId) {
+                    const validIds = template.sections.map(s => s.sectionId);
+                    if (!validIds.includes(section.sectionId)) {
+                        console.warn(`[ReportView] Section ${section.sectionId} not in ${projectId} template, filtering out`);
+                        return false;
+                    }
+                }
                 return true;
             })
             .sort((a, b) => {
