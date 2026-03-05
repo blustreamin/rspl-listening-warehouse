@@ -165,7 +165,7 @@ export const runPipelineForSection = async (
   const template = TEMPLATE_REGISTRY[projectId];
   if (!template) throw new Error(`CRITICAL: No template found for project ${projectId}`);
   
-  if (projectId === 'adult-diapers' && template.templateId !== 'adult_diapers_v1') {
+  if (projectId === 'adult-diapers' && !template.templateId.startsWith('adult_diapers_v')) {
       throw new Error(`CONFIGURATION ERROR: Adult Diapers mapped to wrong template ${template.templateId}`);
   }
 
