@@ -250,7 +250,8 @@ export const normalizeSectionData = (
             return {
                 trigger_clusters: ensureArray(root2.trigger_clusters || root2.triggers || root2.cluster_name, 'title'),
                 barrier_groups: barrierGroups,
-                switching_dynamics: switching
+                switching_dynamics: switching,
+                brand_switching: ensureArray(root2.brand_switching, 'from_brand')
             };
 
         case '3': // Proof Points
