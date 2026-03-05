@@ -100,6 +100,12 @@ export const ingestRawData = async (ingestRequest: string | IngestRequestV1): Pr
       return disposablePeriodPantiesIngestion(requestObj);
   }
 
+  // BRANCH: Reusable Period Panties — same data format, reuse femcare ingestion
+  if (requestObj.projectId === 'reusable-period-panties') {
+      console.log("Using Deterministic Ingestion for Reusable Period Panties");
+      return disposablePeriodPantiesIngestion(requestObj);
+  }
+
   if (!API_KEY) return null;
   const ai = new GoogleGenAI({ apiKey: API_KEY });
   const requestString = JSON.stringify(requestObj, null, 2);
