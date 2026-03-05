@@ -264,12 +264,16 @@ export const normalizeSectionData = (
                 segmentation: normalizeSegmentation(data.segmentation)
             };
 
-        case '5': // Ecosystem
-        case '6': // Matrix
-             const rootEco = data.product_ecosystem || data;
+        case '5': // Ecosystem (Formats)
+             const rootEco5 = data.product_ecosystem || data;
              return {
-                 formats: ensureArray(rootEco.formats || rootEco.format_landscape, 'format'),
-                 tradeoff_matrix: ensureArray(rootEco.tradeoff_matrix || rootEco.matrix, 'attribute')
+                 formats: ensureArray(rootEco5.formats || rootEco5.format_landscape, 'format'),
+             };
+
+        case '6': // Attribute Trade-off Matrix
+             const rootEco6 = data.product_ecosystem || data;
+             return {
+                 tradeoff_matrix: ensureArray(rootEco6.tradeoff_matrix || rootEco6.matrix || data.tradeoff_matrix, 'attribute')
              };
         
         case '7': // Brand Performance

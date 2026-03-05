@@ -181,7 +181,8 @@ export const TEMPLATE_REGISTRY: Record<ProjectId, TemplatePack> = {
         Output Object: {
           "trigger_clusters": Array<{title, explanation, intensity: "HIGH"|"MED", evidence_ids: []}> (Min 6),
           "barrier_groups": Object { "Economic": string[], "Psychological": string[], "Product_Trust": string[], "Cultural": string[] },
-          "switching_dynamics": Array<{pathway: "From -> To", insight, logic_bullets: string[], evidence_ids: []}>
+          "switching_dynamics": Array<{pathway: "From -> To", insight, logic_bullets: string[], evidence_ids: []}>,
+          "brand_switching": Array<{from_brand: string, to_brand: string, reason: string, trigger: string, evidence_ids: []}>
         }
         
         STRATEGIC DIRECTIVE:
@@ -192,6 +193,11 @@ export const TEMPLATE_REGISTRY: Record<ProjectId, TemplatePack> = {
            - Product Trust: Hygiene concerns, rash fears.
            - Cultural: Disposal taboos (how to throw away bulky items).
         C. Switching Logic: Map pathways concretely (e.g., "XXL Pads -> Disposable Panties for Night"). Include Hybrid Usage logic.
+        D. Brand Switching: Why do users switch FROM one brand TO another within disposable period panties?
+           - Map specific brand-to-brand switches (e.g. "Whisper -> Carmesi", "Sirona -> Azah").
+           - For each: What triggered the switch? (Price, rash, availability, influencer, better absorption).
+           - Include evidence from reviews/social where users mention trying multiple brands.
+           - Minimum 5 brand switching pathways.
 
         REQUIREMENTS:
         - SEPARATION: 'trigger_clusters' = drivers; 'barrier_groups' = frictions.
@@ -397,7 +403,8 @@ export const TEMPLATE_REGISTRY: Record<ProjectId, TemplatePack> = {
       "2": { 
           trigger_clusters: [{ title: "Travel/Vacation", explanation: "SEED: Need for hassle-free management.\n\nCONSUMER EVIDENCE:\n• \"Packed for my trip.\" (Social)", evidence_ids: [] }],
           barrier_groups: { "Economic": ["SEED: High cost per unit"], "Psychological": ["SEED: Diaper-like feel"] },
-          switching_dynamics: [{ pathway: "Pads -> Disposable Panties", logic_bullets: ["SEED: Better coverage/sleep"], evidence_ids: [] }]
+          switching_dynamics: [{ pathway: "Pads -> Disposable Panties", logic_bullets: ["SEED: Better coverage/sleep"], evidence_ids: [] }],
+          brand_switching: [{ from_brand: "Whisper", to_brand: "Carmesi", reason: "SEED: Better softness and less rash", trigger: "Instagram review", evidence_ids: [] }]
       },
       "3": { proof_points: [{ title: "Sleep Assurance", insight: "Users can sleep without staining sheets.", quote: "Best sleep in years.", evidence_ids: [] }] },
       "4": { roles: [{ format_name: "Disposable Panties", job_to_be_done: "Overnight Security", lifestage_fit: "Teens/Adults", evidence_ids: [] }] },
@@ -450,7 +457,8 @@ export const TEMPLATE_REGISTRY: Record<ProjectId, TemplatePack> = {
         Output Object: {
           "trigger_clusters": Array<{title, explanation, intensity: "HIGH"|"MED", evidence_ids: []}> (Min 6),
           "barrier_groups": Object { "Economic": string[], "Psychological": string[], "Product_Trust": string[], "Cultural": string[], "Logistical": string[] },
-          "switching_dynamics": Array<{pathway: "From -> To", insight, logic_bullets: string[], evidence_ids: []}>
+          "switching_dynamics": Array<{pathway: "From -> To", insight, logic_bullets: string[], evidence_ids: []}>,
+          "brand_switching": Array<{from_brand: string, to_brand: string, reason: string, trigger: string, evidence_ids: []}>
         }
         
         STRATEGIC DIRECTIVE:
@@ -462,6 +470,11 @@ export const TEMPLATE_REGISTRY: Record<ProjectId, TemplatePack> = {
            - Cultural: Drying taboo (hanging period underwear in open/shared spaces).
            - Logistical: Washing without running water, drying time (monsoon), travel inconvenience.
         C. Switching Logic: Map pathways (Pads -> Reusable Panties, Disposable Panties -> Reusable).
+        D. Brand Switching: Why do users switch FROM one reusable brand TO another?
+           - Map specific brand-to-brand switches (e.g. "SuperBottoms -> Clovia", "Adira -> Stonesoup").
+           - For each: What triggered the switch? (Absorbency, drying time, fit, price, availability).
+           - Include evidence from reviews/social where users mention trying multiple brands.
+           - Minimum 5 brand switching pathways.
         `,
         
         "3": `
@@ -632,7 +645,8 @@ export const TEMPLATE_REGISTRY: Record<ProjectId, TemplatePack> = {
       "2": { 
           trigger_clusters: [{ title: "Eco-Guilt", explanation: "SEED: Environmental consciousness drives trial.", evidence_ids: [] }],
           barrier_groups: { "Economic": ["SEED: High upfront cost ₹500-1500"], "Psychological": ["SEED: Washing discomfort"], "Product_Trust": ["SEED: Absorbency doubts"], "Cultural": ["SEED: Drying taboo"] },
-          switching_dynamics: [{ pathway: "Pads -> Reusable Panties", logic_bullets: ["SEED: Eco-motivation + rash prevention"], evidence_ids: [] }]
+          switching_dynamics: [{ pathway: "Pads -> Reusable Panties", logic_bullets: ["SEED: Eco-motivation + rash prevention"], evidence_ids: [] }],
+          brand_switching: [{ from_brand: "SuperBottoms", to_brand: "Clovia", reason: "SEED: Better fit and faster drying", trigger: "Peer recommendation", evidence_ids: [] }]
       },
       "3": { proof_points: [{ title: "Rash Freedom", insight: "Users report elimination of rash from synthetic pads.", quote: "No more rashes since switching.", evidence_ids: [] }] },
       "4": { roles: [{ format_name: "Reusable Panties", job_to_be_done: "Sustainable Daily Wear", lifestage_fit: "Working Women/Eco-conscious", evidence_ids: [] }] },

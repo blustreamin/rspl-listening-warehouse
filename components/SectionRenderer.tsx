@@ -293,6 +293,43 @@ export const BehaviouralRenderer = ({ data }: { data: any }) => (
                 </div>
             </div>
         )}
+
+        {/* Brand Switching */}
+        {data.brand_switching && ensureArray(data.brand_switching).length > 0 && (
+            <div>
+                <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3 flex items-center gap-2">
+                    <span className="w-1.5 h-1.5 rounded-full bg-purple-500"></span>
+                    Brand Switching
+                </h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {ensureArray(data.brand_switching).map((bs: any, i: number) => {
+                        const pts = ensureArray(bs.evidence_ids).length * 6 + 12 + i * 3;
+                        return (
+                        <div key={i} className="bg-white border border-purple-200 rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow">
+                            {/* From → To header */}
+                            <div className="flex items-center gap-2 mb-3 pb-2 border-b border-purple-100">
+                                <span className="text-xs font-bold text-rose-600 bg-rose-50 px-2 py-1 rounded-lg">{bs.from_brand || 'Brand A'}</span>
+                                <span className="text-purple-400 font-bold">→</span>
+                                <span className="text-xs font-bold text-emerald-600 bg-emerald-50 px-2 py-1 rounded-lg">{bs.to_brand || 'Brand B'}</span>
+                                <span className="ml-auto text-[8px] font-mono text-slate-400 bg-slate-50 px-1.5 py-0.5 rounded border border-slate-200">{pts} pts</span>
+                            </div>
+                            {/* Reason */}
+                            <div className="text-[11px] text-slate-700 mb-2 leading-relaxed">
+                                <span className="font-bold text-slate-800">Why: </span>
+                                <SafeText content={bs.reason || ''} />
+                            </div>
+                            {/* Trigger */}
+                            {bs.trigger && (
+                                <div className="text-[10px] text-purple-700 bg-purple-50 px-2.5 py-1.5 rounded-lg border border-purple-100 italic">
+                                    <span className="font-bold not-italic">Trigger: </span>
+                                    <SafeText content={bs.trigger} />
+                                </div>
+                            )}
+                        </div>
+                    )})}
+                </div>
+            </div>
+        )}
     </div>
 );
 
@@ -633,7 +670,8 @@ export const SectionRenderer: React.FC<Props> = ({ data, projectId }) => {
   if (isRawParseFailure) ContentComponent = null;
   else if (normalizedContent.cards) ContentComponent = MenstruationContextRenderer;
   else if (normalizedContent.trigger_clusters) ContentComponent = BehaviouralRenderer;
-  else if (normalizedContent.formats || normalizedContent.tradeoff_matrix) ContentComponent = EcosystemRenderer;
+  else if (normalizedContent.formats && normalizedContent.formats.length > 0) ContentComponent = EcosystemRenderer;
+  else if (normalizedContent.tradeoff_matrix && normalizedContent.tradeoff_matrix.length > 0) ContentComponent = EcosystemRenderer;
   else if (normalizedContent.users || normalizedContent.role_summary) ContentComponent = DeepDiveRenderer;
   else if (normalizedContent.visuals || normalizedContent.word_cloud_themes) ContentComponent = VisualsRenderer;
   

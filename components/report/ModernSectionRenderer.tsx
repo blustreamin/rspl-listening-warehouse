@@ -811,8 +811,8 @@ export const ModernSectionRenderer: React.FC<Props> = ({ data, projectId }) => {
         // Existing working renderers
         if (c.cards || c.menstruation_context) Component = MenstruationContextRenderer;
         else if (c.trigger_clusters || c.behavioural_landscape) Component = BehaviouralRenderer;
-        else if (c.tradeoff_matrix && !c.formats) Component = EcosystemRenderer;
-        else if (c.formats || c.product_ecosystem) Component = EcosystemRenderer;
+        else if (c.formats && c.formats.length > 0) Component = EcosystemRenderer;
+        else if (c.tradeoff_matrix && c.tradeoff_matrix.length > 0) Component = EcosystemRenderer;
         else if (c.users || c.role_summary || c.deep_dive_disposable) Component = DeepDiveRenderer;
         else if (c.visuals || c.word_cloud_themes || c.sources_chart) Component = VisualsRenderer;
         // NEW: Previously unrouted sections
