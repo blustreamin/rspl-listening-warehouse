@@ -110,15 +110,18 @@ const InsightSubCard = ({ headline, detail, verbatims, accent = 'indigo', pts }:
 };
 
 // Section header with data point count
-const SectionHeader = ({ label, count, color = 'slate' }: { label: string; count?: number; color?: string }) => (
-    <div className="flex justify-between items-center mb-4">
-        <h5 className="text-[11px] font-extrabold uppercase tracking-widest text-slate-500 flex items-center gap-2">
-            <span className={`w-2 h-2 rounded-full bg-${color}-500`}></span>
-            {label}
-        </h5>
-        {count != null && <span className="text-[9px] font-mono text-slate-400 bg-slate-50 px-2 py-0.5 rounded-full border border-slate-200">{count} data pts</span>}
-    </div>
-);
+const SectionHeader = ({ label, count, color = 'slate' }: { label: string; count?: number; color?: string }) => {
+    const dotColors: Record<string, string> = { slate: 'bg-slate-500', red: 'bg-red-500', amber: 'bg-amber-500', emerald: 'bg-emerald-500', indigo: 'bg-indigo-500', purple: 'bg-purple-500', rose: 'bg-rose-500' };
+    return (
+        <div className="flex justify-between items-center mb-4">
+            <h5 className="text-[11px] font-extrabold uppercase tracking-widest text-slate-500 flex items-center gap-2">
+                <span className={`w-2 h-2 rounded-full ${dotColors[color] || 'bg-slate-500'}`}></span>
+                {label}
+            </h5>
+            {count != null && <span className="text-[9px] font-mono text-slate-400 bg-slate-50 px-2 py-0.5 rounded-full border border-slate-200">{count} data pts</span>}
+        </div>
+    );
+};
 
 // ── SECTION 1: INCONTINENCE MANAGEMENT ──────────────────────────────
 
@@ -535,26 +538,29 @@ const AdultBehaviouralRenderer = ({ data }: { data: any }) => {
     const renderSwitchCard = (sw: any, i: number, type: 'format' | 'brand') => {
         const from = type === 'format' ? (sw.from_product || '') : (sw.from_brand || '');
         const to = type === 'format' ? (sw.to_product || '') : (sw.to_brand || '');
-        const accent = type === 'format' ? 'indigo' : 'purple';
         const pts = sw.data_points || (12 + i * 5);
         const verbs = safeArr(sw.verbatims);
+        const borderClass = type === 'format' ? 'border-indigo-200' : 'border-purple-200';
+        const arrowClass = type === 'format' ? 'text-indigo-500' : 'text-purple-500';
+        const triggerBg = type === 'format' ? 'text-indigo-700 bg-indigo-50 border-indigo-100' : 'text-purple-700 bg-purple-50 border-purple-100';
+        const verbBg = type === 'format' ? 'text-indigo-800 bg-indigo-50/50 border-indigo-100' : 'text-purple-800 bg-purple-50/50 border-purple-100';
         return (
-            <div key={i} className={`bg-white border border-${accent}-200 rounded-xl p-4 space-y-3`}>
+            <div key={i} className={`bg-white border ${borderClass} rounded-xl p-4 space-y-3`}>
                 <div className="flex items-center gap-2 flex-wrap">
                     <span className="text-[10px] font-bold text-rose-700 bg-rose-50 px-2.5 py-1 rounded-lg border border-rose-200">{from || 'Previous'}</span>
-                    <span className={`text-${accent}-500 font-extrabold`}>→</span>
+                    <span className={`${arrowClass} font-extrabold`}>→</span>
                     <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-lg border border-emerald-200">{to || 'New'}</span>
                     <span className="ml-auto text-[8px] font-mono text-slate-400 bg-slate-50 px-1.5 py-0.5 rounded border border-slate-200">{pts} pts</span>
                 </div>
                 {(sw.trigger || sw.reason) && (
-                    <div className={`text-[11px] text-${accent}-700 bg-${accent}-50 px-3 py-2 rounded-lg border border-${accent}-100 italic`}>
+                    <div className={`text-[11px] ${triggerBg} px-3 py-2 rounded-lg border italic`}>
                         <strong className="not-italic">Trigger: </strong>{sw.trigger || sw.reason}
                     </div>
                 )}
                 {verbs.length > 0 && (
                     <div className="space-y-1.5">
                         {verbs.slice(0, 2).map((v: any, j: number) => (
-                            <div key={j} className={`text-[10px] italic text-${accent}-800 bg-${accent}-50/50 px-2.5 py-1.5 rounded-lg border border-${accent}-100`}>
+                            <div key={j} className={`text-[10px] italic ${verbBg} px-2.5 py-1.5 rounded-lg border`}>
                                 "{safeStr(v)}"
                             </div>
                         ))}

@@ -200,13 +200,16 @@ export const normalizeAdultDiapersData = (sectionId: string, rawData: any): any 
             });
         }
 
-        // Normalize occasions (defensive)
+        // Normalize occasions (defensive) — preserve V2 fields
         if (adapted.occasions_of_use) {
             adapted.occasions_of_use = ensureArray(adapted.occasions_of_use).map((occ: any) => {
                 if (typeof occ === 'string') return { headline: occ };
                 return {
+                    ...occ,
                     headline: occ.headline || occ.occasion || occ.use_case || occ.title || '',
                     what_it_means: occ.what_it_means || occ.description || occ.detail || '',
+                    data_points: occ.data_points || 0,
+                    verbatims: ensureArray(occ.verbatims),
                 };
             });
         }
@@ -247,16 +250,21 @@ export const normalizeAdultDiapersData = (sectionId: string, rawData: any): any 
                 ];
             }
 
-            // Assign back to structure and flatten to clean strings
+            // Assign back to structure — preserve rich objects from V2, flatten legacy strings
             adapted.purchase_behaviour.channels = ensureArray(rawChannels).map((c: any) => {
                 if (typeof c === 'string') return c;
+                // V2 format: { channel, detail, data_points, verbatims } — preserve as-is
+                if (c.channel && (c.data_points || c.verbatims || c.detail)) return c;
+                // Legacy: flatten to string
                 return c.channel || c.name || c.type || c.channel_focus || JSON.stringify(c);
             });
 
-            // Fix Pack Sizes — convert rich objects to "Name (Count)" strings
+            // Fix Pack Sizes — preserve V2 rich objects, flatten legacy
             if (adapted.purchase_behaviour.pack_sizes) {
                 adapted.purchase_behaviour.pack_sizes = ensureArray(adapted.purchase_behaviour.pack_sizes).map((p: any) => {
                     if (typeof p === 'string') return p;
+                    // V2: { size, who_buys, data_points } — preserve
+                    if (p.size && (p.who_buys || p.data_points)) return p;
                     if (p.pack) return p.pack;
                     const name = p.size_type || p.name || p.label || '';
                     const count = p.count || p.units || '';
@@ -266,10 +274,12 @@ export const normalizeAdultDiapersData = (sectionId: string, rawData: any): any 
                 });
             }
 
-            // Defensive: normalize price_points_inr too
+            // Normalize price_points_inr — preserve V2 rich objects
             if (adapted.purchase_behaviour.price_points_inr) {
                 adapted.purchase_behaviour.price_points_inr = ensureArray(adapted.purchase_behaviour.price_points_inr).map((pr: any) => {
                     if (typeof pr === 'string') return pr;
+                    // V2: { tier, range, per_piece, data_points } — preserve
+                    if (pr.tier && (pr.range || pr.per_piece)) return pr;
                     if (pr.range_label || pr.price) return pr;
                     const label = pr.tier || pr.segment || pr.category || '';
                     const range = pr.range || pr.price_range || pr.inr || '';
@@ -277,6 +287,9 @@ export const normalizeAdultDiapersData = (sectionId: string, rawData: any): any 
                     return pr;
                 });
             }
+
+            // V2: pass through pack_sizes_by_brand and price_by_brand as-is
+            // (no normalization needed, renderer handles defensive access)
         }
     }
     else {
