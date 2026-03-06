@@ -267,8 +267,9 @@ export const normalizeSectionData = (
 
         case '5': // Ecosystem (Formats)
              const rootEco5 = data.product_ecosystem || data;
+             const rawFormats = rootEco5.formats || rootEco5.format_landscape || rootEco5.product_formats || rootEco5.ecosystem || rootEco5.format_cards || data.formats;
              return {
-                 formats: ensureArray(rootEco5.formats || rootEco5.format_landscape, 'format'),
+                 formats: ensureArray(rawFormats, 'format'),
              };
 
         case '6': // Attribute Trade-off Matrix
