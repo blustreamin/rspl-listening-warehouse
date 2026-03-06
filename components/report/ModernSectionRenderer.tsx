@@ -1060,16 +1060,14 @@ const FemcareBrandPerformanceRenderer = ({ data }: { data: any }) => {
     return (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
             {brands.map((b: any, i: number) => {
-                const pos = b.market_position || 'Emerging';
-                const borderClass = positionBorder[pos] || 'border-l-slate-400';
-                const badgeClass = positionColors[pos] || 'bg-slate-500 text-white';
+                const borderColors = ['border-l-indigo-500', 'border-l-emerald-500', 'border-l-amber-500', 'border-l-rose-500', 'border-l-purple-500', 'border-l-blue-500'];
+                const borderClass = borderColors[i % borderColors.length];
                 
                 return (
                     <div key={i} className={`bg-white border border-slate-200 border-l-4 ${borderClass} rounded-xl p-5 shadow-sm hover:shadow-md transition-shadow`}>
-                        {/* Header: Brand + Position Badge */}
+                        {/* Header: Brand */}
                         <div className="flex justify-between items-center mb-4">
                             <h4 className="font-extrabold text-lg text-slate-900 tracking-tight">{b.brand}</h4>
-                            <span className={`text-[10px] px-2.5 py-1 rounded-full font-bold ${badgeClass}`}>{pos}</span>
                         </div>
                         
                         {/* Share + Price Row */}

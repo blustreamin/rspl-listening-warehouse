@@ -192,11 +192,21 @@ export const TEMPLATE_REGISTRY: Record<ProjectId, TemplatePack> = {
            - Psychological: "Diaper stigma" is critical in India.
            - Product Trust: Hygiene concerns, rash fears.
            - Cultural: Disposal taboos (how to throw away bulky items).
-        C. Switching Logic: Map pathways concretely (e.g., "XXL Pads -> Disposable Panties for Night"). Include Hybrid Usage logic.
+        C. Switching Logic: Map pathways with GRANULAR pad type bifurcation. Do NOT use generic "Sanitary Pads".
+           Instead, specify the pad FORMAT being switched FROM:
+           - Fluff Pads: Fluff Regular, Fluff XL, Night Fluff
+           - Ultra Pads: Mid Ultra, Premium Ultra, Night Ultra
+           Minimum pathways: "Fluff XL → Disposable Panties (Night)", "Night Ultra → Disposable Panties (Heavy Flow)",
+           "Fluff Regular → Disposable Panties (Travel)", "Premium Ultra → Disposable Panties (Confidence)".
+           If exact pad type data is unavailable, use at minimum "Fluff Pads → Disposable Panties" and "Ultra Pads → Disposable Panties" 
+           as the two categories. NEVER just say "Sanitary Pads" or "Pads".
         D. Brand Switching: Why do users switch FROM one brand TO another within disposable period panties?
-           - Map specific brand-to-brand switches (e.g. "Whisper -> Carmesi", "Sirona -> Azah").
+           - Map specific brand-to-brand switches (e.g. "Whisper → Carmesi", "Sirona → Azah").
+           - IMPORTANT: For each brand mention, include the BRAND VARIANT or product line where possible.
+             E.g. "Whisper Ultra Night XL" not just "Whisper". "Carmesi Disposable Period Panty M-L" not just "Carmesi".
+           - Clarify whether each brand name refers to a DISPOSABLE PERIOD PANTY brand or a SANITARY PAD brand.
+             Label explicitly: "(Pad Brand)" or "(Period Panty Brand)" after each brand name.
            - For each: What triggered the switch? (Price, rash, availability, influencer, better absorption).
-           - Include evidence from reviews/social where users mention trying multiple brands.
            - Minimum 5 brand switching pathways.
 
         REQUIREMENTS:
@@ -273,18 +283,18 @@ export const TEMPLATE_REGISTRY: Record<ProjectId, TemplatePack> = {
         "7": `
         SECTION 7: BRAND PERFORMANCE
         Output Object: {
-           "brand_performance": Array<{brand, key_strengths: string[], key_weaknesses: string[], attribute_verdict: string, brand_share_estimate: string, price_band: string, market_position: "Leader"|"Challenger"|"Niche"|"Emerging", evidence_ids: []}>
+           "brand_performance": Array<{brand, key_strengths: string[], key_weaknesses: string[], attribute_verdict: string, brand_share_estimate: string, price_band: string, evidence_ids: []}>
         }
         
         STRATEGIC DIRECTIVE:
         Competitive Landscape Audit (India).
-        MANDATORY BRANDS: Sirona, Carmesi, Nua, Plush, Pee Safe, Azah, Whisper, Always, Proof, Clovia, Rael.
+        MANDATORY BRANDS: Sirona, Carmesi, Nua, Plush, Pee Safe, Azah, Whisper, Always, Clovia, Rael.
         For each:
-        - Market Structure Position (Leader, Challenger, Niche, Emerging).
         - Attribute Leadership (e.g. "Owning Comfort", "Price Leader").
         - Price Band (Approx ₹ per unit).
         - Brand Share Estimate (% of voice from evidence data).
         - Vulnerability Risks.
+        DO NOT include market_position labels like "Leader", "Challenger", "Niche", "Emerging".
         
         REQUIREMENTS:
         - "attribute_verdict": Concise strategic summary.
@@ -537,13 +547,15 @@ export const TEMPLATE_REGISTRY: Record<ProjectId, TemplatePack> = {
         "7": `
         SECTION 7: BRAND PERFORMANCE
         Output Object: {
-           "brand_performance": Array<{brand, key_strengths: string[], key_weaknesses: string[], attribute_verdict: string, brand_share_estimate: string, price_band: string, market_position: "Leader"|"Challenger"|"Niche"|"Emerging", evidence_ids: []}>
+           "brand_performance": Array<{brand, key_strengths: string[], key_weaknesses: string[], attribute_verdict: string, brand_share_estimate: string, price_band: string, evidence_ids: []}>
         }
         
         STRATEGIC DIRECTIVE:
         Competitive Landscape Audit for Reusable Period Panties (India).
-        MANDATORY BRANDS: SuperBottoms, Clovia, Adira, Stonesoup, Soch, Avni, Neione, Modibodi, Thinx.
-        For each: Market Position, Attribute Leadership, Price Band (₹), Brand Share Estimate, Vulnerability.
+        MANDATORY BRANDS: Healthfab, Mahina, Avni, Soch, Sirona, PeeSafe, Lavos, SuperBottoms, Clovia, Adira.
+        NOTE: "Proof" and "Thinx" are NOT available in India — do NOT include them.
+        For each: Attribute Leadership, Price Band (₹), Brand Share Estimate, Vulnerability.
+        DO NOT include market_position labels like "Leader", "Challenger", "Niche", "Emerging".
         `,
         
         "8": `
