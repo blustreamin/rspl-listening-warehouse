@@ -20,7 +20,7 @@ const FEMCARE_BRANDS = [
     "Whisper", "Always", "Kotex", "Sofy", "Stayfree", "Carefree", "Niine",
     "Thinx", "Modibodi", "Saathi", "Heyday", "Pinq", "Rael", "Aayna",
     "Clovia", "Adira", "SuperBottoms", "Stonesoup", "Repad", "Soch",
-    "Avni", "Aisle", "Knix", "Ruby Love", "Proof", "Dear Kate", "Neione"
+    "Avni", "Healthfab", "Mahina", "Lavos", "Neione"
 ];
 
 const extractBrandFromText = (text: string): string => {
@@ -107,6 +107,9 @@ export const disposablePeriodPantiesIngestion = (request: IngestRequestV1): Evid
             else if (txtLower.includes("niine")) brand = "Niine";
             else if (txtLower.includes("clovia")) brand = "Clovia";
             else if (txtLower.includes("superbottoms")) brand = "SuperBottoms";
+            else if (txtLower.includes("healthfab")) brand = "Healthfab";
+            else if (txtLower.includes("mahina")) brand = "Mahina";
+            else if (txtLower.includes("lavos")) brand = "Lavos";
 
             brandCounts[brand] = (brandCounts[brand] || 0) + 1;
 
