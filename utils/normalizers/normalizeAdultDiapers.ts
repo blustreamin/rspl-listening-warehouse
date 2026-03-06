@@ -4,6 +4,11 @@ import { INDIA_MARKET_QUOTES, ARCHETYPE_TEMPLATES, BRAND_SEED_LANDSCAPE } from '
 import { fillIncontinenceGaps, fillUserProfileGaps } from '../fallbacks/adultDiapersMinFill';
 
 const ensureArray = (v: any) => Array.isArray(v) ? v : (v ? [v] : []);
+const safeStr = (v: any): string => {
+    if (!v) return '';
+    if (typeof v === 'string') return v;
+    return v.headline || v.text || v.title || v.name || '';
+};
 
 // Seed Merger Utility
 const mergeWithSeed = (sectionId: string, data: any): any => {
@@ -296,15 +301,69 @@ export const normalizeAdultDiapersData = (sectionId: string, rawData: any): any 
         adapted = data;
     }
 
+    // 1.5. DEEP VERBATIM NORMALIZATION — convert any string verbatims to {quote, source, consumer} format
+    const normalizeVerbatimItem = (v: any): any => {
+        if (!v) return null;
+        if (typeof v === 'string') return { quote: v, source: '', consumer: '' };
+        if (v.quote) return v; // Already structured
+        if (v.text) return { quote: v.text, source: v.source || '', consumer: v.consumer || v.persona || '' };
+        return { quote: safeStr(v), source: '', consumer: '' };
+    };
+    
+    const deepNormalizeVerbatims = (obj: any): any => {
+        if (!obj || typeof obj !== 'object') return obj;
+        if (Array.isArray(obj)) return obj.map(deepNormalizeVerbatims);
+        const result = { ...obj };
+        // Normalize 'verbatims' arrays wherever found
+        if (result.verbatims && Array.isArray(result.verbatims)) {
+            result.verbatims = result.verbatims.map(normalizeVerbatimItem).filter(Boolean);
+        }
+        // Normalize 'consumer_evidence' arrays
+        if (result.consumer_evidence && Array.isArray(result.consumer_evidence)) {
+            result.consumer_evidence = result.consumer_evidence.map((e: any) => {
+                if (typeof e === 'string') return { quote: e, source: '', consumer: '' };
+                return { quote: e.quote || e.text || '', source: e.source || '', consumer: e.consumer || e.persona || '' };
+            });
+        }
+        // Recurse into sub-objects (profiles, etc.)
+        for (const key of Object.keys(result)) {
+            if (result[key] && typeof result[key] === 'object' && !Array.isArray(result[key]) && key !== 'purchase_behaviour') {
+                result[key] = deepNormalizeVerbatims(result[key]);
+            }
+        }
+        return result;
+    };
+    
+    adapted = deepNormalizeVerbatims(adapted);
+
     // 2. Seed Merging (The Safety Net)
     let merged = mergeWithSeed(sectionId, adapted);
 
     // 3. Inject Consumer Statements if missing (Global Fallback)
-    // Add random verbatims from INDIA_MARKET_QUOTES if none exist at top level
-    if (!merged.consumer_statements && !merged.verbatims) {
-        // Deterministic slice based on section name length
-        const start = sectionId.length % 10;
-        merged.consumer_statements = INDIA_MARKET_QUOTES.slice(start, start + 3).map(q => q.text);
+    // Use NON-OVERLAPPING sections of the seed bank to prevent cross-section duplicates
+    if (!merged.consumer_statements || (Array.isArray(merged.consumer_statements) && merged.consumer_statements.length === 0)) {
+        const sectionOffsets: Record<string, number> = {
+            'incontinence_management': 0,
+            'gap_analysis': 4,
+            'awareness_perception': 8,
+            'user_non_user_profiles': 12,
+            'behavioural_profile': 16,
+            'brand_landscape': 20,
+        };
+        const offset = sectionOffsets[sectionId] ?? 0;
+        merged.consumer_statements = INDIA_MARKET_QUOTES.slice(offset, offset + 4).map(q => ({
+            quote: q.text,
+            source: 'Awario',
+            consumer: `${q.profile === 'self_use' ? '60+, Self-user' : q.profile === 'caregiver' ? '40F, Caregiver' : q.profile === 'decider' ? '35M, Family decider' : 'Consumer'}, ${q.context}`
+        }));
+    } else if (Array.isArray(merged.consumer_statements)) {
+        // Normalize existing consumer_statements to structured format if they're plain strings
+        merged.consumer_statements = merged.consumer_statements.map((stmt: any) => {
+            if (typeof stmt === 'string') {
+                return { quote: stmt, source: 'Consumer Data', consumer: '' };
+            }
+            return stmt;
+        });
     }
 
     // 4. Synthesize Legacy Summary Fields for UI Compatibility (Suser)
