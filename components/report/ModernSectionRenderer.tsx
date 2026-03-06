@@ -387,7 +387,7 @@ const AdultAwarenessRenderer = ({ data }: { data: any }) => {
                                         </div>
                                     </div>
                                 </div>
-                            ))}
+                            );})}
                         </div>
                     </div>
                 )}
