@@ -224,6 +224,19 @@ const EvidenceRepositoryModal = ({ evidence, onClose }: { evidence: EvidenceGrap
                                 ))}
                             </div>
 
+                            {/* Data Age + Definitions in Modal */}
+                            <div className="bg-slate-50 border border-slate-200 rounded-xl p-3 space-y-2">
+                                <div className="flex items-center gap-2 text-xs">
+                                    <span>📅</span>
+                                    <span className="font-bold text-slate-700">Data Period:</span>
+                                    <span className="text-slate-600">Feb 2023 — Feb 2026 (up to 3 years, exported 18th Feb 2026)</span>
+                                </div>
+                                <div className="grid grid-cols-2 gap-2 text-[10px] text-slate-500">
+                                    <div><span className="font-bold text-slate-600">Total Records:</span> Unique records after cross-file deduplication across all sources.</div>
+                                    <div><span className="font-bold text-slate-600">Usable Verbatims:</span> Records with meaningful consumer text (≥10 chars) usable as report evidence.</div>
+                                </div>
+                            </div>
+
                             <div className="bg-slate-50 rounded-xl border border-slate-200 p-5">
                                 <h3 className="text-xs font-bold text-slate-600 uppercase mb-3">Data Source Composition</h3>
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -453,11 +466,38 @@ export const DataIngestionInfographic: React.FC<Props> = ({ evidence, projectId 
                 <span className="text-[10px] bg-slate-800 text-white px-3 py-1 rounded-full font-bold tracking-wider">EVIDENCE BASE</span>
             </div>
 
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
                 <StatCard value={stats.total.toLocaleString()} label="Total Data Points" accent="bg-gradient-to-br from-indigo-50 to-indigo-100/50 border border-indigo-200" icon="📊" />
                 <StatCard value={stats.withQuotes.toLocaleString()} label="Usable Verbatims" accent="bg-gradient-to-br from-emerald-50 to-emerald-100/50 border border-emerald-200" icon="💬" />
                 <StatCard value={stats.platforms.length.toString()} label="Data Sources" accent="bg-gradient-to-br from-amber-50 to-amber-100/50 border border-amber-200" icon="🔗" />
                 <StatCard value={stats.avgRating || 'N/A'} label={stats.ratingCount > 0 ? `Avg Rating (${stats.ratingCount})` : 'No Ratings'} accent="bg-gradient-to-br from-rose-50 to-rose-100/50 border border-rose-200" icon="⭐" />
+            </div>
+
+            {/* Data Age Range + Definitions */}
+            <div className="bg-slate-50 border border-slate-200 rounded-xl p-4 mb-8 space-y-3">
+                <div className="flex items-center gap-3 pb-2 border-b border-slate-200">
+                    <span className="text-sm">📅</span>
+                    <div>
+                        <span className="text-xs font-bold text-slate-700">Data Collection Period: </span>
+                        <span className="text-xs text-slate-600">Feb 2023 — Feb 2026 (up to 3 years of historical data, exported 18th Feb 2026)</span>
+                    </div>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-[11px] text-slate-600">
+                    <div className="flex gap-2">
+                        <span className="text-indigo-500 font-bold">📊</span>
+                        <div>
+                            <span className="font-bold text-slate-700">Total Data Points: </span>
+                            Total number of unique records ingested across all sources (social listening mentions, e-commerce reviews, scraped posts & comments) after cross-file deduplication.
+                        </div>
+                    </div>
+                    <div className="flex gap-2">
+                        <span className="text-emerald-500 font-bold">💬</span>
+                        <div>
+                            <span className="font-bold text-slate-700">Usable Verbatims: </span>
+                            Data points containing meaningful consumer text (≥10 characters) that can be used as evidence quotes in the report. Excludes empty, truncated, or non-textual records.
+                        </div>
+                    </div>
+                </div>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
