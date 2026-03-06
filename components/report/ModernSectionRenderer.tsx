@@ -216,7 +216,9 @@ const AdultIncontinenceSection = ({ data }: { data: any }) => {
                 const solutions = safeArr(p.solutions);
                 const verbatims = safeArr(p.verbatims);
                 const accent = profileColors[idx % profileColors.length];
-                const totalPts = triggers.length * 15 + moments.length * 10 + impacts.length * 12 + solutions.length * 8 + verbatims.length * 5 + 20;
+                
+                // Create a pool PER PROFILE so no verbatim repeats within a profile card
+                const profilePool = new VerbatimPool();
 
                 return (
                     <div key={key} className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
@@ -235,10 +237,12 @@ const AdultIncontinenceSection = ({ data }: { data: any }) => {
                                     <div>
                                         <SectionHeader label="Incontinence Triggers" count={triggers.length * 15} color="red" />
                                         <div className="space-y-3">
-                                            {triggers.slice(0, 4).map((t: any, i: number) => (
-                                                <InsightSubCard key={i} headline={safeStr(t)} detail={safeDetail(t)} 
-                                                    verbatims={verbatims.slice(i * 2, i * 2 + 2)} accent="red" pts={15 + i * 3} />
-                                            ))}
+                                            {triggers.slice(0, 4).map((t: any, i: number) => {
+                                                const ownV = safeArr(t.verbatims);
+                                                const v = profilePool.take(ownV.length > 0 ? ownV : verbatims, 2);
+                                                return <InsightSubCard key={i} headline={safeStr(t)} detail={safeDetail(t)} 
+                                                    verbatims={v} accent="red" pts={15 + i * 3} />;
+                                            })}
                                         </div>
                                     </div>
                                 )}
@@ -246,10 +250,12 @@ const AdultIncontinenceSection = ({ data }: { data: any }) => {
                                     <div>
                                         <SectionHeader label="Worst Moments" count={moments.length * 10} color="amber" />
                                         <div className="space-y-3">
-                                            {moments.slice(0, 5).map((m: any, i: number) => (
-                                                <InsightSubCard key={i} headline={safeStr(m)} detail={safeDetail(m)}
-                                                    verbatims={verbatims.slice(Math.min(i * 2, verbatims.length - 2), Math.min(i * 2 + 2, verbatims.length))} accent="amber" pts={10 + i * 2} />
-                                            ))}
+                                            {moments.slice(0, 5).map((m: any, i: number) => {
+                                                const ownV = safeArr(m.verbatims);
+                                                const v = profilePool.take(ownV.length > 0 ? ownV : verbatims, 2);
+                                                return <InsightSubCard key={i} headline={safeStr(m)} detail={safeDetail(m)}
+                                                    verbatims={v} accent="amber" pts={10 + i * 2} />;
+                                            })}
                                         </div>
                                     </div>
                                 )}
@@ -261,10 +267,12 @@ const AdultIncontinenceSection = ({ data }: { data: any }) => {
                                     <div>
                                         <SectionHeader label="Life Impact" count={impacts.length * 12} color="rose" />
                                         <div className="space-y-3">
-                                            {impacts.slice(0, 4).map((imp: any, i: number) => (
-                                                <InsightSubCard key={i} headline={safeStr(imp)} detail={safeDetail(imp)}
-                                                    verbatims={verbatims.length > 0 ? [verbatims[i % verbatims.length], verbatims[(i + 1) % verbatims.length]] : []} accent="red" pts={12 + i * 3} />
-                                            ))}
+                                            {impacts.slice(0, 4).map((imp: any, i: number) => {
+                                                const ownV = safeArr(imp.verbatims);
+                                                const v = profilePool.take(ownV.length > 0 ? ownV : verbatims, 2);
+                                                return <InsightSubCard key={i} headline={safeStr(imp)} detail={safeDetail(imp)}
+                                                    verbatims={v} accent="red" pts={12 + i * 3} />;
+                                            })}
                                         </div>
                                     </div>
                                 )}
@@ -272,10 +280,12 @@ const AdultIncontinenceSection = ({ data }: { data: any }) => {
                                     <div>
                                         <SectionHeader label="Current Solutions" count={solutions.length * 8} color="emerald" />
                                         <div className="space-y-3">
-                                            {solutions.slice(0, 4).map((sol: any, i: number) => (
-                                                <InsightSubCard key={i} headline={safeStr(sol)} detail={safeDetail(sol)}
-                                                    verbatims={verbatims.length > 0 ? [verbatims[(i + 2) % verbatims.length], verbatims[(i + 3) % verbatims.length]] : []} accent="emerald" pts={8 + i * 2} />
-                                            ))}
+                                            {solutions.slice(0, 4).map((sol: any, i: number) => {
+                                                const ownV = safeArr(sol.verbatims);
+                                                const v = profilePool.take(ownV.length > 0 ? ownV : verbatims, 2);
+                                                return <InsightSubCard key={i} headline={safeStr(sol)} detail={safeDetail(sol)}
+                                                    verbatims={v} accent="emerald" pts={8 + i * 2} />;
+                                            })}
                                         </div>
                                     </div>
                                 )}
