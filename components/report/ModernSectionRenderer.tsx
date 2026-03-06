@@ -163,7 +163,6 @@ const SectionHeader = ({ label, count, color = 'slate' }: { label: string; count
                 <span className={`w-2 h-2 rounded-full ${dotColors[color] || 'bg-slate-500'}`}></span>
                 {label}
             </h5>
-            {count != null && <span className="text-[9px] font-mono text-slate-400 bg-slate-50 px-2 py-0.5 rounded-full border border-slate-200">{count} data pts</span>}
         </div>
     );
 };
@@ -204,14 +203,10 @@ const AdultIncontinenceSection = ({ data }: { data: any }) => {
                 return (
                     <div key={key} className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
                         {/* Profile Header */}
-                        <div className={`bg-gradient-to-r from-slate-800 to-slate-700 px-6 py-4 flex justify-between items-center`}>
+                        <div className={`bg-gradient-to-r from-slate-800 to-slate-700 px-6 py-4`}>
                             <div>
                                 <h4 className="font-extrabold text-white text-base uppercase tracking-wide">{key.replace(/_/g, ' ')}</h4>
                                 <span className="text-[10px] text-slate-400">Consumer Profile Analysis</span>
-                            </div>
-                            <div className="text-right">
-                                <div className="text-lg font-extrabold text-white">{totalPts}</div>
-                                <div className="text-[9px] text-slate-400 uppercase">Data Points</div>
                             </div>
                         </div>
 
@@ -408,9 +403,8 @@ const AdultUserNonUserSection = ({ data }: { data: any }) => {
 
         return (
             <div key={i} className="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-shadow">
-                <div className={`px-5 py-3 ${isUser ? 'bg-gradient-to-r from-indigo-600 to-indigo-500' : 'bg-gradient-to-r from-rose-600 to-rose-500'} flex justify-between items-center`}>
+                <div className={`px-5 py-3 ${isUser ? 'bg-gradient-to-r from-indigo-600 to-indigo-500' : 'bg-gradient-to-r from-rose-600 to-rose-500'}`}>
                     <h5 className="font-extrabold text-white text-sm">{p.profile_name || `Profile ${i + 1}`}</h5>
-                    <span className="text-[9px] font-mono text-white/70 bg-white/20 px-2 py-0.5 rounded-full">{pts} pts</span>
                 </div>
                 <div className="p-5 space-y-3">
                     {p.who_they_are && <p className="text-[11px] text-slate-600 leading-relaxed border-l-2 border-slate-200 pl-3">{p.who_they_are}</p>}
@@ -804,25 +798,19 @@ const AdultBrandLandscapeSection = ({ data }: { data: any }) => {
                     <div key={i} className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
                         {/* Brand Header */}
                         <div className="bg-gradient-to-r from-slate-800 to-slate-700 px-6 py-4">
-                            <div className="flex justify-between items-center">
-                                <div>
-                                    <h4 className="font-extrabold text-xl text-white">{b.brand || `Brand ${i + 1}`}</h4>
-                                    <div className="flex gap-2 mt-1.5">
-                                        {b.share_of_voice?.share_pct != null && (
-                                            <span className="text-[10px] bg-white/20 text-white px-2.5 py-0.5 rounded-full font-bold">SOV: {b.share_of_voice.share_pct}%</span>
-                                        )}
-                                        {b.overall_sentiment && (
-                                            <span className={`text-[10px] px-2.5 py-0.5 rounded-full font-bold ${
-                                                b.overall_sentiment === 'POS' ? 'bg-emerald-500 text-white' :
-                                                b.overall_sentiment === 'NEG' ? 'bg-red-500 text-white' :
-                                                'bg-amber-400 text-white'
-                                            }`}>{b.overall_sentiment}</span>
-                                        )}
-                                    </div>
-                                </div>
-                                <div className="text-right">
-                                    <div className="text-xl font-extrabold text-white">{brandPts}</div>
-                                    <div className="text-[9px] text-slate-400 uppercase">Data Points</div>
+                            <div>
+                                <h4 className="font-extrabold text-xl text-white">{b.brand || `Brand ${i + 1}`}</h4>
+                                <div className="flex gap-2 mt-1.5">
+                                    {b.share_of_voice?.share_pct != null && (
+                                        <span className="text-[10px] bg-white/20 text-white px-2.5 py-0.5 rounded-full font-bold">SOV: {b.share_of_voice.share_pct}%</span>
+                                    )}
+                                    {b.overall_sentiment && (
+                                        <span className={`text-[10px] px-2.5 py-0.5 rounded-full font-bold ${
+                                            b.overall_sentiment === 'POS' ? 'bg-emerald-500 text-white' :
+                                            b.overall_sentiment === 'NEG' ? 'bg-red-500 text-white' :
+                                            'bg-amber-400 text-white'
+                                        }`}>{b.overall_sentiment}</span>
+                                    )}
                                 </div>
                             </div>
                         </div>
