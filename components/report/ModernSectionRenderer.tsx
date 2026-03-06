@@ -493,12 +493,13 @@ const AdultGapAnalysisRenderer = ({ data }: { data: any }) => {
     const renderGapBullets = (bullets: any[], accent: string) => bullets.map((b: any, i: number) => {
         const pts = b.data_points || (15 + i * 7);
         const evidence = safeArr(b.consumer_evidence);
-        const sevColor = b.severity === 'HIGH' ? 'bg-red-100 text-red-700' : b.severity === 'MED' ? 'bg-amber-100 text-amber-700' : 'bg-slate-100 text-slate-600';
+        // Pass full evidence objects so AdVerbatimList can show source + consumer
+        const verbatimObjects = evidence.length > 0 ? evidence : safeArr(b.verbatims);
         return (
             <InsightSubCard key={i} 
                 headline={`${b.claim || b.text || ''}`}
                 detail={b.explanation || ''}
-                verbatims={evidence.length > 0 ? evidence.map((e: any) => e.quote || e) : safeArr(b.verbatims)}
+                verbatims={verbatimObjects}
                 accent={accent} pts={pts} />
         );
     });
@@ -546,12 +547,8 @@ const AdultGapAnalysisRenderer = ({ data }: { data: any }) => {
                                     {n.why_now && <div className="text-[11px] text-slate-600"><strong className="text-slate-700">Why now:</strong> {n.why_now}</div>}
                                     {n.who && <div className="text-[10px] text-indigo-600"><strong>Who:</strong> {n.who}</div>}
                                     {evidence.length > 0 && (
-                                        <div className="pl-2 space-y-1">
-                                            {evidence.slice(0, 2).map((e: any, j: number) => (
-                                                <div key={j} className="text-[10px] italic text-indigo-800 bg-indigo-50 px-2.5 py-1.5 rounded-lg border border-indigo-100">
-                                                    "{typeof e === 'string' ? e : (e.quote || '')}" {e.source && <span className="text-indigo-400 not-italic">({e.source})</span>}
-                                                </div>
-                                            ))}
+                                        <div className="pl-2">
+                                            <AdVerbatimList items={evidence} accentClass="text-indigo-800 bg-indigo-50 border-indigo-100" max={2} />
                                         </div>
                                     )}
                                 </div>
