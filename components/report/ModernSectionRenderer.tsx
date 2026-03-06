@@ -106,6 +106,24 @@ const AdVerbatim = ({ v, accentClass }: { v: any; accentClass?: string }) => {
     );
 };
 
+// Dedup utility: tracks used quotes within a section, never returns the same one twice
+class VerbatimPool {
+    private used = new Set<string>();
+    
+    take(items: any[], count: number): any[] {
+        const result: any[] = [];
+        for (const item of safeArr(items)) {
+            if (result.length >= count) break;
+            const key = getQuoteText(item).toLowerCase().trim().slice(0, 80);
+            if (key.length < 5) continue;
+            if (this.used.has(key)) continue;
+            this.used.add(key);
+            result.push(item);
+        }
+        return result;
+    }
+}
+
 // Renders a verbatim list (array) for adult diapers
 const AdVerbatimList = ({ items, accentClass, max = 3 }: { items: any[]; accentClass?: string; max?: number }) => {
     const verbs = safeArr(items);
@@ -302,6 +320,7 @@ const AdultAwarenessRenderer = ({ data }: { data: any }) => {
     const stigma = safeArr(data?.perceptions_and_stigma);
     const journey = safeArr(data?.decision_journey);
     const statements = safeArr(data?.consumer_statements);
+    const pool = new VerbatimPool();
 
     if (misconceptions.length === 0 && stigma.length === 0 && journey.length === 0) {
         return <div className="text-sm text-slate-500 italic p-6 text-center">Awareness & Perception is being synthesized...</div>;
@@ -314,10 +333,12 @@ const AdultAwarenessRenderer = ({ data }: { data: any }) => {
                 <div>
                     <SectionHeader label="Common Misconceptions" count={misconceptions.length * 18} color="red" />
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        {misconceptions.map((m: any, i: number) => (
-                            <InsightSubCard key={i} headline={`✕ ${safeStr(m)}`} detail={safeDetail(m)}
-                                verbatims={statements.slice(i * 2, i * 2 + 2)} accent="red" pts={18 + i * 4} />
-                        ))}
+                        {misconceptions.map((m: any, i: number) => {
+                            const ownVerbs = safeArr(m.verbatims);
+                            const verbs = pool.take(ownVerbs.length > 0 ? ownVerbs : statements, 2);
+                            return <InsightSubCard key={i} headline={`✕ ${safeStr(m)}`} detail={safeDetail(m)}
+                                verbatims={verbs} accent="red" pts={18 + i * 4} />;
+                        })}
                     </div>
                 </div>
             )}
@@ -328,10 +349,12 @@ const AdultAwarenessRenderer = ({ data }: { data: any }) => {
                     <div>
                         <SectionHeader label="Stigma Drivers" count={stigma.length * 16} color="purple" />
                         <div className="space-y-3">
-                            {stigma.map((s: any, i: number) => (
-                                <InsightSubCard key={i} headline={safeStr(s)} detail={safeDetail(s)}
-                                    verbatims={statements.slice((misconceptions.length + i) * 2, (misconceptions.length + i) * 2 + 2)} accent="purple" pts={16 + i * 5} />
-                            ))}
+                            {stigma.map((s: any, i: number) => {
+                                const ownVerbs = safeArr(s.verbatims);
+                                const verbs = pool.take(ownVerbs.length > 0 ? ownVerbs : statements, 2);
+                                return <InsightSubCard key={i} headline={safeStr(s)} detail={safeDetail(s)}
+                                    verbatims={verbs} accent="purple" pts={16 + i * 5} />;
+                            })}
                         </div>
                     </div>
                 )}
@@ -340,7 +363,10 @@ const AdultAwarenessRenderer = ({ data }: { data: any }) => {
                     <div>
                         <SectionHeader label="Decision Journey" count={journey.length * 12} color="indigo" />
                         <div className="space-y-3">
-                            {journey.map((step: any, i: number) => (
+                            {journey.map((step: any, i: number) => {
+                                const ownVerbs = safeArr(step.verbatims);
+                                const verbs = pool.take(ownVerbs.length > 0 ? ownVerbs : statements, 2);
+                                return (
                                 <div key={i} className="bg-white border border-slate-200 rounded-xl p-4">
                                     <div className="flex gap-3 items-start">
                                         <div className="flex-shrink-0 w-8 h-8 rounded-full bg-gradient-to-br from-indigo-500 to-indigo-600 text-white flex items-center justify-center text-xs font-extrabold shadow-sm">
@@ -352,10 +378,10 @@ const AdultAwarenessRenderer = ({ data }: { data: any }) => {
                                                 <span className="text-[8px] font-mono text-slate-400 bg-slate-50 px-1.5 py-0.5 rounded border border-slate-200 ml-2">{12 + i * 3} pts</span>
                                             </div>
                                             {safeDetail(step) && <div className="text-[11px] text-slate-500 mt-1 leading-relaxed">{safeDetail(step)}</div>}
-                                            {/* Journey step verbatims */}
-                                            {statements.length > i * 2 && (
+                                            {/* Journey step verbatims - deduped via pool */}
+                                            {verbs.length > 0 && (
                                                 <div className="mt-2">
-                                                    <AdVerbatimList items={statements.slice(i, i + 2)} accentClass="text-indigo-800 bg-indigo-50 border-indigo-100" max={2} />
+                                                    <AdVerbatimList items={verbs} accentClass="text-indigo-800 bg-indigo-50 border-indigo-100" max={2} />
                                                 </div>
                                             )}
                                         </div>
@@ -565,6 +591,7 @@ const AdultBehaviouralRenderer = ({ data }: { data: any }) => {
     const purchase = data?.purchase_behaviour;
     const geo = data?.geographic_patterns;
     const statements = safeArr(data?.consumer_statements);
+    const pool = new VerbatimPool();
 
     if (occasions.length === 0 && !purchase && formatSwitching.length === 0 && legacySwitching.length === 0) {
         return <div className="text-sm text-slate-500 italic p-6 text-center">Behavioural data being synthesized...</div>;
@@ -614,7 +641,7 @@ const AdultBehaviouralRenderer = ({ data }: { data: any }) => {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         {occasions.map((occ: any, i: number) => (
                             <InsightSubCard key={i} headline={safeStr(occ)} detail={safeDetail(occ)}
-                                verbatims={safeArr(occ.verbatims).length > 0 ? occ.verbatims : statements.slice(i, i + 2)}
+                                verbatims={pool.take(safeArr(occ.verbatims).length > 0 ? occ.verbatims : statements, 2)}
                                 accent="indigo" pts={occ.data_points || (20 + i * 8)} />
                         ))}
                     </div>
@@ -651,7 +678,7 @@ const AdultBehaviouralRenderer = ({ data }: { data: any }) => {
                             const parts = headline.split('→').map((s: string) => s.trim());
                             return (
                                 <InsightSubCard key={i} headline={headline} 
-                                    verbatims={statements.slice(i * 2, i * 2 + 2)} accent="purple" pts={16 + i * 4} />
+                                    verbatims={pool.take(statements, 2)} accent="purple" pts={16 + i * 4} />
                             );
                         })}
                     </div>

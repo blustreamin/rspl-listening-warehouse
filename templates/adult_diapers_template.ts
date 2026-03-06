@@ -26,7 +26,10 @@ GLOBAL NON-NEGOTIABLES:
     a) EVERY verbatim array item must have "quote", "source", and "consumer" fields. No exceptions.
     b) "source" must be one of: Amazon.in, Flipkart, Reddit, Blog, Web Forum, Social, Awario, Quora, News.
     c) "consumer" must be a 3-6 word description: age+gender, role/relationship, city/tier. E.g. "62M, Self-user, Tier 2 Lucknow", "38F, Daughter caregiver, Mumbai", "28F, Post-surgical, Bangalore".
-    d) NO two verbatims across the ENTIRE report may have the same quote text. Every quote must be UNIQUE.
+    d) ABSOLUTE UNIQUENESS: NO two verbatims across the ENTIRE JSON output may share the same quote text — not even partially similar. 
+       Before generating any quote, mentally check: "Have I already used this quote or a very similar one in any other section?" If yes, generate a completely different one.
+       Each section (incontinence, awareness, user_profiles, behavioural, brand_landscape) must have its OWN DISTINCT set of quotes with ZERO overlap.
+       Violation of this rule invalidates the entire output.
     e) consumer_statements arrays at section level must ALSO follow this format: Array<{quote, source, consumer}>.
     f) Aim for source diversity within each section — do not use only Amazon quotes. Mix Amazon + Flipkart + Reddit + Social.
 
