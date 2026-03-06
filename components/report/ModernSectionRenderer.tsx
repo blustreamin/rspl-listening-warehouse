@@ -70,6 +70,55 @@ const safeDetail = (v: any): string => {
     return String(v.what_it_means || v.description || v.detail || v.reality || v.explanation || '');
 };
 
+// Extract quote text from any verbatim shape (string or object)
+const getQuoteText = (v: any): string => {
+    if (!v) return '';
+    if (typeof v === 'string') return v;
+    return v.quote || v.text || safeStr(v);
+};
+const getQuoteSource = (v: any): string => {
+    if (!v || typeof v === 'string') return '';
+    return v.source || '';
+};
+const getQuoteConsumer = (v: any): string => {
+    if (!v || typeof v === 'string') return '';
+    return v.consumer || v.persona || v.who || '';
+};
+
+// Renders a single verbatim with source + consumer (adult diapers only)
+const AdVerbatim = ({ v, accentClass }: { v: any; accentClass?: string }) => {
+    const text = getQuoteText(v);
+    const source = getQuoteSource(v);
+    const consumer = getQuoteConsumer(v);
+    if (!text) return null;
+    const bg = accentClass || 'text-indigo-800 bg-indigo-50 border-indigo-100';
+    return (
+        <div className={`text-[10px] italic ${bg} px-2.5 py-2 rounded-lg border`}>
+            <div>"{text}"</div>
+            {(source || consumer) && (
+                <div className="flex gap-2 mt-1 not-italic text-[9px] opacity-80">
+                    {source && <span className="font-bold">{source}</span>}
+                    {source && consumer && <span>·</span>}
+                    {consumer && <span>{consumer}</span>}
+                </div>
+            )}
+        </div>
+    );
+};
+
+// Renders a verbatim list (array) for adult diapers
+const AdVerbatimList = ({ items, accentClass, max = 3 }: { items: any[]; accentClass?: string; max?: number }) => {
+    const verbs = safeArr(items);
+    if (verbs.length === 0) return null;
+    return (
+        <div className="space-y-1.5">
+            {verbs.slice(0, max).map((v: any, i: number) => (
+                <AdVerbatim key={i} v={v} accentClass={accentClass} />
+            ))}
+        </div>
+    );
+};
+
 // Shared sub-card with headline + detail + verbatims
 const InsightSubCard = ({ headline, detail, verbatims, accent = 'indigo', pts }: 
     { headline: string; detail?: string; verbatims?: any[]; accent?: string; pts?: number }) => {
@@ -97,12 +146,8 @@ const InsightSubCard = ({ headline, detail, verbatims, accent = 'indigo', pts }:
                 {pts && <span className="text-[8px] font-mono text-slate-400 bg-white/80 px-1.5 py-0.5 rounded border border-slate-200 whitespace-nowrap flex-shrink-0">{pts} pts</span>}
             </div>
             {verbs.length > 0 && (
-                <div className="pl-3.5 space-y-1.5">
-                    {verbs.slice(0, 3).map((v: any, i: number) => (
-                        <div key={i} className={`text-[10px] italic ${c.quote} px-2.5 py-1.5 rounded-lg border`}>
-                            "{safeStr(v)}"
-                        </div>
-                    ))}
+                <div className="pl-3.5">
+                    <AdVerbatimList items={verbs} accentClass={c.quote} max={3} />
                 </div>
             )}
         </div>
@@ -237,8 +282,15 @@ const AdultIncontinenceSection = ({ data }: { data: any }) => {
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
                         {safeArr(data.consumer_statements).slice(0, 8).map((stmt: any, i: number) => (
-                            <div key={i} className="text-[10px] text-indigo-900 italic bg-white/70 p-3 rounded-xl border border-indigo-100 leading-relaxed">
-                                "{safeStr(stmt)}"
+                            <div key={i} className="text-[10px] text-indigo-900 bg-white/70 p-3 rounded-xl border border-indigo-100 leading-relaxed">
+                                <div className="italic">"{getQuoteText(stmt)}"</div>
+                                {(getQuoteSource(stmt) || getQuoteConsumer(stmt)) && (
+                                    <div className="flex gap-1.5 mt-1.5 not-italic text-[9px] text-indigo-500">
+                                        {getQuoteSource(stmt) && <span className="font-bold">{getQuoteSource(stmt)}</span>}
+                                        {getQuoteSource(stmt) && getQuoteConsumer(stmt) && <span>·</span>}
+                                        {getQuoteConsumer(stmt) && <span>{getQuoteConsumer(stmt)}</span>}
+                                    </div>
+                                )}
                             </div>
                         ))}
                     </div>
@@ -307,12 +359,8 @@ const AdultAwarenessRenderer = ({ data }: { data: any }) => {
                                             {safeDetail(step) && <div className="text-[11px] text-slate-500 mt-1 leading-relaxed">{safeDetail(step)}</div>}
                                             {/* Journey step verbatims */}
                                             {statements.length > i * 2 && (
-                                                <div className="mt-2 space-y-1">
-                                                    {statements.slice(i, i + 2).map((v: any, j: number) => (
-                                                        <div key={j} className="text-[10px] italic text-indigo-700 bg-indigo-50 px-2.5 py-1.5 rounded-lg border border-indigo-100">
-                                                            "{safeStr(v)}"
-                                                        </div>
-                                                    ))}
+                                                <div className="mt-2">
+                                                    <AdVerbatimList items={statements.slice(i, i + 2)} accentClass="text-indigo-800 bg-indigo-50 border-indigo-100" max={2} />
                                                 </div>
                                             )}
                                         </div>
@@ -387,13 +435,9 @@ const AdultUserNonUserSection = ({ data }: { data: any }) => {
 
                     {/* Mandatory Verbatims */}
                     {verbatims.length > 0 && (
-                        <div className="space-y-1.5 pt-2 border-t border-slate-100">
-                            <span className="text-[9px] font-bold text-indigo-400 uppercase">Consumer Voice ({verbatims.length})</span>
-                            {verbatims.slice(0, 3).map((v: any, j: number) => (
-                                <div key={j} className="text-[10px] italic text-indigo-800 bg-indigo-50 px-3 py-2 rounded-lg border border-indigo-100">
-                                    "{safeStr(v)}"
-                                </div>
-                            ))}
+                        <div className="pt-2 border-t border-slate-100">
+                            <span className="text-[9px] font-bold text-indigo-400 uppercase mb-1.5 block">Consumer Voice ({verbatims.length})</span>
+                            <AdVerbatimList items={verbatims} accentClass="text-indigo-800 bg-indigo-50 border-indigo-100" max={3} />
                         </div>
                     )}
                 </div>
@@ -559,11 +603,7 @@ const AdultBehaviouralRenderer = ({ data }: { data: any }) => {
                 )}
                 {verbs.length > 0 && (
                     <div className="space-y-1.5">
-                        {verbs.slice(0, 2).map((v: any, j: number) => (
-                            <div key={j} className={`text-[10px] italic ${verbBg} px-2.5 py-1.5 rounded-lg border`}>
-                                "{safeStr(v)}"
-                            </div>
-                        ))}
+                        <AdVerbatimList items={verbs} accentClass={verbBg} max={2} />
                     </div>
                 )}
             </div>
@@ -652,9 +692,7 @@ const AdultBehaviouralRenderer = ({ data }: { data: any }) => {
                                             <span className="text-[8px] font-mono text-slate-400">{pts} pts</span>
                                         </div>
                                         {detail && <div className="text-[10px] text-slate-500 mt-0.5">{detail}</div>}
-                                        {verbs.slice(0, 1).map((v: any, j: number) => (
-                                            <div key={j} className="text-[9px] italic text-indigo-700 bg-indigo-50 px-2 py-1 rounded mt-1">"{safeStr(v)}"</div>
-                                        ))}
+                                        {verbs.length > 0 && <div className="mt-1"><AdVerbatim v={verbs[0]} accentClass="text-indigo-800 bg-indigo-50 border-indigo-100" /></div>}
                                     </div>
                                 );
                             })}
@@ -849,13 +887,7 @@ const AdultBrandLandscapeSection = ({ data }: { data: any }) => {
                                 <div>
                                     <span className="text-[10px] font-extrabold text-slate-500 uppercase tracking-wider block mb-3">Consumer Verdict ({verbs.length} quotes)</span>
                                     {verbs.length > 0 ? (
-                                        <div className="space-y-2.5">
-                                            {verbs.slice(0, 5).map((v: any, k: number) => (
-                                                <div key={k} className="bg-slate-50 p-3 rounded-xl text-xs text-slate-700 italic border-l-3 border-l-indigo-400 leading-relaxed">
-                                                    "{safeStr(v)}"
-                                                </div>
-                                            ))}
-                                        </div>
+                                        <AdVerbatimList items={verbs} accentClass="text-slate-700 bg-slate-50 border-slate-200" max={5} />
                                     ) : (
                                         <div className="text-xs text-slate-400 italic p-4 text-center bg-slate-50 rounded-xl">No direct consumer quotes available.</div>
                                     )}

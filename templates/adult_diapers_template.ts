@@ -11,13 +11,24 @@ DEPTH: Every section must read like it was prepared by a team of 3 analysts over
 GLOBAL NON-NEGOTIABLES:
 1.  **CONSULTING-GRADE STRUCTURE**: Every insight must follow: Headline -> Signal Summary -> Evidence (min 2 verbatims) -> Strategic Implication.
 2.  **INDIA CONTEXT STRICTNESS**: Pricing in INR (₹). Channels: Chemist, Amazon India. Culture: Joint family, Dignity. Geography: Metro/Tier2/South/North/East/West.
-3.  **CONSUMER STATEMENTS**: Every sub-insight MUST include minimum 2 specific consumer verbatims. Sound like real Indian consumers — mention ₹ amounts, specific situations, actual product names.
+3.  **CONSUMER STATEMENTS**: Every sub-insight MUST include minimum 2 specific consumer verbatims.
 4.  **EVIDENCE LINKING**: Map insights to evidence_ids. Use real data point counts where available.
 5.  **NO PLACEHOLDERS**: Do not use "Derived", "Insight", "N/A". Every field must have substantive content.
 6.  **SOURCE PRIORITIZATION**: PRIMARY: Amazon.in and Flipkart verified reviews. SECONDARY: Reddit, Blogs. DEPRIORITIZE: Instagram/YouTube (paid media).
-7.  **QUANTIFY EVERYTHING**: Every insight must include a data point count estimate. Use "Based on N data points" or "N mentions across sources".
-8.  **VERBATIM DENSITY**: Minimum 2 consumer quotes per insight card. Minimum 4 per profile. Minimum 4 per brand. These must feel like you overheard them in Lucknow, Pune, or Chennai.
-9.  **GEOGRAPHIC GRANULARITY**: Reference Metro vs Tier2/3, North/South/East/West differences wherever applicable.
+7.  **QUANTIFY EVERYTHING**: Every insight must include a data point count estimate.
+8.  **GEOGRAPHIC GRANULARITY**: Reference Metro vs Tier2/3, North/South/East/West differences wherever applicable.
+
+9.  **VERBATIM FORMAT (MANDATORY — NON-NEGOTIABLE)**:
+    Every verbatim/consumer quote MUST be a structured object, NOT a plain string:
+    { "quote": "The actual consumer quote text", "source": "Amazon.in|Flipkart|Reddit|Blog|Social|Awario", "consumer": "Brief consumer description e.g. '45F, Caregiver, Pune' or 'Male 32, buying for father, Delhi'" }
+    
+    RULES:
+    a) EVERY verbatim array item must have "quote", "source", and "consumer" fields. No exceptions.
+    b) "source" must be one of: Amazon.in, Flipkart, Reddit, Blog, Web Forum, Social, Awario, Quora, News.
+    c) "consumer" must be a 3-6 word description: age+gender, role/relationship, city/tier. E.g. "62M, Self-user, Tier 2 Lucknow", "38F, Daughter caregiver, Mumbai", "28F, Post-surgical, Bangalore".
+    d) NO two verbatims across the ENTIRE report may have the same quote text. Every quote must be UNIQUE.
+    e) consumer_statements arrays at section level must ALSO follow this format: Array<{quote, source, consumer}>.
+    f) Aim for source diversity within each section — do not use only Amazon quotes. Mix Amazon + Flipkart + Reddit + Social.
 
 OUTPUT FORMAT: Strict JSON. No Wrappers. Maximum depth and density.
 `;
