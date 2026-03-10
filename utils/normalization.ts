@@ -184,6 +184,13 @@ export const normalizeSectionData = (
                 cards: ensureArray(data.cards || data.menstruation_context?.cards || data.content)
             };
         
+        case 'sub_categories': // Sanitary Pads Sub-Category Landscape
+            return {
+                ...data,
+                cards: ensureArray(data.cards || data.taxonomy_cards || data.landscape),
+                taxonomy: data.taxonomy || null
+            };
+
         case 'gap_analysis': // NEW: Gap Analysis
             const normalizeGapBlock = (block: any, defaultHeading: string) => {
                 const b = block || {};
