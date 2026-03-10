@@ -1309,32 +1309,6 @@ const FemcareAwarenessChannelsRenderer = ({ data }: { data: any }) => {
             )}
         </div>
     );
-}; = ({ data }: { data: any }) => {
-    const roles = ensureArray(data.roles);
-    if (roles.length === 0) return null;
-
-    const roleColors = ['border-l-indigo-500', 'border-l-emerald-500', 'border-l-amber-500', 'border-l-rose-500', 'border-l-blue-500', 'border-l-purple-500'];
-
-    return (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {roles.map((r: any, i: number) => {
-                const pts = ensureArray(r.evidence_ids).length * 8 + 15 + i * 4;
-                return (
-                <div key={i} className={`bg-white p-5 rounded-xl border border-slate-200 border-l-4 ${roleColors[i % roleColors.length]} shadow-sm hover:shadow-md transition-shadow`}>
-                    <div className="flex justify-between items-start mb-2">
-                        <h4 className="text-sm font-bold text-slate-800"><SafeText content={r.format_name || r.title || ''} /></h4>
-                        <span className="text-[9px] font-mono text-slate-400 bg-slate-50 px-1.5 py-0.5 rounded border border-slate-200 whitespace-nowrap">{pts} pts</span>
-                    </div>
-                    <div className="text-[11px] text-slate-700 mb-3 font-medium leading-relaxed"><SafeText content={r.job_to_be_done || r.role || ''} /></div>
-                    {r.lifestage_fit && (
-                        <span className="text-[10px] bg-indigo-50 text-indigo-700 px-2.5 py-1 rounded-full border border-indigo-100 font-medium">
-                            <SafeText content={r.lifestage_fit} />
-                        </span>
-                    )}
-                </div>
-            )})}
-        </div>
-    );
 };
 
 const FemcareRolesRenderer = ({ data }: { data: any }) => {
@@ -1364,6 +1338,7 @@ const FemcareRolesRenderer = ({ data }: { data: any }) => {
         </div>
     );
 };
+
 
 // --- MAIN RENDERER ---
 
