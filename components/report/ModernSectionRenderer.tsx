@@ -1086,6 +1086,31 @@ const FemcareBrandPerformanceRenderer = ({ data }: { data: any }) => {
                             )}
                         </div>
 
+                        {/* Attribute Performance Bars — renders if attribute_scale present */}
+                        {b.attribute_scale && ensureArray(b.attribute_scale).length > 0 && (
+                            <div className="mb-4">
+                                <div className="flex justify-between items-center mb-2.5">
+                                    <span className="text-[10px] font-extrabold text-slate-500 uppercase tracking-wider">Attribute Performance</span>
+                                    <span className="text-[8px] font-mono text-slate-400 bg-slate-50 px-2 py-0.5 rounded border border-slate-200">Amazon/Flipkart sourced</span>
+                                </div>
+                                <div className="space-y-2">
+                                    {ensureArray(b.attribute_scale).map((attr: any, k: number) => (
+                                        <div key={k} className="flex items-center gap-3 text-xs">
+                                            <span className="w-28 font-medium text-slate-600 text-[11px] capitalize">{(attr.attribute || 'Attribute').replace(/_/g, ' ')}</span>
+                                            <div className="flex-1 h-2.5 bg-slate-100 rounded-full overflow-hidden">
+                                                <div className={`h-full rounded-full ${
+                                                    (attr.score_0_5 || 0) >= 4 ? 'bg-emerald-500' :
+                                                    (attr.score_0_5 || 0) >= 3 ? 'bg-indigo-500' :
+                                                    (attr.score_0_5 || 0) >= 2 ? 'bg-amber-500' : 'bg-red-500'
+                                                }`} style={{ width: `${((attr.score_0_5 || 0) / 5) * 100}%` }}></div>
+                                            </div>
+                                            <span className="font-mono text-slate-500 w-8 text-right font-bold">{attr.score_0_5 ?? '?'}/5</span>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+
                         {/* Strengths & Weaknesses */}
                         <div className="grid grid-cols-2 gap-3 mb-3">
                             <div className="bg-emerald-50 rounded-lg p-3">

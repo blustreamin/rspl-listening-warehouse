@@ -916,6 +916,7 @@ SANITARY PADS REPORT — ADDITIONAL MANDATORY RULES:
               brand: string, 
               sub_categories: string[],
               skus: Array<{sku_name, sub_category, price_per_pad}>,
+              attribute_scale: Array<{attribute: string, score_0_5: number}>,
               key_strengths: string[], 
               key_weaknesses: string[], 
               attribute_verdict: string, 
@@ -942,8 +943,13 @@ SANITARY PADS REPORT — ADDITIONAL MANDATORY RULES:
         - Strengths/weaknesses from Amazon/Flipkart reviews
         - Brand share estimate (% of voice in evidence)
         
+        ATTRIBUTE SCALE (MANDATORY for every brand, min 7 attributes):
+        Rate each on 0-5 scale. Use these attributes for consistency:
+        absorption, rash_free, leak_protection, thinness, wing_adhesion, odour_control, value_for_money, disposal_ease, softness
+        Scores MUST be differentiated — not every brand gets 4-5. Show real gaps.
+        Source from Amazon/Flipkart reviews ONLY.
+        
         DO NOT include market_position labels like "Leader", "Challenger" etc.
-        Source attribute performance from e-commerce reviews ONLY.
         `,
 
         "8": `
