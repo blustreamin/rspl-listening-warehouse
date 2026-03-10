@@ -13,7 +13,6 @@ import { SectionOutput, ProjectId } from '../../types';
 import { normalizeSectionData, ensureArray } from '../../utils/normalization';
 import { InsightCard, TriggerClusterCard, SwitchingPathway, MatrixTable, SafeText, EvidencePill } from './ModernComponents';
 import { DataQualityNoticeCard } from './DataQualityNotice';
-import { SanitaryPadsSectionRenderer } from './SanitaryPadsRenderer';
 import { 
     MenstruationContextRenderer, 
     BehaviouralRenderer, 
@@ -1362,36 +1361,13 @@ export const ModernSectionRenderer: React.FC<Props> = ({ data, projectId }) => {
         else if (data.sectionId === 'gap_analysis') Component = AdultGapAnalysisRenderer;
     }
     
-    // --- STRICT ROUTING: SANITARY PADS (Dedicated Renderer) ---
-    let spDirectRender: React.ReactElement | null = null;
-    if (projectId === 'sanitary-pads') {
-        try {
-            spDirectRender = SanitaryPadsSectionRenderer({ data, normalizedData });
-        } catch (e) {
-            console.error('[SanitaryPads] Renderer error:', data.sectionId, e);
-        }
-    }
-
-    if (spDirectRender) {
-        return (
-            <SafeSectionBoundary title={data.title}>
-                <div className="mb-12 border-b border-slate-100 pb-12">
-                    <div className="flex items-center justify-between mb-6">
-                        <h3 className="text-xl font-extrabold text-slate-900 tracking-tight">{data.title}</h3>
-                    </div>
-                    {spDirectRender}
-                </div>
-            </SafeSectionBoundary>
-        );
-    }
-
-    // --- STRICT ROUTING: FEMCARE (Explicit) ---
+    // --- STRICT ROUTING: FEMCARE + SANITARY PADS (Shared Renderers) ---
     else if (
-        ['disposable-period-panties', 'reusable-period-panties'].includes(projectId!) || 
+        ['disposable-period-panties', 'reusable-period-panties', 'sanitary-pads'].includes(projectId!) || 
         data.templateId?.includes('femcare')
     ) {
         const c = normalizedData;
-        // Existing working renderers
+        // Content-based routing to shared femcare renderers
         if (c.cards || c.menstruation_context) Component = MenstruationContextRenderer;
         else if (c.trigger_clusters || c.behavioural_landscape) Component = BehaviouralRenderer;
         else if (c.formats && c.formats.length > 0) Component = EcosystemRenderer;
@@ -1399,7 +1375,6 @@ export const ModernSectionRenderer: React.FC<Props> = ({ data, projectId }) => {
         else if (data.sectionId === '5' || data.sectionId === '6') Component = EcosystemRenderer;
         else if (c.users || c.role_summary || c.deep_dive_disposable) Component = DeepDiveRenderer;
         else if (c.visuals || c.word_cloud_themes || c.sources_chart) Component = VisualsRenderer;
-        // NEW: Previously unrouted sections
         else if (c.current_challenges || c.need_gap) Component = FemcareGapAnalysisRenderer;
         else if (c.proof_points) Component = FemcareProofPointsRenderer;
         else if (c.brand_performance) Component = FemcareBrandPerformanceRenderer;
