@@ -13,6 +13,7 @@ import { SectionOutput, ProjectId } from '../../types';
 import { normalizeSectionData, ensureArray } from '../../utils/normalization';
 import { InsightCard, TriggerClusterCard, SwitchingPathway, MatrixTable, SafeText, EvidencePill } from './ModernComponents';
 import { DataQualityNoticeCard } from './DataQualityNotice';
+import { SanitaryPadsSectionRenderer } from './SanitaryPadsRenderer';
 import { 
     MenstruationContextRenderer, 
     BehaviouralRenderer, 
@@ -1361,9 +1362,15 @@ export const ModernSectionRenderer: React.FC<Props> = ({ data, projectId }) => {
         else if (data.sectionId === 'gap_analysis') Component = AdultGapAnalysisRenderer;
     }
     
+    // --- STRICT ROUTING: SANITARY PADS (Dedicated Renderer) ---
+    else if (projectId === 'sanitary-pads') {
+        const spRenderer = SanitaryPadsSectionRenderer({ data, normalizedData });
+        if (spRenderer) Component = () => spRenderer;
+    }
+
     // --- STRICT ROUTING: FEMCARE (Explicit) ---
     else if (
-        ['disposable-period-panties', 'reusable-period-panties', 'sanitary-pads'].includes(projectId!) || 
+        ['disposable-period-panties', 'reusable-period-panties'].includes(projectId!) || 
         data.templateId?.includes('femcare')
     ) {
         const c = normalizedData;
