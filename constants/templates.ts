@@ -685,7 +685,13 @@ export const TEMPLATE_REGISTRY: Record<ProjectId, TemplatePack> = {
       { sectionId: "8", title: "Whisper Ultra Clean: Discontinued Product Feedback", uiSpec: "cards", schema: {} }
     ],
     promptPack: {
-      systemPrompt: ANALYST_GRADE_SYSTEM_PROMPT,
+      systemPrompt: ANALYST_GRADE_SYSTEM_PROMPT + `
+SANITARY PADS REPORT — ADDITIONAL MANDATORY RULES:
+- CATEGORICALLY NEVER mention "Period Panties", "Disposable Period Panties", "Reusable Period Panties", or any form of "panties/panty" anywhere in the output. This report is EXCLUSIVELY about Sanitary Pads. If evidence data contains period panty mentions, IGNORE them completely.
+- NEVER mention the brand "Always" — it is not sold in India. Remove any Always references.
+- Focus sub-categories: Fluff Regular, Fluff XL, Fluff Night, Mid Ultra, Premium Ultra, Night Ultra, Super Premium Ultra.
+- STRATEGIC FOCUS: Premium Ultra and Super Premium Ultra must receive 2x depth and detail.
+`,
       sectionPrompts: {
         "1": `
         SECTION 1: MENSTRUATION CONTEXT BY SUB-CATEGORY (INDIA)

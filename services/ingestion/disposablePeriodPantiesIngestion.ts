@@ -17,7 +17,7 @@ const cyrb53 = (str: string, seed = 0) => {
 // INDIA FEMCARE BRAND LIST
 const FEMCARE_BRANDS = [
     "Carmesi", "Sirona", "Nua", "Azah", "Plush", "Pee Safe", "PeeSafe",
-    "Whisper", "Always", "Kotex", "Sofy", "Stayfree", "Carefree", "Niine",
+    "Whisper", "Kotex", "Sofy", "Stayfree", "Carefree", "Niine",
     "Thinx", "Modibodi", "Saathi", "Heyday", "Pinq", "Rael", "Aayna",
     "Clovia", "Adira", "SuperBottoms", "Stonesoup", "Repad", "Soch",
     "Avni", "Healthfab", "Mahina", "Lavos", "Neione"
@@ -95,7 +95,6 @@ export const disposablePeriodPantiesIngestion = (request: IngestRequestV1): Evid
             else if (txtLower.includes("plush")) brand = "Plush";
             else if (txtLower.includes("pee safe") || txtLower.includes("peesafe")) brand = "Pee Safe";
             else if (txtLower.includes("whisper")) brand = "Whisper";
-            else if (txtLower.includes("always")) brand = "Always";
             else if (txtLower.includes("kotex")) brand = "Kotex";
             else if (txtLower.includes("sofy")) brand = "Sofy";
             else if (txtLower.includes("stayfree")) brand = "Stayfree";

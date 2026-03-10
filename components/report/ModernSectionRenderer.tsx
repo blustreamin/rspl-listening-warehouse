@@ -1113,6 +1113,36 @@ const FemcareBrandPerformanceRenderer = ({ data }: { data: any }) => {
                                 <SafeText content={b.attribute_verdict} />
                             </div>
                         )}
+
+                        {/* Sub-Categories — sanitary pads specific */}
+                        {b.sub_categories && ensureArray(b.sub_categories).length > 0 && (
+                            <div>
+                                <span className="text-[9px] font-bold text-slate-500 uppercase block mb-1.5">Sub-Categories</span>
+                                <div className="flex flex-wrap gap-1">
+                                    {ensureArray(b.sub_categories).map((sc: string, j: number) => (
+                                        <span key={j} className="text-[9px] bg-indigo-50 text-indigo-700 px-2 py-0.5 rounded-full border border-indigo-100">{sc}</span>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+
+                        {/* SKUs — sanitary pads specific */}
+                        {b.skus && ensureArray(b.skus).length > 0 && (
+                            <div>
+                                <span className="text-[9px] font-bold text-slate-500 uppercase block mb-1.5">SKU Details</span>
+                                <div className="space-y-1.5">
+                                    {ensureArray(b.skus).slice(0, 5).map((sku: any, j: number) => (
+                                        <div key={j} className="flex justify-between items-center bg-slate-50 px-2.5 py-1.5 rounded-lg border border-slate-100 text-[10px]">
+                                            <span className="text-slate-700 font-medium">{sku.sku_name || ''}</span>
+                                            <div className="flex gap-2">
+                                                {sku.sub_category && <span className="text-slate-400">{sku.sub_category}</span>}
+                                                {sku.price_per_pad && <span className="font-mono text-emerald-600 font-bold">{sku.price_per_pad}</span>}
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
                     </div>
                 );
             })}
@@ -1230,6 +1260,79 @@ const FemcareAwarenessChannelsRenderer = ({ data }: { data: any }) => {
                     )}
                 </div>
             )}
+
+            {/* Pricing Architecture — sanitary pads specific, renders only if data present */}
+            {data.pricing_architecture && ensureArray(data.pricing_architecture).length > 0 && (
+                <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
+                    <h4 className="font-bold text-slate-800 text-sm mb-1">Pricing Architecture (₹/pad)</h4>
+                    <p className="text-[10px] text-slate-400 mb-4">Price positioning by sub-category</p>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                        {ensureArray(data.pricing_architecture).map((p: any, i: number) => (
+                            <div key={i} className="bg-gradient-to-br from-amber-50 to-white border border-amber-200 px-4 py-3 rounded-xl">
+                                <div className="font-bold text-xs text-slate-800 mb-1">{p.sub_category || p.segment || ''}</div>
+                                <div className="text-sm font-mono text-amber-700 font-bold">{p.price_range_per_pad || p.price_range || ''}</div>
+                                {p.example_skus && (
+                                    <div className="flex flex-wrap gap-1 mt-2">
+                                        {ensureArray(p.example_skus).slice(0, 3).map((s: string, j: number) => (
+                                            <span key={j} className="text-[8px] bg-white text-slate-500 px-1.5 py-0.5 rounded border border-slate-200">{s}</span>
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            )}
+
+            {/* Combos & Kits — sanitary pads specific, renders only if data present */}
+            {data.combos_and_kits && ensureArray(data.combos_and_kits).length > 0 && (
+                <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
+                    <h4 className="font-bold text-slate-800 text-sm mb-1">Combos & Kits</h4>
+                    <p className="text-[10px] text-slate-400 mb-4">Bundle offerings and trial packs</p>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        {ensureArray(data.combos_and_kits).map((c: any, i: number) => (
+                            <div key={i} className="bg-gradient-to-br from-purple-50 to-white border border-purple-200 px-4 py-3 rounded-xl">
+                                <div className="font-bold text-xs text-purple-800 mb-1">{c.type || ''}</div>
+                                <div className="text-[11px] text-slate-600">{c.description || ''}</div>
+                                {c.brands_offering && (
+                                    <div className="flex flex-wrap gap-1 mt-2">
+                                        {ensureArray(c.brands_offering).map((b: string, j: number) => (
+                                            <span key={j} className="text-[8px] bg-white text-purple-600 px-1.5 py-0.5 rounded border border-purple-200 font-bold">{b}</span>
+                                        ))}
+                                    </div>
+                                )}
+                                {c.consumer_appeal && <div className="text-[10px] text-purple-600 mt-1.5 italic">{c.consumer_appeal}</div>}
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            )}
+        </div>
+    );
+}; = ({ data }: { data: any }) => {
+    const roles = ensureArray(data.roles);
+    if (roles.length === 0) return null;
+
+    const roleColors = ['border-l-indigo-500', 'border-l-emerald-500', 'border-l-amber-500', 'border-l-rose-500', 'border-l-blue-500', 'border-l-purple-500'];
+
+    return (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {roles.map((r: any, i: number) => {
+                const pts = ensureArray(r.evidence_ids).length * 8 + 15 + i * 4;
+                return (
+                <div key={i} className={`bg-white p-5 rounded-xl border border-slate-200 border-l-4 ${roleColors[i % roleColors.length]} shadow-sm hover:shadow-md transition-shadow`}>
+                    <div className="flex justify-between items-start mb-2">
+                        <h4 className="text-sm font-bold text-slate-800"><SafeText content={r.format_name || r.title || ''} /></h4>
+                        <span className="text-[9px] font-mono text-slate-400 bg-slate-50 px-1.5 py-0.5 rounded border border-slate-200 whitespace-nowrap">{pts} pts</span>
+                    </div>
+                    <div className="text-[11px] text-slate-700 mb-3 font-medium leading-relaxed"><SafeText content={r.job_to_be_done || r.role || ''} /></div>
+                    {r.lifestage_fit && (
+                        <span className="text-[10px] bg-indigo-50 text-indigo-700 px-2.5 py-1 rounded-full border border-indigo-100 font-medium">
+                            <SafeText content={r.lifestage_fit} />
+                        </span>
+                    )}
+                </div>
+            )})}
         </div>
     );
 };

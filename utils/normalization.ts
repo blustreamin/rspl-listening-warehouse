@@ -182,8 +182,39 @@ export const normalizeSectionData = (
                 return { ...data, cards: ensureArray(data.cards || data.menstruation_context?.cards || data.content) };
             case 'sub_categories': // Sub-Category Landscape → cards + taxonomy
                 return { ...data, cards: ensureArray(data.cards || data.taxonomy_cards || data.landscape), taxonomy: data.taxonomy || null };
-            case 'gap_analysis': // handled by shared gap_analysis case below
-                break;
+            case 'gap_analysis': { // Gap Analysis — normalize inline for sanitary pads
+                const ngb = (block: any, dh: string) => {
+                    const b = block || {};
+                    return {
+                        heading: b.heading || dh,
+                        bullets: ensureArray(b.bullets || b.points || b.challenges, 'claim').map((item: any) => ({
+                            claim: item.claim || item.text || "Unspecified",
+                            explanation: item.explanation || item.description || "",
+                            consumer_evidence: ensureArray(item.consumer_evidence || item.evidence, 'quote'),
+                            evidence_ids: ensureArray(item.evidence_ids || [], 'id'),
+                            severity: item.severity || "MED",
+                            impacted_occasions: ensureArray(item.impacted_occasions || [], 'occasion')
+                        }))
+                    };
+                };
+                const ngn = (block: any) => {
+                    const b = block || {};
+                    return {
+                        heading: b.heading || "Need Gaps",
+                        need_statements: ensureArray(b.need_statements || b.needs, 'need').map((item: any) => ({
+                            need: item.need || "Unspecified", why_now: item.why_now || "", who: item.who || "",
+                            consumer_evidence: ensureArray(item.consumer_evidence || item.evidence, 'quote'),
+                            evidence_ids: ensureArray(item.evidence_ids || [], 'id'), priority: item.priority || "P1"
+                        }))
+                    };
+                };
+                return {
+                    current_challenges: ngb(data.current_challenges || data.challenges, "Current Challenges"),
+                    resolved_challenges: ngb(data.resolved_challenges || data.resolved, "Resolved"),
+                    unresolved_challenges: ngb(data.unresolved_challenges || data.unresolved, "Unresolved"),
+                    need_gap: ngn(data.need_gap || data.needs)
+                };
+            }
             case '2': // Switching Dynamics → trigger_clusters + switching
                 const root2sp = data.behavioural_landscape || data;
                 let barrierGroupsSP = root2sp.barrier_groups || root2sp.barriers || {};
