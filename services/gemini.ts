@@ -106,6 +106,12 @@ export const ingestRawData = async (ingestRequest: string | IngestRequestV1): Pr
       return disposablePeriodPantiesIngestion(requestObj);
   }
 
+  // BRANCH: Sanitary Pads — same Awario/Apify data format, reuse femcare ingestion
+  if (requestObj.projectId === 'sanitary-pads') {
+      console.log("Using Deterministic Ingestion for Sanitary Pads");
+      return disposablePeriodPantiesIngestion(requestObj);
+  }
+
   if (!API_KEY) return null;
   const ai = new GoogleGenAI({ apiKey: API_KEY });
   const requestString = JSON.stringify(requestObj, null, 2);
