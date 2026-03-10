@@ -175,6 +175,61 @@ export const normalizeSectionData = (
          throw new Error(`[Normalization] Critical: Legacy project ${projectId} attempting to use Adult Diapers template.`);
     }
 
+    // --- SANITARY PADS V4 SPECIFIC NORMALIZATION ---
+    if ((projectId as string) === 'sanitary-pads') {
+        switch (sectionId) {
+            case '1': // Menstruation Context by Sub-Category → cards
+                return { ...data, cards: ensureArray(data.cards || data.menstruation_context?.cards || data.content) };
+            case 'sub_categories': // Sub-Category Landscape → cards + taxonomy
+                return { ...data, cards: ensureArray(data.cards || data.taxonomy_cards || data.landscape), taxonomy: data.taxonomy || null };
+            case 'gap_analysis': // handled by shared gap_analysis case below
+                break;
+            case '2': // Switching Dynamics → trigger_clusters + switching
+                const root2sp = data.behavioural_landscape || data;
+                let barrierGroupsSP = root2sp.barrier_groups || root2sp.barriers || {};
+                if (Array.isArray(barrierGroupsSP)) {
+                    const gm: any = {};
+                    barrierGroupsSP.forEach((g: any) => { if (g.title) gm[g.title] = ensureArray(g.bullets || g.items); });
+                    barrierGroupsSP = Object.keys(gm).length > 0 ? gm : { "Barriers": [] };
+                }
+                return {
+                    trigger_clusters: ensureArray(root2sp.trigger_clusters || root2sp.triggers, 'title'),
+                    barrier_groups: barrierGroupsSP,
+                    switching_dynamics: ensureArray(root2sp.switching_dynamics || root2sp.switching, 'pathway'),
+                    brand_switching: ensureArray(root2sp.brand_switching, 'from_brand')
+                };
+            case '3': // Attribute Performance → formats + attribute_matrix (NOT proof_points)
+                return {
+                    formats: ensureArray(data.formats || data.format_cards || data.sub_categories, 'format'),
+                    attribute_matrix: ensureArray(data.attribute_matrix || data.matrix, 'attribute')
+                };
+            case '4': // Purchase Behaviour → discovery_sources + purchase_channels + pricing
+                return {
+                    ...data,
+                    discovery_sources: ensureArray(data.discovery_sources || data.sources, 'source'),
+                    purchase_channels: ensureArray(data.purchase_channels || data.channels),
+                    search_intent_clusters: ensureArray(data.search_intent_clusters, 'cluster_name'),
+                    pricing_architecture: ensureArray(data.pricing_architecture || data.pricing),
+                    combos_and_kits: ensureArray(data.combos_and_kits || data.combos)
+                };
+            case '5': // Consumer Deep Dive → users + non_users + whisper_ultra_clean
+                return {
+                    ...data,
+                    role_summary: data.role_summary || null,
+                    users: data.users || null,
+                    non_users: data.non_users || null,
+                    whisper_ultra_clean: data.whisper_ultra_clean || null,
+                    segmentation: data.segmentation ? normalizeSegmentation(data.segmentation) : null
+                };
+            case '7': // Brand Performance → brand_performance (same as generic)
+                return { brand_performance: ensureArray(data.brand_performance || data.brands, 'brand') };
+            case '8': // Whisper Ultra Clean → cards
+                return { ...data, cards: ensureArray(data.cards || data.analysis || data.feedback) };
+            default:
+                return data;
+        }
+    }
+
     // --- FEMCARE / LEGACY NORMALIZATION ---
     switch (sectionId) {
         // --- FEMCARE SECTIONS ---
