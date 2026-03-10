@@ -1364,8 +1364,12 @@ export const ModernSectionRenderer: React.FC<Props> = ({ data, projectId }) => {
     
     // --- STRICT ROUTING: SANITARY PADS (Dedicated Renderer) ---
     else if (projectId === 'sanitary-pads') {
-        const spRenderer = SanitaryPadsSectionRenderer({ data, normalizedData });
-        if (spRenderer) Component = () => spRenderer;
+        try {
+            const spRenderer = SanitaryPadsSectionRenderer({ data, normalizedData });
+            if (spRenderer) Component = () => spRenderer;
+        } catch (e) {
+            console.error('[SanitaryPads] Renderer error:', data.sectionId, e);
+        }
     }
 
     // --- STRICT ROUTING: FEMCARE (Explicit) ---

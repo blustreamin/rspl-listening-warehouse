@@ -185,12 +185,26 @@ const SPSubCategoryRenderer = ({ data }: { data: any }) => {
 // ── GAP ANALYSIS ────────────────────────────────────────────────────
 
 const SPGapAnalysisRenderer = ({ data }: { data: any }) => {
-    const challenges = safeArr(data?.current_challenges?.bullets);
-    const resolved = safeArr(data?.resolved_challenges?.bullets);
-    const unresolved = safeArr(data?.unresolved_challenges?.bullets);
-    const needs = safeArr(data?.need_gap?.need_statements);
+    // Maximally defensive — handle every possible data shape
+    const root = data || {};
+    const challengeBlock = root.current_challenges || root.challenges || {};
+    const resolvedBlock = root.resolved_challenges || root.resolved || {};
+    const unresolvedBlock = root.unresolved_challenges || root.unresolved || {};
+    const needBlock = root.need_gap || root.needs || root.need_statements || {};
 
-    if (challenges.length === 0 && needs.length === 0) return <div className="text-sm text-slate-400 italic text-center py-8">Gap analysis being synthesized...</div>;
+    const challenges = safeArr(challengeBlock.bullets || challengeBlock.points || challengeBlock);
+    const resolved = safeArr(resolvedBlock.bullets || resolvedBlock.points || resolvedBlock);
+    const unresolved = safeArr(unresolvedBlock.bullets || unresolvedBlock.points || unresolvedBlock);
+    const needs = safeArr(needBlock.need_statements || needBlock.needs || needBlock);
+
+    // If truly empty, check if the entire data object has any content at all
+    if (challenges.length === 0 && needs.length === 0 && resolved.length === 0 && unresolved.length === 0) {
+        // Try to render raw cards if present
+        if (root.cards && safeArr(root.cards).length > 0) {
+            return <SPMenstruationContextRenderer data={root} />;
+        }
+        return <div className="text-sm text-slate-400 italic text-center py-8">Gap analysis being synthesized...</div>;
+    }
 
     const renderBullets = (bullets: any[], accent: string, icon: string) => (
         <div className="space-y-3">
@@ -208,7 +222,7 @@ const SPGapAnalysisRenderer = ({ data }: { data: any }) => {
         <div className="space-y-8">
             {challenges.length > 0 && (
                 <div>
-                    <SectionTitle label={data.current_challenges?.heading || 'Current Challenges'} icon="🔴" />
+                    <SectionTitle label={challengeBlock.heading || (typeof challengeBlock === 'object' ? challengeBlock.heading : undefined) || 'Current Challenges'} icon="🔴" />
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3">{challenges.map((b: any, i: number) => (
                         <InsightCard key={i} title={b.claim || ''} detail={b.explanation || ''} 
                             verbatims={safeArr(b.consumer_evidence)} accent="red" />
@@ -218,20 +232,20 @@ const SPGapAnalysisRenderer = ({ data }: { data: any }) => {
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 {resolved.length > 0 && (
                     <div>
-                        <SectionTitle label={data.resolved_challenges?.heading || 'Resolved'} icon="✅" />
+                        <SectionTitle label={resolvedBlock?.heading || 'Resolved'} icon="✅" />
                         {renderBullets(resolved, 'emerald', '✓')}
                     </div>
                 )}
                 {unresolved.length > 0 && (
                     <div>
-                        <SectionTitle label={data.unresolved_challenges?.heading || 'Unresolved'} icon="⚠️" />
+                        <SectionTitle label={unresolvedBlock?.heading || 'Unresolved'} icon="⚠️" />
                         {renderBullets(unresolved, 'amber', '!')}
                     </div>
                 )}
             </div>
             {needs.length > 0 && (
                 <div>
-                    <SectionTitle label={data.need_gap?.heading || 'White Space & Need Gaps'} icon="💡" />
+                    <SectionTitle label={needBlock?.heading || 'White Space & Need Gaps'} icon="💡" />
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         {needs.map((n: any, i: number) => {
                             const prColor = n.priority === 'P0' ? 'bg-red-500 text-white' : n.priority === 'P1' ? 'bg-amber-500 text-white' : 'bg-slate-400 text-white';
