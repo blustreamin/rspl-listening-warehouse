@@ -1363,13 +1363,26 @@ export const ModernSectionRenderer: React.FC<Props> = ({ data, projectId }) => {
     }
     
     // --- STRICT ROUTING: SANITARY PADS (Dedicated Renderer) ---
-    else if (projectId === 'sanitary-pads') {
+    let spDirectRender: React.ReactElement | null = null;
+    if (projectId === 'sanitary-pads') {
         try {
-            const spRenderer = SanitaryPadsSectionRenderer({ data, normalizedData });
-            if (spRenderer) Component = () => spRenderer;
+            spDirectRender = SanitaryPadsSectionRenderer({ data, normalizedData });
         } catch (e) {
             console.error('[SanitaryPads] Renderer error:', data.sectionId, e);
         }
+    }
+
+    if (spDirectRender) {
+        return (
+            <SafeSectionBoundary title={data.title}>
+                <div className="mb-12 border-b border-slate-100 pb-12">
+                    <div className="flex items-center justify-between mb-6">
+                        <h3 className="text-xl font-extrabold text-slate-900 tracking-tight">{data.title}</h3>
+                    </div>
+                    {spDirectRender}
+                </div>
+            </SafeSectionBoundary>
+        );
     }
 
     // --- STRICT ROUTING: FEMCARE (Explicit) ---
