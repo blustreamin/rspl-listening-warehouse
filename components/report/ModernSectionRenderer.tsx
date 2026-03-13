@@ -1026,6 +1026,91 @@ const AdultBrandLandscapeSection = ({ data }: { data: any }) => {
 
 // --- SANITARY PADS SPECIFIC RENDERERS (Isolated — zero impact on other projects) ---
 
+// Universal smart quote extractor for SP renderers
+// Handles: "📢 quote (Source)", quotes embedded mid-text with →, and structured {quote, source} objects
+const spExtractInsightsAndQuotes = (bullets: any[]): { insights: string[]; quotes: Array<{text: string; src: string}> } => {
+    const insights: string[] = [];
+    const quotes: Array<{text: string; src: string}> = [];
+    
+    safeArr(bullets).forEach((b: any) => {
+        // Handle structured quote objects
+        if (typeof b === 'object' && b.quote) {
+            quotes.push({ text: b.quote, src: b.source || 'Consumer' });
+            return;
+        }
+        
+        const s = typeof b === 'string' ? b : safeStr(b);
+        if (!s) return;
+        
+        // Check if the entire string is a quote
+        if (s.startsWith('📢')) {
+            const clean = s.replace(/^📢\s*/, '').replace(/^"|"$/g, '');
+            const m = clean.match(/\(([^)]+)\)\s*$/);
+            quotes.push({ text: m ? clean.replace(m[0], '').trim() : clean, src: m ? m[1] : 'Consumer' });
+            return;
+        }
+        
+        // Check if string contains embedded 📢 quotes (e.g., "insight text → 📢 quote1 📢 quote2")
+        if (s.includes('📢')) {
+            const parts = s.split('📢');
+            const insightPart = parts[0].replace(/\s*[-→]\s*$/, '').trim();
+            if (insightPart.length > 10) insights.push(insightPart);
+            
+            for (let i = 1; i < parts.length; i++) {
+                const qRaw = parts[i].replace(/^[""\s]+|[""\s]+$/g, '').trim();
+                if (qRaw.length < 5) continue;
+                const m = qRaw.match(/[""]?\s*\(([^)]+)\)\s*$/);
+                const qText = m ? qRaw.replace(m[0], '').replace(/[""]$/g, '').trim() : qRaw.replace(/[""]$/g, '').trim();
+                quotes.push({ text: qText, src: m ? m[1] : 'Consumer' });
+            }
+            return;
+        }
+        
+        // Check if string contains CONSUMER EVIDENCE: section
+        if (s.includes('CONSUMER EVIDENCE:') || s.includes('Consumer Evidence:')) {
+            const splitIdx = s.indexOf('CONSUMER EVIDENCE:') >= 0 ? s.indexOf('CONSUMER EVIDENCE:') : s.indexOf('Consumer Evidence:');
+            const insightPart = s.substring(0, splitIdx).replace(/\s*[-→]\s*$/, '').trim();
+            if (insightPart.length > 10) insights.push(insightPart);
+            
+            const evidencePart = s.substring(splitIdx + 18);
+            // Extract quotes between • markers or "quote" (Source) patterns
+            const quoteMatches = evidencePart.match(/[•"']([^•"']+?)["']\s*\(([^)]+)\)/g);
+            if (quoteMatches) {
+                quoteMatches.forEach(qm => {
+                    const innerMatch = qm.match(/["'](.+?)["']\s*\(([^)]+)\)/);
+                    if (innerMatch) quotes.push({ text: innerMatch[1].trim(), src: innerMatch[2].trim() });
+                });
+            }
+            return;
+        }
+        
+        // Check for inline quoted text with (Source) pattern
+        if ((s.includes('"') || s.includes("'")) && s.match(/\([A-Z][a-z]+\)/)) {
+            // Has inline quotes - split into insight + quotes
+            const quoteRegex = /["']([^"']{15,}?)["']\s*\(([^)]+)\)/g;
+            let match;
+            const foundQuotes: Array<{text: string; src: string}> = [];
+            while ((match = quoteRegex.exec(s)) !== null) {
+                foundQuotes.push({ text: match[1].trim(), src: match[2].trim() });
+            }
+            if (foundQuotes.length > 0) {
+                // Remove quotes from insight text
+                let insightText = s;
+                foundQuotes.forEach(q => { insightText = insightText.replace(new RegExp(`["']${q.text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}["']\\s*\\(${q.src}\\)`, 'g'), ''); });
+                insightText = insightText.replace(/\s*[-→•]\s*$/g, '').replace(/\s*[-→•]\s*[-→•]\s*/g, ' ').trim();
+                if (insightText.length > 10) insights.push(insightText);
+                quotes.push(...foundQuotes);
+                return;
+            }
+        }
+        
+        // Plain insight
+        insights.push(s);
+    });
+    
+    return { insights, quotes };
+};
+
 const SPCardsRenderer = ({ data }: { data: any }) => {
     const cards = safeArr(data?.cards);
     if (cards.length === 0) return <div className="text-sm text-slate-400 italic text-center py-8">Content being synthesized...</div>;
@@ -1049,18 +1134,7 @@ const SPCardsRenderer = ({ data }: { data: any }) => {
     return (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
             {cards.map((card: any, idx: number) => {
-                const bullets = safeArr(card.bullets);
-                const insights: string[] = [];
-                const quotes: Array<{text: string; src: string}> = [];
-                bullets.forEach((b: any) => {
-                    const s = typeof b === 'string' ? b : (b?.text || b?.quote || safeStr(b));
-                    if (!s) return;
-                    if (s.startsWith('📢') || (typeof b === 'object' && b.quote)) {
-                        const clean = s.replace(/^📢\s*/, '').replace(/^"|"$/g, '');
-                        const srcM = clean.match(/\(([^)]+)\)\s*$/);
-                        quotes.push({ text: srcM ? clean.replace(srcM[0], '').trim() : (b.quote || clean), src: srcM ? srcM[1] : (b.source || 'Consumer') });
-                    } else { insights.push(s); }
-                });
+                const { insights, quotes } = spExtractInsightsAndQuotes(safeArr(card.bullets));
                 const accent = cardAccents[idx % cardAccents.length];
                 const ac = accentMap[accent] || accentMap.indigo;
                 return (
@@ -1120,19 +1194,7 @@ const SPSwitchingRenderer = ({ data }: { data: any }) => {
     const brandSwitch = safeArr(data?.brand_switching);
     const ensArr = safeArr;
 
-    const renderQuotesFromBullets = (bullets: any[]) => {
-        const quotes: Array<{text: string; src: string}> = [];
-        const insights: string[] = [];
-        ensArr(bullets).forEach((b: any) => {
-            const s = typeof b === 'string' ? b : safeStr(b);
-            if (s.startsWith('📢') || (typeof b === 'object' && b.quote)) {
-                const clean = s.replace(/^📢\s*/, '').replace(/^"|"$/g, '');
-                const m = clean.match(/\(([^)]+)\)\s*$/);
-                quotes.push({ text: m ? clean.replace(m[0], '').trim() : (b.quote || clean), src: m ? m[1] : (b.source || 'Consumer') });
-            } else if (s) { insights.push(s); }
-        });
-        return { insights, quotes };
-    };
+    const renderQuotesFromBullets = (bullets: any[]) => spExtractInsightsAndQuotes(bullets);
 
     return (
         <div className="space-y-8">
@@ -1273,24 +1335,28 @@ const SPSwitchingRenderer = ({ data }: { data: any }) => {
 
 const SPDeepDiveRenderer = ({ data }: { data: any }) => {
     const pp = data?.pain_point_summary;
+    const users = data?.users;
+    const nonUsers = data?.non_users;
+    const wuc = data?.whisper_ultra_clean;
+    const ensArr = safeArr;
     
     const renderPainPoints = (items: any[], accent: string) => {
-        const colors: Record<string, {bg: string; border: string; text: string; sevHigh: string}> = {
-            amber: { bg: 'bg-amber-50', border: 'border-amber-200', text: 'text-amber-800', sevHigh: 'bg-red-100 text-red-700' },
-            rose: { bg: 'bg-rose-50', border: 'border-rose-200', text: 'text-rose-800', sevHigh: 'bg-red-100 text-red-700' },
-            purple: { bg: 'bg-purple-50', border: 'border-purple-200', text: 'text-purple-800', sevHigh: 'bg-red-100 text-red-700' },
+        const colors: Record<string, {bg: string; border: string; text: string}> = {
+            amber: { bg: 'bg-amber-50', border: 'border-amber-200', text: 'text-amber-800' },
+            rose: { bg: 'bg-rose-50', border: 'border-rose-200', text: 'text-rose-800' },
+            purple: { bg: 'bg-purple-50', border: 'border-purple-200', text: 'text-purple-800' },
         };
         const c = colors[accent] || colors.amber;
-        return safeArr(items).map((pp: any, i: number) => {
-            const evidence = safeArr(pp.verbatims || pp.consumer_evidence);
+        return ensArr(items).map((p: any, i: number) => {
+            const evidence = ensArr(p.verbatims || p.consumer_evidence);
             return (
                 <div key={i} className={`${c.bg} border ${c.border} rounded-xl p-4`}>
                     <div className="flex items-start gap-2 mb-1.5">
-                        {pp.severity && <span className={`text-[8px] font-bold px-1.5 py-0.5 rounded ${pp.severity === 'HIGH' ? c.sevHigh : 'bg-slate-100 text-slate-600'}`}>{pp.severity}</span>}
-                        <span className={`text-xs font-bold ${c.text} flex-1`}>{pp.pain_point || ''}</span>
-                        {pp.data_points && <span className="text-[8px] font-mono text-slate-400 bg-white px-1.5 py-0.5 rounded border border-slate-200">{pp.data_points} pts</span>}
+                        {p.severity && <span className={`text-[8px] font-bold px-1.5 py-0.5 rounded ${p.severity === 'HIGH' ? 'bg-red-100 text-red-700' : 'bg-slate-100 text-slate-600'}`}>{p.severity}</span>}
+                        <span className={`text-xs font-bold ${c.text} flex-1`}>{p.pain_point || ''}</span>
+                        {p.data_points && <span className="text-[8px] font-mono text-slate-400 bg-white px-1.5 py-0.5 rounded border border-slate-200">{p.data_points} pts</span>}
                     </div>
-                    {pp.detail && <div className="text-[11px] text-slate-600 mb-2">{pp.detail}</div>}
+                    {p.detail && <div className="text-[11px] text-slate-600 mb-2">{p.detail}</div>}
                     {evidence.length > 0 && (
                         <div className="pt-2 border-t border-slate-100">
                             <span className="text-[9px] font-extrabold text-slate-400 uppercase tracking-wider flex items-center gap-1.5 mb-1.5"><span className="text-xs">🗣</span> Consumer Voices</span>
@@ -1300,7 +1366,7 @@ const SPDeepDiveRenderer = ({ data }: { data: any }) => {
                                         <div className="text-[10px] italic text-slate-700">"{typeof e === 'string' ? e : (e.quote || '')}"</div>
                                         {e.source && <div className="text-[9px] font-bold text-indigo-500 mt-0.5">{e.source}</div>}
                                     </div>
-                            ))}
+                                ))}
                             </div>
                         </div>
                     )}
@@ -1311,13 +1377,140 @@ const SPDeepDiveRenderer = ({ data }: { data: any }) => {
 
     return (
         <div className="space-y-8">
-            {/* Render existing deep dive content via shared renderer props passthrough */}
+            {/* Role Summary */}
             {data.role_summary && (
                 <div className="bg-gradient-to-r from-indigo-600 to-purple-600 text-white p-5 rounded-2xl shadow-lg">
                     <h4 className="font-extrabold text-lg mb-2">{data.role_summary.boldTitle || 'Consumer Deep Dive'}</h4>
-                    {safeArr(data.role_summary.bullets).map((b: any, i: number) => (
-                        <div key={i} className="text-sm text-white/90 mb-1">▹ {typeof b === 'string' ? b : safeStr(b)}</div>
-                    ))}
+                    {ensArr(data.role_summary.bullets).map((b: any, i: number) => {
+                        const s = typeof b === 'string' ? b : safeStr(b);
+                        return <div key={i} className="text-sm text-white/90 mb-1">▹ {s}</div>;
+                    })}
+                </div>
+            )}
+
+            {/* Users Section */}
+            {users && (
+                <div className="space-y-5">
+                    <div className="flex items-center gap-2 mb-3"><span className="w-2 h-2 rounded-full bg-indigo-500"></span><span className="text-[11px] font-extrabold text-indigo-700 uppercase tracking-wider">Among Premium / Super Premium Ultra Users</span></div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {ensArr(users.discovery_sources).length > 0 && (
+                            <div className="bg-white border border-slate-200 rounded-xl p-4 shadow-sm">
+                                <span className="text-[10px] font-bold text-slate-500 uppercase block mb-2">Discovery Sources</span>
+                                <div className="flex flex-wrap gap-2">{ensArr(users.discovery_sources).map((s: any, i: number) => (
+                                    <span key={i} className="text-xs bg-indigo-50 border border-indigo-100 px-2.5 py-1.5 rounded-lg text-indigo-800 font-medium">{typeof s === 'string' ? s : safeStr(s)}</span>
+                                ))}</div>
+                            </div>
+                        )}
+                        {ensArr(users.triggers).length > 0 && (
+                            <div className="bg-white border border-slate-200 rounded-xl p-4 shadow-sm">
+                                <span className="text-[10px] font-bold text-slate-500 uppercase block mb-2">Usage Triggers</span>
+                                <div className="flex flex-wrap gap-2">{ensArr(users.triggers).map((t: any, i: number) => (
+                                    <span key={i} className="text-xs bg-emerald-50 border border-emerald-100 px-2.5 py-1.5 rounded-lg text-emerald-800">{typeof t === 'string' ? t : safeStr(t)}</span>
+                                ))}</div>
+                            </div>
+                        )}
+                    </div>
+                    {ensArr(users.experience_parameters).length > 0 && (
+                        <div>
+                            <span className="text-[10px] font-bold text-slate-500 uppercase block mb-3">Experience Parameters</span>
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                                {ensArr(users.experience_parameters).map((p: any, i: number) => {
+                                    const sentColor = p.sentiment === 'POS' ? 'border-l-emerald-500 bg-emerald-50' : p.sentiment === 'NEG' ? 'border-l-red-500 bg-red-50' : 'border-l-amber-500 bg-amber-50';
+                                    return (
+                                        <div key={i} className={`border-l-4 ${sentColor} p-3 rounded-r-lg`}>
+                                            <div className="flex justify-between items-center mb-1">
+                                                <span className="font-bold text-xs text-slate-800">{p.parameter || ''}</span>
+                                                <span className={`text-[9px] font-bold ${p.sentiment === 'POS' ? 'text-emerald-700' : p.sentiment === 'NEG' ? 'text-red-700' : 'text-amber-700'}`}>{p.sentiment === 'POS' ? '✓ Positive' : p.sentiment === 'NEG' ? '✗ Negative' : '~ Mixed'}</span>
+                                            </div>
+                                            <p className="text-[11px] text-slate-600 leading-relaxed">{p.insight || ''}</p>
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        </div>
+                    )}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {ensArr(users.delighters).length > 0 && (
+                            <div className="bg-emerald-50 border border-emerald-200 p-4 rounded-xl">
+                                <span className="text-[10px] font-bold text-emerald-700 uppercase block mb-2">✦ Delighters</span>
+                                {ensArr(users.delighters).map((d: any, i: number) => (
+                                    <div key={i} className="text-[11px] text-emerald-900 mb-1.5 flex gap-2"><span className="text-emerald-500">+</span>{typeof d === 'string' ? d : safeStr(d)}</div>
+                                ))}
+                            </div>
+                        )}
+                        {ensArr(users.failures).length > 0 && (
+                            <div className="bg-red-50 border border-red-200 p-4 rounded-xl">
+                                <span className="text-[10px] font-bold text-red-700 uppercase block mb-2">✧ Failures</span>
+                                {ensArr(users.failures).map((f: any, i: number) => (
+                                    <div key={i} className="text-[11px] text-red-900 mb-1.5 flex gap-2"><span className="text-red-500">−</span>{typeof f === 'string' ? f : safeStr(f)}</div>
+                                ))}
+                            </div>
+                        )}
+                    </div>
+                </div>
+            )}
+
+            {/* Non-Users Section */}
+            {nonUsers && (
+                <div className="space-y-4">
+                    <div className="flex items-center gap-2 mb-3"><span className="w-2 h-2 rounded-full bg-rose-500"></span><span className="text-[11px] font-extrabold text-rose-700 uppercase tracking-wider">Non-Users of Ultra (Still on Fluff)</span></div>
+                    {nonUsers.awareness_quality && (
+                        <div className="bg-rose-50 p-3 rounded-xl border border-rose-200 text-xs text-rose-800"><strong>Awareness Quality:</strong> {nonUsers.awareness_quality}</div>
+                    )}
+                    {ensArr(nonUsers.brands_aware).length > 0 && (
+                        <div>
+                            <span className="text-[10px] font-bold text-slate-500 uppercase block mb-2">Brands Aware Of</span>
+                            <div className="flex flex-wrap gap-2">{ensArr(nonUsers.brands_aware).map((b: any, i: number) => (
+                                <span key={i} className="text-xs bg-white border border-slate-200 px-2.5 py-1 rounded text-slate-700">{typeof b === 'string' ? b : (b.brand || '')}</span>
+                            ))}</div>
+                        </div>
+                    )}
+                    {ensArr(nonUsers.barriers_to_try).length > 0 && (
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                            {ensArr(nonUsers.barriers_to_try).map((b: any, i: number) => (
+                                <div key={i} className="bg-white border border-rose-200 rounded-xl p-4 shadow-sm">
+                                    <h5 className="font-bold text-rose-800 text-xs mb-2">{b.title || ''}</h5>
+                                    {ensArr(b.bullets).map((bullet: any, j: number) => (
+                                        <div key={j} className="text-[11px] text-slate-600 mb-1 flex gap-2"><span className="text-rose-400">•</span>{typeof bullet === 'string' ? bullet : safeStr(bullet)}</div>
+                                    ))}
+                                </div>
+                            ))}
+                        </div>
+                    )}
+                </div>
+            )}
+
+            {/* Whisper Ultra Clean */}
+            {wuc && (
+                <div className="space-y-4">
+                    <div className="flex items-center gap-2 mb-3"><span>📋</span><span className="text-[11px] font-extrabold text-amber-700 uppercase tracking-wider">Whisper Ultra Clean — Discontinued Product</span></div>
+                    <div className="bg-gradient-to-r from-amber-50 to-white border border-amber-200 p-5 rounded-2xl">
+                        {wuc.product_context && <p className="text-[11px] text-slate-700 mb-3">{wuc.product_context}</p>}
+                        {ensArr(wuc.consumer_feedback).length > 0 && (
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-3">
+                                {ensArr(wuc.consumer_feedback).map((f: any, i: number) => (
+                                    <div key={i} className={`border-l-4 ${f.sentiment === 'POS' ? 'border-l-emerald-500 bg-emerald-50' : f.sentiment === 'NEG' ? 'border-l-red-500 bg-red-50' : 'border-l-amber-500 bg-amber-50'} p-3 rounded-r-lg`}>
+                                        <span className="font-bold text-xs text-slate-800">{f.aspect || ''}</span>
+                                        <p className="text-[11px] text-slate-600 mt-1">{f.insight || ''}</p>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+                        {wuc.discontinuation_impact && <div className="text-[11px] text-amber-800 bg-amber-100 px-3 py-2 rounded-lg mb-3">{wuc.discontinuation_impact}</div>}
+                        {ensArr(wuc.consumer_quotes).length > 0 && (
+                            <div className="pt-2 border-t border-amber-200">
+                                <span className="text-[9px] font-extrabold text-slate-400 uppercase tracking-wider flex items-center gap-1.5 mb-1.5"><span className="text-xs">🗣</span> Consumer Voices</span>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                                    {ensArr(wuc.consumer_quotes).slice(0, 4).map((q: any, i: number) => (
+                                        <div key={i} className="bg-white border border-amber-100 rounded-lg px-3 py-2">
+                                            <div className="text-[10px] italic text-amber-900">"{typeof q === 'string' ? q : (q.quote || '')}"</div>
+                                            {q.source && <div className="text-[9px] font-bold text-amber-600 mt-0.5">{q.source}</div>}
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+                    </div>
                 </div>
             )}
 
@@ -1332,13 +1525,13 @@ const SPDeepDiveRenderer = ({ data }: { data: any }) => {
                         <div>
                             <div className="flex items-center gap-2 mb-3"><span className="w-2 h-2 rounded-full bg-indigo-500"></span><span className="text-[11px] font-extrabold text-indigo-700 uppercase tracking-wider">Users — Pain Points</span></div>
                             <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
-                                {safeArr(pp.users.functional).length > 0 && (
+                                {ensArr(pp.users.functional).length > 0 && (
                                     <div className="bg-white border border-slate-200 rounded-xl p-5 shadow-sm">
                                         <span className="text-[10px] font-extrabold text-amber-600 uppercase tracking-wider mb-3 block">⚙️ Functional</span>
                                         <div className="space-y-3">{renderPainPoints(pp.users.functional, 'amber')}</div>
                                     </div>
                                 )}
-                                {safeArr(pp.users.emotional).length > 0 && (
+                                {ensArr(pp.users.emotional).length > 0 && (
                                     <div className="bg-white border border-slate-200 rounded-xl p-5 shadow-sm">
                                         <span className="text-[10px] font-extrabold text-rose-600 uppercase tracking-wider mb-3 block">💔 Emotional</span>
                                         <div className="space-y-3">{renderPainPoints(pp.users.emotional, 'rose')}</div>
@@ -1351,13 +1544,13 @@ const SPDeepDiveRenderer = ({ data }: { data: any }) => {
                         <div>
                             <div className="flex items-center gap-2 mb-3"><span className="w-2 h-2 rounded-full bg-rose-500"></span><span className="text-[11px] font-extrabold text-rose-700 uppercase tracking-wider">Non-Users — Barriers</span></div>
                             <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
-                                {safeArr(pp.non_users.functional).length > 0 && (
+                                {ensArr(pp.non_users.functional).length > 0 && (
                                     <div className="bg-white border border-slate-200 rounded-xl p-5 shadow-sm">
                                         <span className="text-[10px] font-extrabold text-amber-600 uppercase tracking-wider mb-3 block">⚙️ Functional Barriers</span>
                                         <div className="space-y-3">{renderPainPoints(pp.non_users.functional, 'amber')}</div>
                                     </div>
                                 )}
-                                {safeArr(pp.non_users.emotional).length > 0 && (
+                                {ensArr(pp.non_users.emotional).length > 0 && (
                                     <div className="bg-white border border-slate-200 rounded-xl p-5 shadow-sm">
                                         <span className="text-[10px] font-extrabold text-purple-600 uppercase tracking-wider mb-3 block">💭 Emotional Barriers</span>
                                         <div className="space-y-3">{renderPainPoints(pp.non_users.emotional, 'purple')}</div>
