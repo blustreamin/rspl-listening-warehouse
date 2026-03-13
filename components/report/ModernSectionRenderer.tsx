@@ -1024,6 +1024,274 @@ const AdultBrandLandscapeSection = ({ data }: { data: any }) => {
     );
 };
 
+// --- SANITARY PADS SPECIFIC RENDERERS (Isolated — zero impact on other projects) ---
+
+const SPCardsRenderer = ({ data }: { data: any }) => {
+    const cards = safeArr(data?.cards);
+    if (cards.length === 0) return <div className="text-sm text-slate-400 italic text-center py-8">Content being synthesized...</div>;
+
+    const cardGradients = [
+        'from-indigo-600 to-indigo-500', 'from-blue-600 to-blue-500', 'from-purple-600 to-purple-500',
+        'from-amber-600 to-amber-500', 'from-emerald-600 to-emerald-500', 'from-rose-600 to-rose-500',
+        'from-slate-700 to-slate-600'
+    ];
+    const cardAccents = ['indigo', 'blue', 'purple', 'amber', 'emerald', 'rose', 'slate'];
+
+    return (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+            {cards.map((card: any, idx: number) => {
+                const bullets = safeArr(card.bullets);
+                const insights: string[] = [];
+                const quotes: Array<{text: string; src: string}> = [];
+                bullets.forEach((b: any) => {
+                    const s = typeof b === 'string' ? b : (b?.text || b?.quote || safeStr(b));
+                    if (!s) return;
+                    if (s.startsWith('📢') || (typeof b === 'object' && b.quote)) {
+                        const clean = s.replace(/^📢\s*/, '').replace(/^"|"$/g, '');
+                        const srcM = clean.match(/\(([^)]+)\)\s*$/);
+                        quotes.push({ text: srcM ? clean.replace(srcM[0], '').trim() : (b.quote || clean), src: srcM ? srcM[1] : (b.source || 'Consumer') });
+                    } else { insights.push(s); }
+                });
+                const accent = cardAccents[idx % cardAccents.length];
+                const accentMap: Record<string, {border: string; bg: string; text: string}> = {
+                    indigo: {border:'border-indigo-100', bg:'bg-indigo-50', text:'text-indigo-700'},
+                    blue: {border:'border-blue-100', bg:'bg-blue-50', text:'text-blue-700'},
+                    purple: {border:'border-purple-100', bg:'bg-purple-50', text:'text-purple-700'},
+                    amber: {border:'border-amber-100', bg:'bg-amber-50', text:'text-amber-700'},
+                    emerald: {border:'border-emerald-100', bg:'bg-emerald-50', text:'text-emerald-700'},
+                    rose: {border:'border-rose-100', bg:'bg-rose-50', text:'text-rose-700'},
+                    slate: {border:'border-slate-200', bg:'bg-slate-50', text:'text-slate-600'},
+                };
+                const ac = accentMap[accent] || accentMap.indigo;
+                return (
+                    <div key={idx} className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm hover:shadow-lg transition-all">
+                        <div className={`bg-gradient-to-r ${cardGradients[idx % cardGradients.length]} px-5 py-3.5`}>
+                            <h4 className="font-extrabold text-white text-sm tracking-wide">{card.boldTitle || card.title || safeStr(card)}</h4>
+                        </div>
+                        <div className="p-5 space-y-2.5">
+                            {insights.map((b, i) => (
+                                <div key={i} className={`${ac.bg} border ${ac.border} rounded-xl px-3.5 py-2.5`}>
+                                    <div className={`text-[11px] ${ac.text} leading-relaxed`}>
+                                        <span className={`${ac.text} font-bold mr-1`}>▹</span>{b}
+                                    </div>
+                                </div>
+                            ))}
+                            {quotes.length > 0 && (
+                                <div className="space-y-2 pt-2 border-t border-slate-100">
+                                    {quotes.slice(0, 3).map((q, i) => (
+                                        <div key={i} className="bg-gradient-to-br from-indigo-50/80 to-white border border-indigo-100 rounded-xl px-3.5 py-2.5">
+                                            <div className="text-[10px] italic text-indigo-900 leading-relaxed">"{q.text}"</div>
+                                            <div className="text-[9px] font-bold text-indigo-500 mt-1">{q.src}</div>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+                            {card.metrics && safeArr(card.metrics).length > 0 && (
+                                <div className="flex flex-wrap gap-2 pt-2 border-t border-slate-100">
+                                    {safeArr(card.metrics).map((m: any, i: number) => (
+                                        <span key={i} className="text-[9px] bg-slate-100 text-slate-600 px-2 py-1 rounded-full font-medium">
+                                            {m.label}: <strong>{m.value}</strong>
+                                        </span>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                );
+            })}
+        </div>
+    );
+};
+
+const SPGapAnalysisRendererV2 = ({ data }: { data: any }) => {
+    const root = data || {};
+    const sections = [
+        { key: 'current_challenges', label: root.current_challenges?.heading || 'Current Challenges', accent: 'red', icon: '🔴' },
+        { key: 'resolved_challenges', label: root.resolved_challenges?.heading || 'Resolved', accent: 'emerald', icon: '✅' },
+        { key: 'unresolved_challenges', label: root.unresolved_challenges?.heading || 'Unresolved', accent: 'amber', icon: '⚠️' },
+    ];
+    const needs = safeArr(root.need_gap?.need_statements);
+
+    const renderBullet = (b: any, i: number, accent: string) => {
+        const evidence = safeArr(b.consumer_evidence);
+        const sevColor = b.severity === 'HIGH' ? 'bg-red-100 text-red-700' : b.severity === 'MED' ? 'bg-amber-100 text-amber-700' : 'bg-slate-100 text-slate-600';
+        const acMap: Record<string, string> = { red: 'border-l-red-500', emerald: 'border-l-emerald-500', amber: 'border-l-amber-500' };
+        return (
+            <div key={i} className={`bg-white border border-slate-200 border-l-4 ${acMap[accent] || 'border-l-slate-400'} rounded-xl p-4 shadow-sm`}>
+                <div className="flex items-start gap-2 mb-1.5">
+                    {b.severity && <span className={`text-[8px] font-bold px-1.5 py-0.5 rounded ${sevColor}`}>{b.severity}</span>}
+                    <span className="text-xs font-bold text-slate-800 flex-1">{b.claim || b.text || b.need || ''}</span>
+                    {b.data_points && <span className="text-[8px] font-mono text-slate-400 bg-slate-50 px-1.5 py-0.5 rounded border border-slate-200">{b.data_points} pts</span>}
+                </div>
+                <div className="text-[11px] text-slate-600 mb-2 leading-relaxed">{b.explanation || b.why_now || ''}</div>
+                {evidence.length > 0 && (
+                    <div className="space-y-1.5">
+                        {evidence.slice(0, 2).map((ce: any, j: number) => (
+                            <div key={j} className="bg-indigo-50 border border-indigo-100 rounded-lg px-3 py-2">
+                                <div className="text-[10px] italic text-indigo-900">"{typeof ce === 'string' ? ce : (ce.quote || '')}"</div>
+                                {ce.source && <div className="text-[9px] font-bold text-indigo-500 mt-0.5">{ce.source}</div>}
+                            </div>
+                        ))}
+                    </div>
+                )}
+            </div>
+        );
+    };
+
+    return (
+        <div className="space-y-8">
+            {sections.map(sec => {
+                const bullets = safeArr(root[sec.key]?.bullets);
+                if (bullets.length === 0) return null;
+                return (
+                    <div key={sec.key}>
+                        <div className="flex items-center gap-2 mb-4">
+                            <span>{sec.icon}</span>
+                            <h4 className="text-[11px] font-extrabold uppercase tracking-[0.15em] text-slate-500">{sec.label}</h4>
+                            <div className="flex-1 h-px bg-gradient-to-r from-slate-200 to-transparent"></div>
+                        </div>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                            {bullets.map((b: any, i: number) => renderBullet(b, i, sec.accent))}
+                        </div>
+                    </div>
+                );
+            })}
+            {needs.length > 0 && (
+                <div>
+                    <div className="flex items-center gap-2 mb-4">
+                        <span>💡</span>
+                        <h4 className="text-[11px] font-extrabold uppercase tracking-[0.15em] text-slate-500">{root.need_gap?.heading || 'Need Gaps'}</h4>
+                        <div className="flex-1 h-px bg-gradient-to-r from-slate-200 to-transparent"></div>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {needs.map((n: any, i: number) => {
+                            const prColor = n.priority === 'P0' ? 'bg-red-500 text-white' : n.priority === 'P1' ? 'bg-amber-500 text-white' : 'bg-slate-400 text-white';
+                            const evidence = safeArr(n.consumer_evidence);
+                            return (
+                                <div key={i} className="bg-white border border-indigo-100 rounded-xl p-4 shadow-sm">
+                                    <div className="flex items-start gap-2 mb-2">
+                                        <span className={`text-[8px] font-bold px-1.5 py-0.5 rounded ${prColor}`}>{n.priority || 'P1'}</span>
+                                        <div className="text-xs font-bold text-indigo-900 flex-1">{n.need || ''}</div>
+                                    </div>
+                                    {n.why_now && <div className="text-[11px] text-slate-600 mb-1"><strong>Why now:</strong> {n.why_now}</div>}
+                                    {n.who && <div className="text-[10px] text-indigo-600 mb-2"><strong>Who:</strong> {n.who}</div>}
+                                    {evidence.length > 0 && (
+                                        <div className="space-y-1.5">
+                                            {evidence.slice(0, 2).map((ce: any, j: number) => (
+                                                <div key={j} className="bg-indigo-50 border border-indigo-100 rounded-lg px-3 py-2">
+                                                    <div className="text-[10px] italic text-indigo-900">"{typeof ce === 'string' ? ce : (ce.quote || '')}"</div>
+                                                    {ce.source && <div className="text-[9px] font-bold text-indigo-500 mt-0.5">{ce.source}</div>}
+                                                </div>
+                                            ))}
+                                        </div>
+                                    )}
+                                </div>
+                            );
+                        })}
+                    </div>
+                </div>
+            )}
+        </div>
+    );
+};
+
+const SPEcosystemRendererV2 = ({ data }: { data: any }) => {
+    const formats = safeArr(data?.formats);
+    const matrix = safeArr(data?.attribute_matrix);
+    const formatColors = [
+        { grad: 'from-indigo-600 to-indigo-500', border: 'border-l-indigo-500', funcBg: 'bg-indigo-50', funcText: 'text-indigo-700', funcBorder: 'border-indigo-100' },
+        { grad: 'from-blue-600 to-blue-500', border: 'border-l-blue-500', funcBg: 'bg-blue-50', funcText: 'text-blue-700', funcBorder: 'border-blue-100' },
+        { grad: 'from-purple-600 to-purple-500', border: 'border-l-purple-500', funcBg: 'bg-purple-50', funcText: 'text-purple-700', funcBorder: 'border-purple-100' },
+        { grad: 'from-amber-600 to-amber-500', border: 'border-l-amber-500', funcBg: 'bg-amber-50', funcText: 'text-amber-700', funcBorder: 'border-amber-100' },
+        { grad: 'from-emerald-600 to-emerald-500', border: 'border-l-emerald-500', funcBg: 'bg-emerald-50', funcText: 'text-emerald-700', funcBorder: 'border-emerald-100' },
+        { grad: 'from-rose-600 to-rose-500', border: 'border-l-rose-500', funcBg: 'bg-rose-50', funcText: 'text-rose-700', funcBorder: 'border-rose-100' },
+        { grad: 'from-slate-700 to-slate-600', border: 'border-l-slate-400', funcBg: 'bg-slate-50', funcText: 'text-slate-600', funcBorder: 'border-slate-200' },
+    ];
+
+    return (
+        <div className="space-y-8">
+            {formats.length > 0 && (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                    {formats.map((f: any, i: number) => {
+                        const c = formatColors[i % formatColors.length];
+                        return (
+                            <div key={i} className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm hover:shadow-lg transition-all">
+                                <div className={`bg-gradient-to-r ${c.grad} px-5 py-3`}>
+                                    <h4 className="font-extrabold text-white text-sm">{f.format || `Format ${i+1}`}</h4>
+                                    {f.role_in_lifecycle && <p className="text-white/80 text-[10px] mt-0.5">{f.role_in_lifecycle}</p>}
+                                </div>
+                                <div className="p-4 space-y-2">
+                                    {safeArr(f.functional_resolution).map((r: any, k: number) => (
+                                        <div key={`f${k}`} className={`${c.funcBg} border ${c.funcBorder} rounded-xl px-3.5 py-2.5`}>
+                                            <div className="flex items-start gap-2">
+                                                <span className={`${c.funcText} font-bold text-xs mt-0.5`}>✓</span>
+                                                <span className={`text-[11px] ${c.funcText}`}>{typeof r === 'string' ? r : safeStr(r)}</span>
+                                            </div>
+                                        </div>
+                                    ))}
+                                    {safeArr(f.emotional_resolution).map((r: any, k: number) => (
+                                        <div key={`e${k}`} className="bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5">
+                                            <div className="flex items-start gap-2">
+                                                <span className="text-slate-400 text-xs mt-0.5">♡</span>
+                                                <span className="text-[11px] text-slate-600">{typeof r === 'string' ? r : safeStr(r)}</span>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        );
+                    })}
+                </div>
+            )}
+            {matrix.length > 0 && (
+                <div>
+                    <div className="flex items-center gap-2 mb-4">
+                        <span>📊</span>
+                        <h4 className="text-[11px] font-extrabold uppercase tracking-[0.15em] text-slate-500">Attribute Rating Matrix</h4>
+                    </div>
+                    <div className="overflow-x-auto border border-slate-200 rounded-2xl shadow-sm">
+                        <table className="w-full text-xs text-left">
+                            <thead className="bg-gradient-to-r from-slate-800 to-slate-700 text-white font-bold uppercase text-[10px]">
+                                <tr>
+                                    <th className="p-3 rounded-tl-2xl">Attribute</th>
+                                    <th className="p-3">Fluff Reg</th>
+                                    <th className="p-3">Fluff XL</th>
+                                    <th className="p-3">Fluff Night</th>
+                                    <th className="p-3">Mid Ultra</th>
+                                    <th className="p-3 bg-indigo-700">Premium Ultra</th>
+                                    <th className="p-3 bg-purple-700 rounded-tr-2xl">Super Premium</th>
+                                </tr>
+                            </thead>
+                            <tbody className="divide-y divide-slate-100">
+                                {matrix.map((row: any, i: number) => {
+                                    const rc = (val: string) => {
+                                        if (!val) return 'text-slate-400';
+                                        const v = val.toLowerCase();
+                                        return v.includes('strong') || v === 'high' ? 'text-emerald-700 font-bold bg-emerald-50' :
+                                            v.includes('adequate') || v === 'med' ? 'text-amber-700 bg-amber-50' :
+                                            v.includes('weak') || v === 'low' ? 'text-red-600 bg-red-50' : 'text-slate-600';
+                                    };
+                                    return (
+                                        <tr key={i} className={i % 2 === 0 ? 'bg-white' : 'bg-slate-50/50'}>
+                                            <td className="p-3 font-bold text-slate-800">{row.attribute || ''}</td>
+                                            <td className={`p-3 text-[10px] ${rc(row.fluff_regular)}`}>{row.fluff_regular || '—'}</td>
+                                            <td className={`p-3 text-[10px] ${rc(row.fluff_xl)}`}>{row.fluff_xl || '—'}</td>
+                                            <td className={`p-3 text-[10px] ${rc(row.fluff_night)}`}>{row.fluff_night || '—'}</td>
+                                            <td className={`p-3 text-[10px] ${rc(row.mid_ultra)}`}>{row.mid_ultra || '—'}</td>
+                                            <td className={`p-3 text-[10px] ${rc(row.premium_ultra)} bg-indigo-50/30`}>{row.premium_ultra || '—'}</td>
+                                            <td className={`p-3 text-[10px] ${rc(row.super_premium_ultra)} bg-purple-50/30`}>{row.super_premium_ultra || '—'}</td>
+                                        </tr>
+                                    );
+                                })}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            )}
+        </div>
+    );
+};
+
 // --- FEMCARE-SPECIFIC RENDERERS ---
 
 const FemcareGapAnalysisRenderer = ({ data }: { data: any }) => {
@@ -1478,8 +1746,15 @@ export const ModernSectionRenderer: React.FC<Props> = ({ data, projectId }) => {
         data.templateId?.includes('femcare')
     ) {
         const c = normalizedData;
-        // Content-based routing to shared femcare renderers
-        if (c.cards || c.menstruation_context) Component = MenstruationContextRenderer;
+        const isSP = projectId === 'sanitary-pads';
+        
+        // SP-specific upgraded renderers (only for sanitary-pads)
+        if (isSP && (c.cards || c.menstruation_context)) Component = SPCardsRenderer;
+        else if (isSP && (c.current_challenges || c.need_gap)) Component = SPGapAnalysisRendererV2;
+        else if (isSP && c.formats && c.formats.length > 0) Component = SPEcosystemRendererV2;
+        
+        // Shared femcare renderers (all projects including SP fallback)
+        else if (c.cards || c.menstruation_context) Component = MenstruationContextRenderer;
         else if (c.trigger_clusters || c.behavioural_landscape) Component = BehaviouralRenderer;
         else if (c.formats && c.formats.length > 0) Component = EcosystemRenderer;
         else if (c.tradeoff_matrix && c.tradeoff_matrix.length > 0) Component = EcosystemRenderer;

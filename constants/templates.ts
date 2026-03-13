@@ -691,6 +691,12 @@ SANITARY PADS REPORT — ADDITIONAL MANDATORY RULES:
 - NEVER mention the brand "Always" — it is not sold in India. Remove any Always references.
 - Focus sub-categories: Fluff Regular, Fluff XL, Fluff Night, Mid Ultra, Premium Ultra, Night Ultra, Super Premium Ultra.
 - STRATEGIC FOCUS: Premium Ultra and Super Premium Ultra must receive 2x depth and detail.
+- DATA POINT CALIBRATION: The total evidence base contains ~23,700 usable verbatims. data_points per insight MUST reflect this scale:
+  HIGH frequency themes (rash, leakage, absorption, cost): 800-2500 data points
+  MEDIUM frequency themes (comfort, sizing, brand switching, disposal): 300-800 data points  
+  LOW frequency themes (fragrance, packaging, eco concerns): 100-300 data points
+  NICHE themes (specific brand issues, regional patterns): 40-150 data points
+  NEVER use data_points below 40. NEVER repeat the same number for adjacent insights.
 `,
       sectionPrompts: {
         "1": `
