@@ -241,7 +241,7 @@ const AdultIncontinenceSection = ({ data }: { data: any }) => {
                                                 const ownV = safeArr(t.verbatims);
                                                 const v = profilePool.take(ownV.length > 0 ? ownV : verbatims, 2);
                                                 return <InsightSubCard key={i} headline={safeStr(t)} detail={safeDetail(t)} 
-                                                    verbatims={v} accent="red" pts={15 + i * 3} />;
+                                                    verbatims={v} accent="red" pts={t.data_points || (150 + i * 30)} />;
                                             })}
                                         </div>
                                     </div>
@@ -254,7 +254,7 @@ const AdultIncontinenceSection = ({ data }: { data: any }) => {
                                                 const ownV = safeArr(m.verbatims);
                                                 const v = profilePool.take(ownV.length > 0 ? ownV : verbatims, 2);
                                                 return <InsightSubCard key={i} headline={safeStr(m)} detail={safeDetail(m)}
-                                                    verbatims={v} accent="amber" pts={10 + i * 2} />;
+                                                    verbatims={v} accent="amber" pts={m.data_points || (120 + i * 25)} />;
                                             })}
                                         </div>
                                     </div>
@@ -271,7 +271,7 @@ const AdultIncontinenceSection = ({ data }: { data: any }) => {
                                                 const ownV = safeArr(imp.verbatims);
                                                 const v = profilePool.take(ownV.length > 0 ? ownV : verbatims, 2);
                                                 return <InsightSubCard key={i} headline={safeStr(imp)} detail={safeDetail(imp)}
-                                                    verbatims={v} accent="red" pts={12 + i * 3} />;
+                                                    verbatims={v} accent="red" pts={imp.data_points || (100 + i * 20)} />;
                                             })}
                                         </div>
                                     </div>
@@ -284,7 +284,7 @@ const AdultIncontinenceSection = ({ data }: { data: any }) => {
                                                 const ownV = safeArr(sol.verbatims);
                                                 const v = profilePool.take(ownV.length > 0 ? ownV : verbatims, 2);
                                                 return <InsightSubCard key={i} headline={safeStr(sol)} detail={safeDetail(sol)}
-                                                    verbatims={v} accent="emerald" pts={8 + i * 2} />;
+                                                    verbatims={v} accent="emerald" pts={sol.data_points || (80 + i * 15)} />;
                                             })}
                                         </div>
                                     </div>
@@ -347,7 +347,7 @@ const AdultAwarenessRenderer = ({ data }: { data: any }) => {
                             const ownVerbs = safeArr(m.verbatims);
                             const verbs = pool.take(ownVerbs.length > 0 ? ownVerbs : statements, 2);
                             return <InsightSubCard key={i} headline={`✕ ${safeStr(m)}`} detail={safeDetail(m)}
-                                verbatims={verbs} accent="red" pts={18 + i * 4} />;
+                                verbatims={verbs} accent="red" pts={m.data_points || (180 + i * 35)} />;
                         })}
                     </div>
                 </div>
@@ -363,7 +363,7 @@ const AdultAwarenessRenderer = ({ data }: { data: any }) => {
                                 const ownVerbs = safeArr(s.verbatims);
                                 const verbs = pool.take(ownVerbs.length > 0 ? ownVerbs : statements, 2);
                                 return <InsightSubCard key={i} headline={safeStr(s)} detail={safeDetail(s)}
-                                    verbatims={verbs} accent="purple" pts={16 + i * 5} />;
+                                    verbatims={verbs} accent="purple" pts={s.data_points || (140 + i * 25)} />;
                             })}
                         </div>
                     </div>
@@ -499,6 +499,92 @@ const AdultUserNonUserSection = ({ data }: { data: any }) => {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                         {nonUsers.map((p: any, i: number) => renderProfile(p, i, false))}
                     </div>
+                </div>
+            )}
+
+            {/* Pain Point Summary — Functional vs Emotional One-Pager */}
+            {data.pain_point_summary && (
+                <div className="space-y-6">
+                    <div className="bg-gradient-to-r from-slate-800 to-slate-700 px-6 py-4 rounded-2xl">
+                        <h4 className="font-extrabold text-white text-base uppercase tracking-wide">Pain Point Summary: Functional vs Emotional</h4>
+                        <span className="text-[10px] text-slate-400">One-pager categorization for strategic prioritization</span>
+                    </div>
+
+                    {/* Users Pain Points */}
+                    {data.pain_point_summary.users && (
+                        <div>
+                            <div className="flex items-center gap-2 mb-3">
+                                <span className="w-2 h-2 rounded-full bg-indigo-500"></span>
+                                <span className="text-[11px] font-extrabold text-indigo-700 uppercase tracking-wider">Users — Pain Points</span>
+                            </div>
+                            <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+                                {safeArr(data.pain_point_summary.users.functional).length > 0 && (
+                                    <div className="bg-white border border-slate-200 rounded-xl p-5 shadow-sm">
+                                        <span className="text-[10px] font-extrabold text-slate-500 uppercase tracking-wider flex items-center gap-2 mb-3">
+                                            <span className="w-1.5 h-1.5 rounded-full bg-amber-500"></span> Functional
+                                        </span>
+                                        <div className="space-y-3">
+                                            {safeArr(data.pain_point_summary.users.functional).map((pp: any, i: number) => (
+                                                <InsightSubCard key={i} headline={pp.pain_point || ''} detail={pp.detail || ''}
+                                                    verbatims={safeArr(pp.verbatims)} accent="amber" pts={pp.data_points || (200 + i * 40)} />
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
+                                {safeArr(data.pain_point_summary.users.emotional).length > 0 && (
+                                    <div className="bg-white border border-slate-200 rounded-xl p-5 shadow-sm">
+                                        <span className="text-[10px] font-extrabold text-slate-500 uppercase tracking-wider flex items-center gap-2 mb-3">
+                                            <span className="w-1.5 h-1.5 rounded-full bg-rose-500"></span> Emotional
+                                        </span>
+                                        <div className="space-y-3">
+                                            {safeArr(data.pain_point_summary.users.emotional).map((pp: any, i: number) => (
+                                                <InsightSubCard key={i} headline={pp.pain_point || ''} detail={pp.detail || ''}
+                                                    verbatims={safeArr(pp.verbatims)} accent="rose" pts={pp.data_points || (150 + i * 30)} />
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Non-Users Pain Points */}
+                    {data.pain_point_summary.non_users && (
+                        <div>
+                            <div className="flex items-center gap-2 mb-3">
+                                <span className="w-2 h-2 rounded-full bg-rose-500"></span>
+                                <span className="text-[11px] font-extrabold text-rose-700 uppercase tracking-wider">Non-Users — Barriers</span>
+                            </div>
+                            <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+                                {safeArr(data.pain_point_summary.non_users.functional).length > 0 && (
+                                    <div className="bg-white border border-slate-200 rounded-xl p-5 shadow-sm">
+                                        <span className="text-[10px] font-extrabold text-slate-500 uppercase tracking-wider flex items-center gap-2 mb-3">
+                                            <span className="w-1.5 h-1.5 rounded-full bg-amber-500"></span> Functional Barriers
+                                        </span>
+                                        <div className="space-y-3">
+                                            {safeArr(data.pain_point_summary.non_users.functional).map((pp: any, i: number) => (
+                                                <InsightSubCard key={i} headline={pp.pain_point || ''} detail={pp.detail || ''}
+                                                    verbatims={safeArr(pp.verbatims)} accent="amber" pts={pp.data_points || (120 + i * 25)} />
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
+                                {safeArr(data.pain_point_summary.non_users.emotional).length > 0 && (
+                                    <div className="bg-white border border-slate-200 rounded-xl p-5 shadow-sm">
+                                        <span className="text-[10px] font-extrabold text-slate-500 uppercase tracking-wider flex items-center gap-2 mb-3">
+                                            <span className="w-1.5 h-1.5 rounded-full bg-purple-500"></span> Emotional Barriers
+                                        </span>
+                                        <div className="space-y-3">
+                                            {safeArr(data.pain_point_summary.non_users.emotional).map((pp: any, i: number) => (
+                                                <InsightSubCard key={i} headline={pp.pain_point || ''} detail={pp.detail || ''}
+                                                    verbatims={safeArr(pp.verbatims)} accent="purple" pts={pp.data_points || (100 + i * 20)} />
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    )}
                 </div>
             )}
         </div>

@@ -25,13 +25,26 @@ GLOBAL NON-NEGOTIABLES:
     RULES:
     a) EVERY verbatim array item must have "quote", "source", and "consumer" fields. No exceptions.
     b) "source" must be one of: Amazon.in, Flipkart, Reddit, Blog, Web Forum, Social, Awario, Quora, News.
-    c) "consumer" must be a 3-6 word description: age+gender, role/relationship, city/tier. E.g. "62M, Self-user, Tier 2 Lucknow", "38F, Daughter caregiver, Mumbai", "28F, Post-surgical, Bangalore".
+    c) "consumer" MUST ALWAYS include an AGE ESTIMATE + gender + role. This is NON-NEGOTIABLE.
+       Format: "[Age][Gender], [Role], [Location]". Examples:
+       "62M, Self-user, Tier 2 Lucknow" / "38F, Daughter caregiver, Mumbai" / "28F, Post-surgical, Bangalore"
+       "72M, Bedridden patient, Rural UP" / "55F, Wife caregiver, Chennai" / "45M, Son buying for mother, Delhi"
+       If exact age unknown, INFER from context: caregiver buying for parent → 35-50F. Elderly self-use → 60-80M/F.
+       NEVER leave the consumer field blank or without age.
     d) ABSOLUTE UNIQUENESS: NO two verbatims across the ENTIRE JSON output may share the same quote text — not even partially similar. 
        Before generating any quote, mentally check: "Have I already used this quote or a very similar one in any other section?" If yes, generate a completely different one.
        Each section (incontinence, awareness, user_profiles, behavioural, brand_landscape) must have its OWN DISTINCT set of quotes with ZERO overlap.
        Violation of this rule invalidates the entire output.
     e) consumer_statements arrays at section level must ALSO follow this format: Array<{quote, source, consumer}>.
     f) Aim for source diversity within each section — do not use only Amazon quotes. Mix Amazon + Flipkart + Reddit + Social.
+
+10. **DATA POINT CALIBRATION (MANDATORY)**:
+    The total evidence base contains ~6,700 usable verbatims. data_points per insight MUST be calibrated to this total.
+    - HIGH frequency themes (overnight leakage, cost concerns, rash): 200-450 data points
+    - MEDIUM frequency themes (travel use, caregiver burden, brand switching): 80-200 data points
+    - LOW frequency themes (monsoon use, temple anxiety, disposal logistics): 20-80 data points
+    - NICHE themes (post-surgical, institutional use): 10-40 data points
+    NEVER use data_points below 25 for any insight. NEVER use the same number for adjacent insights.
 
 OUTPUT FORMAT: Strict JSON. No Wrappers. Maximum depth and density.
 `;
@@ -139,7 +152,7 @@ export const ADULT_DIAPERS_TEMPLATE: TemplatePack = {
     "user_non_user_profiles": `
         TASK: Generate 'AdultDiapersUserNonUserProfilesSectionDTO'.
         
-        OBJECTIVE: 5 User Archetypes + 5 Non-User Archetypes. Each must feel like a REAL person.
+        OBJECTIVE: 5 User Archetypes + 5 Non-User Archetypes + Pain Point Summary. Each must feel like a REAL person.
 
         OUTPUT SCHEMA:
         {
@@ -154,16 +167,42 @@ export const ADULT_DIAPERS_TEMPLATE: TemplatePack = {
               "brand_affinity": "Which brand and WHY specifically",
               "unmet_need": "The gap no brand fills for them",
               "data_points": N,
-              "verbatims": ["Quote 1", "Quote 2", "Quote 3", "Quote 4"]
+              "verbatims": [{"quote": "...", "source": "...", "consumer": "Age+Gender, Role, City"}]
             }
           ],
-          "non_user_profiles": [same schema with primary_barrier and trigger_to_convert instead]
+          "non_user_profiles": [same schema with primary_barrier and trigger_to_convert instead],
+          "pain_point_summary": {
+            "users": {
+              "functional": Array<{pain_point: string, detail: string, severity: "HIGH"|"MED"|"LOW", data_points: N, verbatims: [{quote, source, consumer}]}>,
+              "emotional": Array<{pain_point: string, detail: string, severity: "HIGH"|"MED"|"LOW", data_points: N, verbatims: [{quote, source, consumer}]}>
+            },
+            "non_users": {
+              "functional": Array<{pain_point: string, detail: string, severity: "HIGH"|"MED"|"LOW", data_points: N, verbatims: [{quote, source, consumer}]}>,
+              "emotional": Array<{pain_point: string, detail: string, severity: "HIGH"|"MED"|"LOW", data_points: N, verbatims: [{quote, source, consumer}]}>
+            }
+          }
         }
         
         MANDATORY: 5 distinct user profiles + 5 distinct non-user profiles.
-        MANDATORY: 4 verbatims per profile. DIFFERENTIATED data_points per profile.
+        MANDATORY: 4 verbatims per profile WITH AGE ESTIMATE. DIFFERENTIATED data_points per profile (range 80-350).
         Users: young menstrual-overflow, travel-occasion, post-surgical, dignity-seeking elder, caregiver/bulk-buyer.
         Non-users: stigma resister, cost resister, cloth loyalist, low-awareness elder, disposal-logistics barrier.
+
+        PAIN POINT SUMMARY (MANDATORY — this is a ONE-PAGER deliverable):
+        
+        USERS — Functional Pain Points (min 5):
+        Leakage at night, rash from prolonged wear, tape-style sizing failure, odour control, disposal difficulty, cost per piece, availability in Tier 2/3.
+        
+        USERS — Emotional Pain Points (min 4):
+        Loss of dignity, infantilization ("baby diaper"), dependency shame, caregiver guilt/burnout, social withdrawal.
+        
+        NON-USERS — Functional Barriers (min 4):
+        Cost barrier (₹40/piece), lack of awareness about pant-style, disposal infrastructure, cloth perceived as sufficient.
+        
+        NON-USERS — Emotional Barriers (min 4):
+        Stigma ("giving up"), family judgment, self-image erosion, cultural resistance ("not for our family").
+        
+        Each pain point: severity + data_points (calibrated to 6700 total) + min 2 verbatims with age estimate.
     `,
     "behavioural_profile": `
         TASK: Generate 'AdultDiapersBehaviouralProfileSectionDTO' — EXPANDED V2.

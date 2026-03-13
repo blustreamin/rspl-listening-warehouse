@@ -115,7 +115,9 @@ export const normalizeAdultDiapersData = (sectionId: string, rawData: any): any 
         adapted = { 
             ...data, 
             user_profiles: u, 
-            non_user_profiles: n 
+            non_user_profiles: n,
+            // Pass through pain_point_summary for functional/emotional one-pager
+            pain_point_summary: data.pain_point_summary || null
         };
         adapted = fillUserProfileGaps(adapted);
     }
