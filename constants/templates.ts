@@ -691,6 +691,9 @@ SANITARY PADS REPORT — ADDITIONAL MANDATORY RULES:
 - NEVER mention the brand "Always" — it is not sold in India. Remove any Always references.
 - Focus sub-categories: Fluff Regular, Fluff XL, Fluff Night, Mid Ultra, Premium Ultra, Night Ultra, Super Premium Ultra.
 - STRATEGIC FOCUS: Premium Ultra and Super Premium Ultra must receive 2x depth and detail.
+- CONSUMER DESCRIPTION: Every consumer quote/verbatim MUST include a short description of the consumer. Format: "Age, Role, City/Tier". Examples: "22F, College student, Pune", "35F, Working mother, Tier 2 Lucknow", "28F, First-time buyer, Mumbai". NEVER leave consumer descriptions blank.
+- NO INFERRED CONTENT: Do NOT use "INFERRED:" tags. Use real consumer data and quotes from the evidence base. If data is thin for a specific point, use available evidence from adjacent themes rather than marking as inferred.
+- EVIDENCE FORMAT: When providing consumer evidence in bullet arrays, use this format: "Insight text → 📢 quote1 (Source) 📢 quote2 (Source)". Each 📢 must be on a separate conceptual unit.
 - DATA POINT CALIBRATION: The total evidence base contains ~23,700 usable verbatims. data_points per insight MUST reflect this scale:
   HIGH frequency themes (rash, leakage, absorption, cost): 800-2500 data points
   MEDIUM frequency themes (comfort, sizing, brand switching, disposal): 300-800 data points  

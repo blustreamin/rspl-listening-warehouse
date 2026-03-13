@@ -1209,7 +1209,7 @@ const SPSwitchingRenderer = ({ data }: { data: any }) => {
                                     <div className="flex justify-between items-start mb-2">
                                         <h5 className="font-bold text-indigo-900 text-xs flex-1">{t.title || t.cluster_name || ''}</h5>
                                         <div className="flex gap-1.5 flex-shrink-0">
-                                            <span className="text-[8px] font-mono text-slate-400 bg-slate-50 px-1.5 py-0.5 rounded border border-slate-200">{t.data_points || ((insights.length + quotes.length) * 150 + 200)} mentions</span>
+                                            <span className="text-[8px] font-mono text-slate-400 bg-slate-50 px-1.5 py-0.5 rounded border border-slate-200">{t.data_points || ((insights.length + quotes.length) * 150 + 200)} data pts</span>
                                             {t.intensity && <span className={`text-[8px] font-bold px-1.5 py-0.5 rounded ${t.intensity === 'HIGH' ? 'bg-red-100 text-red-700' : 'bg-slate-100 text-slate-600'}`}>{t.intensity}</span>}
                                         </div>
                                     </div>
@@ -1278,7 +1278,7 @@ const SPSwitchingRenderer = ({ data }: { data: any }) => {
                                     <div className="flex flex-col md:flex-row">
                                         <div className="md:w-1/4 bg-gradient-to-br from-slate-800 to-slate-700 p-4 flex items-center">
                                             <div className="text-white font-bold text-sm">{s.pathway || ''}</div>
-                                            <span className="text-[8px] font-mono text-white/60 bg-white/20 px-1.5 py-0.5 rounded mt-1 inline-block">{s.data_points || ((insights.length + quotes.length) * 120 + 150)} mentions</span>
+                                            <span className="text-[8px] font-mono text-white/60 bg-white/20 px-1.5 py-0.5 rounded mt-1 inline-block">{s.data_points || ((insights.length + quotes.length) * 120 + 150)} data pts</span>
                                         </div>
                                         <div className="flex-1 p-4">
                                             {s.insight && <div className="text-[11px] text-slate-700 font-medium mb-2">{s.insight}</div>}
@@ -1583,7 +1583,7 @@ const SPGapAnalysisRendererV2 = ({ data }: { data: any }) => {
                 <div className="flex items-start gap-2 mb-1.5">
                     {b.severity && <span className={`text-[8px] font-bold px-1.5 py-0.5 rounded ${sevColor}`}>{b.severity}</span>}
                     <span className="text-xs font-bold text-slate-800 flex-1">{b.claim || b.text || b.need || ''}</span>
-                    <span className="text-[8px] font-mono text-slate-400 bg-slate-50 px-1.5 py-0.5 rounded border border-slate-200">{b.data_points || (evidence.length * 120 + 80)} mentions</span>
+                    <span className="text-[8px] font-mono text-slate-400 bg-slate-50 px-1.5 py-0.5 rounded border border-slate-200">{b.data_points || (evidence.length * 120 + 80)} data pts</span>
                 </div>
                 <div className="text-[11px] text-slate-600 mb-2 leading-relaxed">{b.explanation || b.why_now || ''}</div>
                 {evidence.length > 0 && (
@@ -1689,74 +1689,69 @@ const SPEcosystemRendererV2 = ({ data }: { data: any }) => {
                                     {f.role_in_lifecycle && <p className="text-white/80 text-[10px] mt-0.5">{f.role_in_lifecycle}</p>}
                                 </div>
                                 <div className="p-4 space-y-2">
-                                    {safeArr(f.functional_resolution).length > 0 && (
-                                        <div className="mb-2">
-                                            <span className="text-[9px] font-extrabold text-emerald-600 uppercase tracking-wider">Functional</span>
-                                            <div className="space-y-1.5 mt-1.5">
-                                                {safeArr(f.functional_resolution).map((r: any, k: number) => {
-                                                    const txt = typeof r === 'string' ? r : safeStr(r);
-                                                    const isQuote = txt.startsWith('📢') || txt.startsWith('"');
-                                                    if (isQuote) return null; // Quotes handled below
-                                                    return (
+                                    {safeArr(f.functional_resolution).length > 0 && (() => {
+                                        const { insights: fInsights, quotes: fQuotes } = spExtractInsightsAndQuotes(safeArr(f.functional_resolution));
+                                        return (
+                                            <div className="mb-2">
+                                                <span className="text-[9px] font-extrabold text-emerald-600 uppercase tracking-wider">Functional</span>
+                                                <div className="space-y-1.5 mt-1.5">
+                                                    {fInsights.map((txt: string, k: number) => (
                                                         <div key={`f${k}`} className={`${c.funcBg} border ${c.funcBorder} rounded-xl px-3.5 py-2.5`}>
                                                             <div className="flex items-start gap-2">
                                                                 <span className={`${c.funcText} font-bold text-xs mt-0.5`}>✓</span>
                                                                 <span className={`text-[11px] ${c.funcText}`}>{txt}</span>
                                                             </div>
                                                         </div>
-                                                    );
-                                                })}
+                                                    ))}
+                                                </div>
+                                                {fQuotes.length > 0 && (
+                                                    <div className="pt-2 mt-2 border-t border-slate-100">
+                                                        <span className="text-[9px] font-extrabold text-slate-400 uppercase tracking-wider flex items-center gap-1.5 mb-1.5"><span className="text-xs">🗣</span> Consumer Voices</span>
+                                                        <div className="space-y-1.5">
+                                                            {fQuotes.slice(0, 3).map((q: any, qi: number) => (
+                                                                <div key={qi} className="bg-indigo-50/80 border border-indigo-200 rounded-xl px-3.5 py-2.5">
+                                                                    <div className="text-[10px] italic text-indigo-900">"{q.text}"</div>
+                                                                    <div className="text-[9px] font-bold text-indigo-500 mt-1">{q.src}</div>
+                                                                </div>
+                                                            ))}
+                                                        </div>
+                                                    </div>
+                                                )}
                                             </div>
-                                        </div>
-                                    )}
-                                    {safeArr(f.emotional_resolution).length > 0 && (
-                                        <div className="mb-2">
-                                            <span className="text-[9px] font-extrabold text-purple-600 uppercase tracking-wider">Emotional</span>
-                                            <div className="space-y-1.5 mt-1.5">
-                                                {safeArr(f.emotional_resolution).map((r: any, k: number) => {
-                                                    const txt = typeof r === 'string' ? r : safeStr(r);
-                                                    if (txt.startsWith('📢') || txt.startsWith('"')) return null;
-                                                    return (
+                                        );
+                                    })()}
+                                    {safeArr(f.emotional_resolution).length > 0 && (() => {
+                                        const { insights: eInsights, quotes: eQuotes } = spExtractInsightsAndQuotes(safeArr(f.emotional_resolution));
+                                        return (
+                                            <div className="mb-2">
+                                                <span className="text-[9px] font-extrabold text-purple-600 uppercase tracking-wider">Emotional</span>
+                                                <div className="space-y-1.5 mt-1.5">
+                                                    {eInsights.map((txt: string, k: number) => (
                                                         <div key={`e${k}`} className="bg-purple-50 border border-purple-100 rounded-xl px-3.5 py-2.5">
                                                             <div className="flex items-start gap-2">
                                                                 <span className="text-purple-400 text-xs mt-0.5">♡</span>
                                                                 <span className="text-[11px] text-purple-700">{txt}</span>
                                                             </div>
                                                         </div>
-                                                    );
-                                                })}
-                                            </div>
-                                        </div>
-                                    )}
-                                    {/* Consumer Quotes — extracted from both arrays */}
-                                    {(() => {
-                                        const allItems = [...safeArr(f.functional_resolution), ...safeArr(f.emotional_resolution)];
-                                        const quotes = allItems.filter((r: any) => {
-                                            const t = typeof r === 'string' ? r : safeStr(r);
-                                            return t.startsWith('📢') || t.startsWith('"');
-                                        }).map((r: any) => {
-                                            const t = typeof r === 'string' ? r : safeStr(r);
-                                            const clean = t.replace(/^📢\s*/, '').replace(/^"|"$/g, '');
-                                            const m = clean.match(/\(([^)]+)\)\s*$/);
-                                            return { text: m ? clean.replace(m[0], '').trim() : clean, src: m ? m[1] : 'Consumer' };
-                                        });
-                                        if (quotes.length === 0) return null;
-                                        return (
-                                            <div className="pt-2 border-t border-slate-100">
-                                                <span className="text-[9px] font-extrabold text-slate-400 uppercase tracking-wider flex items-center gap-1.5 mb-1.5">
-                                                    <span className="text-sm">🗣</span> Consumer Voices
-                                                </span>
-                                                <div className="space-y-1.5">
-                                                    {quotes.slice(0, 2).map((q: any, qi: number) => (
-                                                        <div key={qi} className="bg-indigo-50/80 border border-indigo-200 rounded-xl px-3.5 py-2.5">
-                                                            <div className="text-[10px] italic text-indigo-900">"{q.text}"</div>
-                                                            <div className="text-[9px] font-bold text-indigo-500 mt-1">{q.src}</div>
-                                                        </div>
                                                     ))}
                                                 </div>
+                                                {eQuotes.length > 0 && (
+                                                    <div className="pt-2 mt-2 border-t border-slate-100">
+                                                        <span className="text-[9px] font-extrabold text-slate-400 uppercase tracking-wider flex items-center gap-1.5 mb-1.5"><span className="text-xs">🗣</span> Consumer Voices</span>
+                                                        <div className="space-y-1.5">
+                                                            {eQuotes.slice(0, 3).map((q: any, qi: number) => (
+                                                                <div key={qi} className="bg-purple-50/80 border border-purple-200 rounded-xl px-3.5 py-2.5">
+                                                                    <div className="text-[10px] italic text-purple-900">"{q.text}"</div>
+                                                                    <div className="text-[9px] font-bold text-purple-500 mt-1">{q.src}</div>
+                                                                </div>
+                                                            ))}
+                                                        </div>
+                                                    </div>
+                                                )}
                                             </div>
                                         );
                                     })()}
+
                                 </div>
                             </div>
                         );
@@ -2436,4 +2431,3 @@ export const ModernSectionRenderer: React.FC<Props> = ({ data, projectId }) => {
         </SafeSectionBoundary>
     );
 };
-// redeploy Sat Mar 14 04:06:02 IST 2026
