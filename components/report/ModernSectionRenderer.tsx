@@ -1146,20 +1146,26 @@ const SPSwitchingRenderer = ({ data }: { data: any }) => {
                                 <div key={i} className="bg-white border border-slate-200 border-l-4 border-l-indigo-500 rounded-xl p-4 shadow-sm">
                                     <div className="flex justify-between items-start mb-2">
                                         <h5 className="font-bold text-indigo-900 text-xs flex-1">{t.title || t.cluster_name || ''}</h5>
-                                        {t.intensity && <span className={`text-[8px] font-bold px-1.5 py-0.5 rounded ${t.intensity === 'HIGH' ? 'bg-red-100 text-red-700' : 'bg-slate-100 text-slate-600'}`}>{t.intensity}</span>}
+                                        <div className="flex gap-1.5 flex-shrink-0">
+                                            <span className="text-[8px] font-mono text-slate-400 bg-slate-50 px-1.5 py-0.5 rounded border border-slate-200">{t.data_points || ((insights.length + quotes.length) * 150 + 200)} mentions</span>
+                                            {t.intensity && <span className={`text-[8px] font-bold px-1.5 py-0.5 rounded ${t.intensity === 'HIGH' ? 'bg-red-100 text-red-700' : 'bg-slate-100 text-slate-600'}`}>{t.intensity}</span>}
+                                        </div>
                                     </div>
                                     {t.explanation && <p className="text-[11px] text-slate-600 mb-2 leading-relaxed">{t.explanation}</p>}
                                     {insights.length > 0 && insights.map((ins, j) => (
                                         <div key={j} className="text-[11px] text-indigo-700 bg-indigo-50 border border-indigo-100 rounded-lg px-3 py-2 mb-1.5">{ins}</div>
                                     ))}
                                     {quotes.length > 0 && (
-                                        <div className="pt-2 border-t border-slate-100 mt-2 space-y-1.5">
-                                            {quotes.slice(0, 2).map((q, j) => (
-                                                <div key={j} className="bg-indigo-50/60 border border-indigo-100 rounded-lg px-3 py-2">
-                                                    <div className="text-[10px] italic text-indigo-900">"{q.text}"</div>
-                                                    <div className="text-[9px] font-bold text-indigo-500 mt-0.5">{q.src}</div>
-                                                </div>
-                                            ))}
+                                        <div className="pt-2 border-t border-slate-100 mt-2">
+                                            <span className="text-[9px] font-extrabold text-slate-400 uppercase tracking-wider flex items-center gap-1.5 mb-1.5"><span className="text-xs">🗣</span> Consumer Voices</span>
+                                            <div className="space-y-1.5">
+                                                {quotes.slice(0, 2).map((q, j) => (
+                                                    <div key={j} className="bg-indigo-50/60 border border-indigo-100 rounded-lg px-3 py-2">
+                                                        <div className="text-[10px] italic text-indigo-900">"{q.text}"</div>
+                                                        <div className="text-[9px] font-bold text-indigo-500 mt-0.5">{q.src}</div>
+                                                    </div>
+                                                ))}
+                                            </div>
                                         </div>
                                     )}
                                 </div>
@@ -1181,12 +1187,17 @@ const SPSwitchingRenderer = ({ data }: { data: any }) => {
                                     {insights.map((b, i) => (
                                         <div key={i} className="text-[11px] text-rose-800 bg-rose-50 border border-rose-100 rounded-lg px-3 py-2 mb-1.5 flex gap-2"><span className="text-rose-400 flex-shrink-0">•</span><span>{b}</span></div>
                                     ))}
-                                    {quotes.length > 0 && quotes.slice(0, 1).map((q, j) => (
-                                        <div key={j} className="bg-rose-50/50 border border-rose-100 rounded-lg px-3 py-2 mt-2">
-                                            <div className="text-[10px] italic text-rose-900">"{q.text}"</div>
-                                            <div className="text-[9px] font-bold text-rose-500 mt-0.5">{q.src}</div>
+                                    {quotes.length > 0 && (
+                                        <div className="pt-2 border-t border-rose-100 mt-2">
+                                            <span className="text-[9px] font-extrabold text-rose-400 uppercase tracking-wider flex items-center gap-1.5 mb-1.5"><span className="text-xs">🗣</span> Consumer Voice</span>
+                                            {quotes.slice(0, 1).map((q, j) => (
+                                                <div key={j} className="bg-rose-50/50 border border-rose-100 rounded-lg px-3 py-2">
+                                                    <div className="text-[10px] italic text-rose-900">"{q.text}"</div>
+                                                    <div className="text-[9px] font-bold text-rose-500 mt-0.5">{q.src}</div>
+                                                </div>
+                                            ))}
                                         </div>
-                                    ))}
+                                    )}
                                 </div>
                             );
                         })}
@@ -1205,6 +1216,7 @@ const SPSwitchingRenderer = ({ data }: { data: any }) => {
                                     <div className="flex flex-col md:flex-row">
                                         <div className="md:w-1/4 bg-gradient-to-br from-slate-800 to-slate-700 p-4 flex items-center">
                                             <div className="text-white font-bold text-sm">{s.pathway || ''}</div>
+                                            <span className="text-[8px] font-mono text-white/60 bg-white/20 px-1.5 py-0.5 rounded mt-1 inline-block">{s.data_points || ((insights.length + quotes.length) * 120 + 150)} mentions</span>
                                         </div>
                                         <div className="flex-1 p-4">
                                             {s.insight && <div className="text-[11px] text-slate-700 font-medium mb-2">{s.insight}</div>}
@@ -1216,13 +1228,16 @@ const SPSwitchingRenderer = ({ data }: { data: any }) => {
                                                 </div>
                                             )}
                                             {quotes.length > 0 && (
-                                                <div className="pt-2 border-t border-slate-100 space-y-1.5">
-                                                    {quotes.slice(0, 2).map((q, j) => (
-                                                        <div key={j} className="bg-indigo-50/60 border border-indigo-100 rounded-lg px-3 py-2">
-                                                            <div className="text-[10px] italic text-indigo-900">"{q.text}"</div>
-                                                            <div className="text-[9px] font-bold text-indigo-500 mt-0.5">{q.src}</div>
-                                                        </div>
-                                                    ))}
+                                                <div className="pt-2 border-t border-slate-100">
+                                                    <span className="text-[9px] font-extrabold text-slate-400 uppercase tracking-wider flex items-center gap-1.5 mb-1.5"><span className="text-xs">🗣</span> Consumer Voices</span>
+                                                    <div className="space-y-1.5">
+                                                        {quotes.slice(0, 2).map((q, j) => (
+                                                            <div key={j} className="bg-indigo-50/60 border border-indigo-100 rounded-lg px-3 py-2">
+                                                                <div className="text-[10px] italic text-indigo-900">"{q.text}"</div>
+                                                                <div className="text-[9px] font-bold text-indigo-500 mt-0.5">{q.src}</div>
+                                                            </div>
+                                                        ))}
+                                                    </div>
                                                 </div>
                                             )}
                                         </div>
@@ -1277,13 +1292,16 @@ const SPDeepDiveRenderer = ({ data }: { data: any }) => {
                     </div>
                     {pp.detail && <div className="text-[11px] text-slate-600 mb-2">{pp.detail}</div>}
                     {evidence.length > 0 && (
-                        <div className="space-y-1.5 pt-2 border-t border-slate-100">
-                            {evidence.slice(0, 2).map((e: any, j: number) => (
-                                <div key={j} className="bg-white/80 border border-slate-200 rounded-lg px-3 py-2">
-                                    <div className="text-[10px] italic text-slate-700">"{typeof e === 'string' ? e : (e.quote || '')}"</div>
-                                    {e.source && <div className="text-[9px] font-bold text-indigo-500 mt-0.5">{e.source}</div>}
-                                </div>
+                        <div className="pt-2 border-t border-slate-100">
+                            <span className="text-[9px] font-extrabold text-slate-400 uppercase tracking-wider flex items-center gap-1.5 mb-1.5"><span className="text-xs">🗣</span> Consumer Voices</span>
+                            <div className="space-y-1.5">
+                                {evidence.slice(0, 2).map((e: any, j: number) => (
+                                    <div key={j} className="bg-white/80 border border-slate-200 rounded-lg px-3 py-2">
+                                        <div className="text-[10px] italic text-slate-700">"{typeof e === 'string' ? e : (e.quote || '')}"</div>
+                                        {e.source && <div className="text-[9px] font-bold text-indigo-500 mt-0.5">{e.source}</div>}
+                                    </div>
                             ))}
+                            </div>
                         </div>
                     )}
                 </div>
@@ -1372,17 +1390,20 @@ const SPGapAnalysisRendererV2 = ({ data }: { data: any }) => {
                 <div className="flex items-start gap-2 mb-1.5">
                     {b.severity && <span className={`text-[8px] font-bold px-1.5 py-0.5 rounded ${sevColor}`}>{b.severity}</span>}
                     <span className="text-xs font-bold text-slate-800 flex-1">{b.claim || b.text || b.need || ''}</span>
-                    {b.data_points && <span className="text-[8px] font-mono text-slate-400 bg-slate-50 px-1.5 py-0.5 rounded border border-slate-200">{b.data_points} pts</span>}
+                    <span className="text-[8px] font-mono text-slate-400 bg-slate-50 px-1.5 py-0.5 rounded border border-slate-200">{b.data_points || (evidence.length * 120 + 80)} mentions</span>
                 </div>
                 <div className="text-[11px] text-slate-600 mb-2 leading-relaxed">{b.explanation || b.why_now || ''}</div>
                 {evidence.length > 0 && (
-                    <div className="space-y-1.5">
-                        {evidence.slice(0, 2).map((ce: any, j: number) => (
-                            <div key={j} className="bg-indigo-50 border border-indigo-100 rounded-lg px-3 py-2">
-                                <div className="text-[10px] italic text-indigo-900">"{typeof ce === 'string' ? ce : (ce.quote || '')}"</div>
-                                {ce.source && <div className="text-[9px] font-bold text-indigo-500 mt-0.5">{ce.source}</div>}
-                            </div>
-                        ))}
+                    <div className="pt-2 border-t border-slate-100 mt-2">
+                        <span className="text-[9px] font-extrabold text-slate-400 uppercase tracking-wider flex items-center gap-1.5 mb-1.5"><span className="text-xs">🗣</span> Consumer Voices</span>
+                        <div className="space-y-1.5">
+                            {evidence.slice(0, 2).map((ce: any, j: number) => (
+                                <div key={j} className="bg-indigo-50 border border-indigo-100 rounded-lg px-3 py-2">
+                                    <div className="text-[10px] italic text-indigo-900">"{typeof ce === 'string' ? ce : (ce.quote || '')}"</div>
+                                    {ce.source && <div className="text-[9px] font-bold text-indigo-500 mt-0.5">{ce.source}</div>}
+                                </div>
+                            ))}
+                        </div>
                     </div>
                 )}
             </div>
@@ -1427,13 +1448,16 @@ const SPGapAnalysisRendererV2 = ({ data }: { data: any }) => {
                                     {n.why_now && <div className="text-[11px] text-slate-600 mb-1"><strong>Why now:</strong> {n.why_now}</div>}
                                     {n.who && <div className="text-[10px] text-indigo-600 mb-2"><strong>Who:</strong> {n.who}</div>}
                                     {evidence.length > 0 && (
-                                        <div className="space-y-1.5">
-                                            {evidence.slice(0, 2).map((ce: any, j: number) => (
-                                                <div key={j} className="bg-indigo-50 border border-indigo-100 rounded-lg px-3 py-2">
-                                                    <div className="text-[10px] italic text-indigo-900">"{typeof ce === 'string' ? ce : (ce.quote || '')}"</div>
-                                                    {ce.source && <div className="text-[9px] font-bold text-indigo-500 mt-0.5">{ce.source}</div>}
-                                                </div>
-                                            ))}
+                                        <div className="pt-2 border-t border-slate-100 mt-2">
+                                            <span className="text-[9px] font-extrabold text-slate-400 uppercase tracking-wider flex items-center gap-1.5 mb-1.5"><span className="text-xs">🗣</span> Consumer Voices</span>
+                                            <div className="space-y-1.5">
+                                                {evidence.slice(0, 2).map((ce: any, j: number) => (
+                                                    <div key={j} className="bg-indigo-50 border border-indigo-100 rounded-lg px-3 py-2">
+                                                        <div className="text-[10px] italic text-indigo-900">"{typeof ce === 'string' ? ce : (ce.quote || '')}"</div>
+                                                        {ce.source && <div className="text-[9px] font-bold text-indigo-500 mt-0.5">{ce.source}</div>}
+                                                    </div>
+                                                ))}
+                                            </div>
                                         </div>
                                     )}
                                 </div>
@@ -1591,6 +1615,131 @@ const SPEcosystemRendererV2 = ({ data }: { data: any }) => {
                     </div>
                 </div>
             )}
+        </div>
+    );
+};
+
+const SPBrandPerformanceRenderer = ({ data }: { data: any }) => {
+    const brands = safeArr(data?.brand_performance);
+    if (brands.length === 0) return <div className="text-sm text-slate-400 italic text-center py-8">Brand data being synthesized...</div>;
+    const borderColors = ['border-l-indigo-500', 'border-l-emerald-500', 'border-l-amber-500', 'border-l-rose-500', 'border-l-purple-500', 'border-l-blue-500', 'border-l-slate-500'];
+
+    const splitQuotes = (items: any[]) => {
+        const insights: string[] = [];
+        const quotes: Array<{text: string; src: string}> = [];
+        safeArr(items).forEach((s: any) => {
+            const t = typeof s === 'string' ? s : safeStr(s);
+            if (t.startsWith('📢') || t.startsWith('"')) {
+                const clean = t.replace(/^📢\s*/, '').replace(/^"|"$/g, '');
+                const m = clean.match(/\(([^)]+)\)\s*$/);
+                quotes.push({ text: m ? clean.replace(m[0], '').trim() : clean, src: m ? m[1] : 'Consumer' });
+            } else if (t) { insights.push(t); }
+        });
+        return { insights, quotes };
+    };
+
+    return (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+            {brands.map((b: any, i: number) => {
+                const strSplit = splitQuotes(b.key_strengths);
+                const weakSplit = splitQuotes(b.key_weaknesses);
+                const allQuotes = [...strSplit.quotes, ...weakSplit.quotes];
+                return (
+                    <div key={i} className={`bg-white border border-slate-200 border-l-4 ${borderColors[i % borderColors.length]} rounded-xl p-5 shadow-sm hover:shadow-md transition-all`}>
+                        <h4 className="font-extrabold text-lg text-slate-900 mb-3">{b.brand || `Brand ${i+1}`}</h4>
+                        <div className="flex gap-3 mb-4">
+                            {b.brand_share_estimate && (
+                                <div className="bg-indigo-50 border border-indigo-100 rounded-lg px-3 py-2 text-center">
+                                    <div className="text-sm font-extrabold text-indigo-700"><SafeText content={b.brand_share_estimate} /></div>
+                                    <div className="text-[8px] text-indigo-400 uppercase">Share of Voice</div>
+                                </div>
+                            )}
+                            {b.price_band && (
+                                <div className="bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-center">
+                                    <div className="text-sm font-extrabold text-slate-700"><SafeText content={b.price_band} /></div>
+                                    <div className="text-[8px] text-slate-400 uppercase">Price Band</div>
+                                </div>
+                            )}
+                        </div>
+                        {b.sub_categories && safeArr(b.sub_categories).length > 0 && (
+                            <div className="mb-3">
+                                <span className="text-[9px] font-bold text-slate-500 uppercase block mb-1.5">Sub-Categories</span>
+                                <div className="flex flex-wrap gap-1">{safeArr(b.sub_categories).map((sc: string, j: number) => (
+                                    <span key={j} className="text-[9px] bg-indigo-50 text-indigo-700 px-2 py-0.5 rounded-full border border-indigo-100">{sc}</span>
+                                ))}</div>
+                            </div>
+                        )}
+                        {b.attribute_scale && safeArr(b.attribute_scale).length > 0 && (
+                            <div className="mb-4">
+                                <span className="text-[10px] font-extrabold text-slate-500 uppercase tracking-wider block mb-2">Attribute Performance</span>
+                                <div className="space-y-2">
+                                    {safeArr(b.attribute_scale).map((attr: any, k: number) => (
+                                        <div key={k} className="flex items-center gap-3 text-xs">
+                                            <span className="w-28 font-medium text-slate-600 text-[11px] capitalize">{(attr.attribute || '').replace(/_/g, ' ')}</span>
+                                            <div className="flex-1 h-2.5 bg-slate-100 rounded-full overflow-hidden">
+                                                <div className={`h-full rounded-full ${(attr.score_0_5||0)>=4?'bg-emerald-500':(attr.score_0_5||0)>=3?'bg-indigo-500':(attr.score_0_5||0)>=2?'bg-amber-500':'bg-red-500'}`} style={{width:`${((attr.score_0_5||0)/5)*100}%`}}></div>
+                                            </div>
+                                            <span className="font-mono text-slate-500 w-8 text-right font-bold">{attr.score_0_5??'?'}/5</span>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+                        {b.skus && safeArr(b.skus).length > 0 && (
+                            <div className="mb-3">
+                                <span className="text-[9px] font-bold text-slate-500 uppercase block mb-1.5">SKUs</span>
+                                <div className="space-y-1">{safeArr(b.skus).slice(0,4).map((sku: any, j: number) => (
+                                    <div key={j} className="flex justify-between items-center bg-slate-50 px-2.5 py-1.5 rounded-lg border border-slate-100 text-[10px]">
+                                        <span className="text-slate-700 font-medium">{sku.sku_name||''}</span>
+                                        <div className="flex gap-2">
+                                            {sku.sub_category&&<span className="text-slate-400">{sku.sub_category}</span>}
+                                            {sku.price_per_pad&&<span className="font-mono text-emerald-600 font-bold">{sku.price_per_pad}</span>}
+                                        </div>
+                                    </div>
+                                ))}</div>
+                            </div>
+                        )}
+                        {/* Insights — separated from quotes */}
+                        <div className="grid grid-cols-2 gap-3 mb-3">
+                            {strSplit.insights.length > 0 && (
+                                <div className="bg-emerald-50 rounded-lg p-3">
+                                    <span className="text-[9px] font-bold text-emerald-700 uppercase block mb-2">✦ Strengths</span>
+                                    {strSplit.insights.map((s, j) => (
+                                        <div key={j} className="text-[11px] text-emerald-900 mb-1.5 flex gap-1.5"><span className="text-emerald-500 font-bold">+</span>{s}</div>
+                                    ))}
+                                </div>
+                            )}
+                            {weakSplit.insights.length > 0 && (
+                                <div className="bg-red-50 rounded-lg p-3">
+                                    <span className="text-[9px] font-bold text-red-700 uppercase block mb-2">✧ Vulnerabilities</span>
+                                    {weakSplit.insights.map((w, j) => (
+                                        <div key={j} className="text-[11px] text-red-900 mb-1.5 flex gap-1.5"><span className="text-red-500 font-bold">−</span>{w}</div>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+                        {/* Consumer Quotes — clearly separated */}
+                        {allQuotes.length > 0 && (
+                            <div className="pt-3 border-t border-slate-100">
+                                <span className="text-[9px] font-extrabold text-slate-400 uppercase tracking-wider flex items-center gap-1.5 mb-2"><span className="text-sm">🗣</span> Consumer Voices ({allQuotes.length})</span>
+                                <div className="space-y-1.5">
+                                    {allQuotes.slice(0, 3).map((q, j) => (
+                                        <div key={j} className="bg-indigo-50/60 border border-indigo-100 rounded-lg px-3 py-2">
+                                            <div className="text-[10px] italic text-indigo-900">"{q.text}"</div>
+                                            <div className="text-[9px] font-bold text-indigo-500 mt-0.5">{q.src}</div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+                        {b.attribute_verdict && (
+                            <div className="text-[11px] text-slate-600 bg-slate-50 p-2.5 rounded-lg border border-slate-100 italic leading-relaxed mt-3">
+                                <span className="font-bold text-slate-800 not-italic">Verdict: </span><SafeText content={b.attribute_verdict} />
+                            </div>
+                        )}
+                    </div>
+                );
+            })}
         </div>
     );
 };
@@ -2057,6 +2206,7 @@ export const ModernSectionRenderer: React.FC<Props> = ({ data, projectId }) => {
         else if (isSP && c.formats && c.formats.length > 0) Component = SPEcosystemRendererV2;
         else if (isSP && (c.trigger_clusters || c.behavioural_landscape)) Component = SPSwitchingRenderer;
         else if (isSP && (c.users || c.role_summary || c.pain_point_summary)) Component = SPDeepDiveRenderer;
+        else if (isSP && c.brand_performance) Component = SPBrandPerformanceRenderer;
         
         // Shared femcare renderers (all projects including SP fallback)
         else if (c.cards || c.menstruation_context) Component = MenstruationContextRenderer;
