@@ -1036,6 +1036,15 @@ const SPCardsRenderer = ({ data }: { data: any }) => {
         'from-slate-700 to-slate-600'
     ];
     const cardAccents = ['indigo', 'blue', 'purple', 'amber', 'emerald', 'rose', 'slate'];
+    const accentMap: Record<string, {border: string; bg: string; text: string; quoteBg: string; quoteBorder: string; quoteText: string}> = {
+        indigo: {border:'border-indigo-100', bg:'bg-indigo-50', text:'text-indigo-700', quoteBg:'bg-indigo-50/80', quoteBorder:'border-indigo-200', quoteText:'text-indigo-900'},
+        blue: {border:'border-blue-100', bg:'bg-blue-50', text:'text-blue-700', quoteBg:'bg-blue-50/80', quoteBorder:'border-blue-200', quoteText:'text-blue-900'},
+        purple: {border:'border-purple-100', bg:'bg-purple-50', text:'text-purple-700', quoteBg:'bg-purple-50/80', quoteBorder:'border-purple-200', quoteText:'text-purple-900'},
+        amber: {border:'border-amber-100', bg:'bg-amber-50', text:'text-amber-700', quoteBg:'bg-amber-50/80', quoteBorder:'border-amber-200', quoteText:'text-amber-900'},
+        emerald: {border:'border-emerald-100', bg:'bg-emerald-50', text:'text-emerald-700', quoteBg:'bg-emerald-50/80', quoteBorder:'border-emerald-200', quoteText:'text-emerald-900'},
+        rose: {border:'border-rose-100', bg:'bg-rose-50', text:'text-rose-700', quoteBg:'bg-rose-50/80', quoteBorder:'border-rose-200', quoteText:'text-rose-900'},
+        slate: {border:'border-slate-200', bg:'bg-slate-50', text:'text-slate-600', quoteBg:'bg-slate-50', quoteBorder:'border-slate-200', quoteText:'text-slate-700'},
+    };
 
     return (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
@@ -1053,41 +1062,42 @@ const SPCardsRenderer = ({ data }: { data: any }) => {
                     } else { insights.push(s); }
                 });
                 const accent = cardAccents[idx % cardAccents.length];
-                const accentMap: Record<string, {border: string; bg: string; text: string}> = {
-                    indigo: {border:'border-indigo-100', bg:'bg-indigo-50', text:'text-indigo-700'},
-                    blue: {border:'border-blue-100', bg:'bg-blue-50', text:'text-blue-700'},
-                    purple: {border:'border-purple-100', bg:'bg-purple-50', text:'text-purple-700'},
-                    amber: {border:'border-amber-100', bg:'bg-amber-50', text:'text-amber-700'},
-                    emerald: {border:'border-emerald-100', bg:'bg-emerald-50', text:'text-emerald-700'},
-                    rose: {border:'border-rose-100', bg:'bg-rose-50', text:'text-rose-700'},
-                    slate: {border:'border-slate-200', bg:'bg-slate-50', text:'text-slate-600'},
-                };
                 const ac = accentMap[accent] || accentMap.indigo;
                 return (
                     <div key={idx} className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm hover:shadow-lg transition-all">
                         <div className={`bg-gradient-to-r ${cardGradients[idx % cardGradients.length]} px-5 py-3.5`}>
                             <h4 className="font-extrabold text-white text-sm tracking-wide">{card.boldTitle || card.title || safeStr(card)}</h4>
                         </div>
-                        <div className="p-5 space-y-2.5">
-                            {insights.map((b, i) => (
-                                <div key={i} className={`${ac.bg} border ${ac.border} rounded-xl px-3.5 py-2.5`}>
-                                    <div className={`text-[11px] ${ac.text} leading-relaxed`}>
-                                        <span className={`${ac.text} font-bold mr-1`}>▹</span>{b}
-                                    </div>
+                        <div className="p-5">
+                            {/* Insights Section */}
+                            {insights.length > 0 && (
+                                <div className="space-y-2 mb-4">
+                                    <span className="text-[9px] font-extrabold text-slate-400 uppercase tracking-wider">Insights</span>
+                                    {insights.map((b, i) => (
+                                        <div key={i} className={`${ac.bg} border ${ac.border} rounded-xl px-3.5 py-2.5`}>
+                                            <div className={`text-[11px] ${ac.text} leading-relaxed flex gap-2`}>
+                                                <span className="font-bold flex-shrink-0 mt-0.5">▹</span><span>{b}</span>
+                                            </div>
+                                        </div>
+                                    ))}
                                 </div>
-                            ))}
+                            )}
+                            {/* Consumer Quotes Section — Clearly Separated */}
                             {quotes.length > 0 && (
-                                <div className="space-y-2 pt-2 border-t border-slate-100">
-                                    {quotes.slice(0, 3).map((q, i) => (
-                                        <div key={i} className="bg-gradient-to-br from-indigo-50/80 to-white border border-indigo-100 rounded-xl px-3.5 py-2.5">
-                                            <div className="text-[10px] italic text-indigo-900 leading-relaxed">"{q.text}"</div>
-                                            <div className="text-[9px] font-bold text-indigo-500 mt-1">{q.src}</div>
+                                <div className="space-y-2 pt-3 border-t border-slate-100">
+                                    <span className="text-[9px] font-extrabold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
+                                        <span className="text-sm">🗣</span> Consumer Voices ({quotes.length})
+                                    </span>
+                                    {quotes.slice(0, 4).map((q, i) => (
+                                        <div key={i} className={`${ac.quoteBg} border ${ac.quoteBorder} rounded-xl px-3.5 py-2.5`}>
+                                            <div className={`text-[10px] italic ${ac.quoteText} leading-relaxed`}>"{q.text}"</div>
+                                            <div className="text-[9px] font-bold text-slate-500 mt-1 bg-white/60 inline-block px-1.5 py-0.5 rounded">{q.src}</div>
                                         </div>
                                     ))}
                                 </div>
                             )}
                             {card.metrics && safeArr(card.metrics).length > 0 && (
-                                <div className="flex flex-wrap gap-2 pt-2 border-t border-slate-100">
+                                <div className="flex flex-wrap gap-2 pt-3 border-t border-slate-100 mt-3">
                                     {safeArr(card.metrics).map((m: any, i: number) => (
                                         <span key={i} className="text-[9px] bg-slate-100 text-slate-600 px-2 py-1 rounded-full font-medium">
                                             {m.label}: <strong>{m.value}</strong>
@@ -1099,6 +1109,247 @@ const SPCardsRenderer = ({ data }: { data: any }) => {
                     </div>
                 );
             })}
+        </div>
+    );
+};
+
+const SPSwitchingRenderer = ({ data }: { data: any }) => {
+    const triggers = safeArr(data?.trigger_clusters);
+    const barriers = data?.barrier_groups || {};
+    const switching = safeArr(data?.switching_dynamics);
+    const brandSwitch = safeArr(data?.brand_switching);
+    const ensArr = safeArr;
+
+    const renderQuotesFromBullets = (bullets: any[]) => {
+        const quotes: Array<{text: string; src: string}> = [];
+        const insights: string[] = [];
+        ensArr(bullets).forEach((b: any) => {
+            const s = typeof b === 'string' ? b : safeStr(b);
+            if (s.startsWith('📢') || (typeof b === 'object' && b.quote)) {
+                const clean = s.replace(/^📢\s*/, '').replace(/^"|"$/g, '');
+                const m = clean.match(/\(([^)]+)\)\s*$/);
+                quotes.push({ text: m ? clean.replace(m[0], '').trim() : (b.quote || clean), src: m ? m[1] : (b.source || 'Consumer') });
+            } else if (s) { insights.push(s); }
+        });
+        return { insights, quotes };
+    };
+
+    return (
+        <div className="space-y-8">
+            {triggers.length > 0 && (
+                <div>
+                    <div className="flex items-center gap-2 mb-4"><span>⚡</span><h4 className="text-[11px] font-extrabold uppercase tracking-[0.15em] text-slate-500">Adoption Triggers</h4><div className="flex-1 h-px bg-gradient-to-r from-slate-200 to-transparent"></div></div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        {triggers.map((t: any, i: number) => {
+                            const { insights, quotes } = renderQuotesFromBullets(ensArr(t.bullets));
+                            return (
+                                <div key={i} className="bg-white border border-slate-200 border-l-4 border-l-indigo-500 rounded-xl p-4 shadow-sm">
+                                    <div className="flex justify-between items-start mb-2">
+                                        <h5 className="font-bold text-indigo-900 text-xs flex-1">{t.title || t.cluster_name || ''}</h5>
+                                        {t.intensity && <span className={`text-[8px] font-bold px-1.5 py-0.5 rounded ${t.intensity === 'HIGH' ? 'bg-red-100 text-red-700' : 'bg-slate-100 text-slate-600'}`}>{t.intensity}</span>}
+                                    </div>
+                                    {t.explanation && <p className="text-[11px] text-slate-600 mb-2 leading-relaxed">{t.explanation}</p>}
+                                    {insights.length > 0 && insights.map((ins, j) => (
+                                        <div key={j} className="text-[11px] text-indigo-700 bg-indigo-50 border border-indigo-100 rounded-lg px-3 py-2 mb-1.5">{ins}</div>
+                                    ))}
+                                    {quotes.length > 0 && (
+                                        <div className="pt-2 border-t border-slate-100 mt-2 space-y-1.5">
+                                            {quotes.slice(0, 2).map((q, j) => (
+                                                <div key={j} className="bg-indigo-50/60 border border-indigo-100 rounded-lg px-3 py-2">
+                                                    <div className="text-[10px] italic text-indigo-900">"{q.text}"</div>
+                                                    <div className="text-[9px] font-bold text-indigo-500 mt-0.5">{q.src}</div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    )}
+                                </div>
+                            );
+                        })}
+                    </div>
+                </div>
+            )}
+
+            {Object.keys(barriers).length > 0 && (
+                <div>
+                    <div className="flex items-center gap-2 mb-4"><span>🚧</span><h4 className="text-[11px] font-extrabold uppercase tracking-[0.15em] text-slate-500">Barriers to Upgrade</h4><div className="flex-1 h-px bg-gradient-to-r from-slate-200 to-transparent"></div></div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
+                        {Object.entries(barriers).map(([key, items]: [string, any], idx: number) => {
+                            const { insights, quotes } = renderQuotesFromBullets(ensArr(items));
+                            return (
+                                <div key={key} className="bg-white border border-rose-200 rounded-xl p-4 shadow-sm">
+                                    <div className="text-[10px] font-extrabold text-rose-700 uppercase tracking-wider mb-3 pb-2 border-b border-rose-100">{key.replace(/_/g, ' ')}</div>
+                                    {insights.map((b, i) => (
+                                        <div key={i} className="text-[11px] text-rose-800 bg-rose-50 border border-rose-100 rounded-lg px-3 py-2 mb-1.5 flex gap-2"><span className="text-rose-400 flex-shrink-0">•</span><span>{b}</span></div>
+                                    ))}
+                                    {quotes.length > 0 && quotes.slice(0, 1).map((q, j) => (
+                                        <div key={j} className="bg-rose-50/50 border border-rose-100 rounded-lg px-3 py-2 mt-2">
+                                            <div className="text-[10px] italic text-rose-900">"{q.text}"</div>
+                                            <div className="text-[9px] font-bold text-rose-500 mt-0.5">{q.src}</div>
+                                        </div>
+                                    ))}
+                                </div>
+                            );
+                        })}
+                    </div>
+                </div>
+            )}
+
+            {switching.length > 0 && (
+                <div>
+                    <div className="flex items-center gap-2 mb-4"><span>🔄</span><h4 className="text-[11px] font-extrabold uppercase tracking-[0.15em] text-slate-500">Sub-Segment Switching</h4><div className="flex-1 h-px bg-gradient-to-r from-slate-200 to-transparent"></div></div>
+                    <div className="space-y-3">
+                        {switching.map((s: any, i: number) => {
+                            const { insights, quotes } = renderQuotesFromBullets(ensArr(s.logic_bullets));
+                            return (
+                                <div key={i} className="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm">
+                                    <div className="flex flex-col md:flex-row">
+                                        <div className="md:w-1/4 bg-gradient-to-br from-slate-800 to-slate-700 p-4 flex items-center">
+                                            <div className="text-white font-bold text-sm">{s.pathway || ''}</div>
+                                        </div>
+                                        <div className="flex-1 p-4">
+                                            {s.insight && <div className="text-[11px] text-slate-700 font-medium mb-2">{s.insight}</div>}
+                                            {insights.length > 0 && (
+                                                <div className="space-y-1.5 mb-2">
+                                                    {insights.map((b, j) => (
+                                                        <div key={j} className="text-[11px] text-emerald-700 bg-emerald-50 border border-emerald-100 rounded-lg px-3 py-2 flex gap-2"><span className="text-emerald-500">→</span>{b}</div>
+                                                    ))}
+                                                </div>
+                                            )}
+                                            {quotes.length > 0 && (
+                                                <div className="pt-2 border-t border-slate-100 space-y-1.5">
+                                                    {quotes.slice(0, 2).map((q, j) => (
+                                                        <div key={j} className="bg-indigo-50/60 border border-indigo-100 rounded-lg px-3 py-2">
+                                                            <div className="text-[10px] italic text-indigo-900">"{q.text}"</div>
+                                                            <div className="text-[9px] font-bold text-indigo-500 mt-0.5">{q.src}</div>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+                                </div>
+                            );
+                        })}
+                    </div>
+                </div>
+            )}
+
+            {brandSwitch.length > 0 && (
+                <div>
+                    <div className="flex items-center gap-2 mb-4"><span>🔀</span><h4 className="text-[11px] font-extrabold uppercase tracking-[0.15em] text-slate-500">Brand Switching</h4><div className="flex-1 h-px bg-gradient-to-r from-slate-200 to-transparent"></div></div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        {brandSwitch.map((bs: any, i: number) => (
+                            <div key={i} className="bg-white border border-purple-200 rounded-xl p-4 shadow-sm">
+                                <div className="flex items-center gap-2 mb-3 pb-2 border-b border-purple-100">
+                                    <span className="text-[10px] font-bold text-rose-700 bg-rose-50 px-2.5 py-1 rounded-lg border border-rose-200">{bs.from_brand || '?'}</span>
+                                    <span className="text-purple-500 font-extrabold">→</span>
+                                    <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-lg border border-emerald-200">{bs.to_brand || '?'}</span>
+                                </div>
+                                {bs.reason && <div className="text-[11px] text-slate-700 mb-2"><strong>Why:</strong> {bs.reason}</div>}
+                                {bs.trigger && <div className="text-[10px] text-purple-700 bg-purple-50 px-3 py-2 rounded-lg border border-purple-100 italic"><strong className="not-italic">Trigger:</strong> {bs.trigger}</div>}
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            )}
+        </div>
+    );
+};
+
+const SPDeepDiveRenderer = ({ data }: { data: any }) => {
+    const pp = data?.pain_point_summary;
+    
+    const renderPainPoints = (items: any[], accent: string) => {
+        const colors: Record<string, {bg: string; border: string; text: string; sevHigh: string}> = {
+            amber: { bg: 'bg-amber-50', border: 'border-amber-200', text: 'text-amber-800', sevHigh: 'bg-red-100 text-red-700' },
+            rose: { bg: 'bg-rose-50', border: 'border-rose-200', text: 'text-rose-800', sevHigh: 'bg-red-100 text-red-700' },
+            purple: { bg: 'bg-purple-50', border: 'border-purple-200', text: 'text-purple-800', sevHigh: 'bg-red-100 text-red-700' },
+        };
+        const c = colors[accent] || colors.amber;
+        return safeArr(items).map((pp: any, i: number) => {
+            const evidence = safeArr(pp.verbatims || pp.consumer_evidence);
+            return (
+                <div key={i} className={`${c.bg} border ${c.border} rounded-xl p-4`}>
+                    <div className="flex items-start gap-2 mb-1.5">
+                        {pp.severity && <span className={`text-[8px] font-bold px-1.5 py-0.5 rounded ${pp.severity === 'HIGH' ? c.sevHigh : 'bg-slate-100 text-slate-600'}`}>{pp.severity}</span>}
+                        <span className={`text-xs font-bold ${c.text} flex-1`}>{pp.pain_point || ''}</span>
+                        {pp.data_points && <span className="text-[8px] font-mono text-slate-400 bg-white px-1.5 py-0.5 rounded border border-slate-200">{pp.data_points} pts</span>}
+                    </div>
+                    {pp.detail && <div className="text-[11px] text-slate-600 mb-2">{pp.detail}</div>}
+                    {evidence.length > 0 && (
+                        <div className="space-y-1.5 pt-2 border-t border-slate-100">
+                            {evidence.slice(0, 2).map((e: any, j: number) => (
+                                <div key={j} className="bg-white/80 border border-slate-200 rounded-lg px-3 py-2">
+                                    <div className="text-[10px] italic text-slate-700">"{typeof e === 'string' ? e : (e.quote || '')}"</div>
+                                    {e.source && <div className="text-[9px] font-bold text-indigo-500 mt-0.5">{e.source}</div>}
+                                </div>
+                            ))}
+                        </div>
+                    )}
+                </div>
+            );
+        });
+    };
+
+    return (
+        <div className="space-y-8">
+            {/* Render existing deep dive content via shared renderer props passthrough */}
+            {data.role_summary && (
+                <div className="bg-gradient-to-r from-indigo-600 to-purple-600 text-white p-5 rounded-2xl shadow-lg">
+                    <h4 className="font-extrabold text-lg mb-2">{data.role_summary.boldTitle || 'Consumer Deep Dive'}</h4>
+                    {safeArr(data.role_summary.bullets).map((b: any, i: number) => (
+                        <div key={i} className="text-sm text-white/90 mb-1">▹ {typeof b === 'string' ? b : safeStr(b)}</div>
+                    ))}
+                </div>
+            )}
+
+            {/* Pain Point Summary */}
+            {pp && (
+                <div className="space-y-6">
+                    <div className="bg-gradient-to-r from-slate-800 to-slate-700 px-6 py-4 rounded-2xl">
+                        <h4 className="font-extrabold text-white text-base uppercase tracking-wide">Pain Point Summary: Functional vs Emotional</h4>
+                        <span className="text-[10px] text-slate-400">One-pager for strategic prioritization</span>
+                    </div>
+                    {pp.users && (
+                        <div>
+                            <div className="flex items-center gap-2 mb-3"><span className="w-2 h-2 rounded-full bg-indigo-500"></span><span className="text-[11px] font-extrabold text-indigo-700 uppercase tracking-wider">Users — Pain Points</span></div>
+                            <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+                                {safeArr(pp.users.functional).length > 0 && (
+                                    <div className="bg-white border border-slate-200 rounded-xl p-5 shadow-sm">
+                                        <span className="text-[10px] font-extrabold text-amber-600 uppercase tracking-wider mb-3 block">⚙️ Functional</span>
+                                        <div className="space-y-3">{renderPainPoints(pp.users.functional, 'amber')}</div>
+                                    </div>
+                                )}
+                                {safeArr(pp.users.emotional).length > 0 && (
+                                    <div className="bg-white border border-slate-200 rounded-xl p-5 shadow-sm">
+                                        <span className="text-[10px] font-extrabold text-rose-600 uppercase tracking-wider mb-3 block">💔 Emotional</span>
+                                        <div className="space-y-3">{renderPainPoints(pp.users.emotional, 'rose')}</div>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    )}
+                    {pp.non_users && (
+                        <div>
+                            <div className="flex items-center gap-2 mb-3"><span className="w-2 h-2 rounded-full bg-rose-500"></span><span className="text-[11px] font-extrabold text-rose-700 uppercase tracking-wider">Non-Users — Barriers</span></div>
+                            <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+                                {safeArr(pp.non_users.functional).length > 0 && (
+                                    <div className="bg-white border border-slate-200 rounded-xl p-5 shadow-sm">
+                                        <span className="text-[10px] font-extrabold text-amber-600 uppercase tracking-wider mb-3 block">⚙️ Functional Barriers</span>
+                                        <div className="space-y-3">{renderPainPoints(pp.non_users.functional, 'amber')}</div>
+                                    </div>
+                                )}
+                                {safeArr(pp.non_users.emotional).length > 0 && (
+                                    <div className="bg-white border border-slate-200 rounded-xl p-5 shadow-sm">
+                                        <span className="text-[10px] font-extrabold text-purple-600 uppercase tracking-wider mb-3 block">💭 Emotional Barriers</span>
+                                        <div className="space-y-3">{renderPainPoints(pp.non_users.emotional, 'purple')}</div>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    )}
+                </div>
+            )}
         </div>
     );
 };
@@ -1221,22 +1472,74 @@ const SPEcosystemRendererV2 = ({ data }: { data: any }) => {
                                     {f.role_in_lifecycle && <p className="text-white/80 text-[10px] mt-0.5">{f.role_in_lifecycle}</p>}
                                 </div>
                                 <div className="p-4 space-y-2">
-                                    {safeArr(f.functional_resolution).map((r: any, k: number) => (
-                                        <div key={`f${k}`} className={`${c.funcBg} border ${c.funcBorder} rounded-xl px-3.5 py-2.5`}>
-                                            <div className="flex items-start gap-2">
-                                                <span className={`${c.funcText} font-bold text-xs mt-0.5`}>✓</span>
-                                                <span className={`text-[11px] ${c.funcText}`}>{typeof r === 'string' ? r : safeStr(r)}</span>
+                                    {safeArr(f.functional_resolution).length > 0 && (
+                                        <div className="mb-2">
+                                            <span className="text-[9px] font-extrabold text-emerald-600 uppercase tracking-wider">Functional</span>
+                                            <div className="space-y-1.5 mt-1.5">
+                                                {safeArr(f.functional_resolution).map((r: any, k: number) => {
+                                                    const txt = typeof r === 'string' ? r : safeStr(r);
+                                                    const isQuote = txt.startsWith('📢') || txt.startsWith('"');
+                                                    if (isQuote) return null; // Quotes handled below
+                                                    return (
+                                                        <div key={`f${k}`} className={`${c.funcBg} border ${c.funcBorder} rounded-xl px-3.5 py-2.5`}>
+                                                            <div className="flex items-start gap-2">
+                                                                <span className={`${c.funcText} font-bold text-xs mt-0.5`}>✓</span>
+                                                                <span className={`text-[11px] ${c.funcText}`}>{txt}</span>
+                                                            </div>
+                                                        </div>
+                                                    );
+                                                })}
                                             </div>
                                         </div>
-                                    ))}
-                                    {safeArr(f.emotional_resolution).map((r: any, k: number) => (
-                                        <div key={`e${k}`} className="bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5">
-                                            <div className="flex items-start gap-2">
-                                                <span className="text-slate-400 text-xs mt-0.5">♡</span>
-                                                <span className="text-[11px] text-slate-600">{typeof r === 'string' ? r : safeStr(r)}</span>
+                                    )}
+                                    {safeArr(f.emotional_resolution).length > 0 && (
+                                        <div className="mb-2">
+                                            <span className="text-[9px] font-extrabold text-purple-600 uppercase tracking-wider">Emotional</span>
+                                            <div className="space-y-1.5 mt-1.5">
+                                                {safeArr(f.emotional_resolution).map((r: any, k: number) => {
+                                                    const txt = typeof r === 'string' ? r : safeStr(r);
+                                                    if (txt.startsWith('📢') || txt.startsWith('"')) return null;
+                                                    return (
+                                                        <div key={`e${k}`} className="bg-purple-50 border border-purple-100 rounded-xl px-3.5 py-2.5">
+                                                            <div className="flex items-start gap-2">
+                                                                <span className="text-purple-400 text-xs mt-0.5">♡</span>
+                                                                <span className="text-[11px] text-purple-700">{txt}</span>
+                                                            </div>
+                                                        </div>
+                                                    );
+                                                })}
                                             </div>
                                         </div>
-                                    ))}
+                                    )}
+                                    {/* Consumer Quotes — extracted from both arrays */}
+                                    {(() => {
+                                        const allItems = [...safeArr(f.functional_resolution), ...safeArr(f.emotional_resolution)];
+                                        const quotes = allItems.filter((r: any) => {
+                                            const t = typeof r === 'string' ? r : safeStr(r);
+                                            return t.startsWith('📢') || t.startsWith('"');
+                                        }).map((r: any) => {
+                                            const t = typeof r === 'string' ? r : safeStr(r);
+                                            const clean = t.replace(/^📢\s*/, '').replace(/^"|"$/g, '');
+                                            const m = clean.match(/\(([^)]+)\)\s*$/);
+                                            return { text: m ? clean.replace(m[0], '').trim() : clean, src: m ? m[1] : 'Consumer' };
+                                        });
+                                        if (quotes.length === 0) return null;
+                                        return (
+                                            <div className="pt-2 border-t border-slate-100">
+                                                <span className="text-[9px] font-extrabold text-slate-400 uppercase tracking-wider flex items-center gap-1.5 mb-1.5">
+                                                    <span className="text-sm">🗣</span> Consumer Voices
+                                                </span>
+                                                <div className="space-y-1.5">
+                                                    {quotes.slice(0, 2).map((q: any, qi: number) => (
+                                                        <div key={qi} className="bg-indigo-50/80 border border-indigo-200 rounded-xl px-3.5 py-2.5">
+                                                            <div className="text-[10px] italic text-indigo-900">"{q.text}"</div>
+                                                            <div className="text-[9px] font-bold text-indigo-500 mt-1">{q.src}</div>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        );
+                                    })()}
                                 </div>
                             </div>
                         );
@@ -1752,6 +2055,8 @@ export const ModernSectionRenderer: React.FC<Props> = ({ data, projectId }) => {
         if (isSP && (c.cards || c.menstruation_context)) Component = SPCardsRenderer;
         else if (isSP && (c.current_challenges || c.need_gap)) Component = SPGapAnalysisRendererV2;
         else if (isSP && c.formats && c.formats.length > 0) Component = SPEcosystemRendererV2;
+        else if (isSP && (c.trigger_clusters || c.behavioural_landscape)) Component = SPSwitchingRenderer;
+        else if (isSP && (c.users || c.role_summary || c.pain_point_summary)) Component = SPDeepDiveRenderer;
         
         // Shared femcare renderers (all projects including SP fallback)
         else if (c.cards || c.menstruation_context) Component = MenstruationContextRenderer;

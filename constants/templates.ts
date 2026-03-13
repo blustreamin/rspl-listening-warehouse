@@ -890,6 +890,16 @@ SANITARY PADS REPORT — ADDITIONAL MANDATORY RULES:
               "brands_aware": string[],
               "barriers_to_try": Array<{title, bullets[]}> 
            },
+           "pain_point_summary": {
+              "users": {
+                "functional": Array<{pain_point: string, detail: string, severity: "HIGH"|"MED"|"LOW", data_points: N, verbatims: [{quote, source}]}>,
+                "emotional": Array<{pain_point: string, detail: string, severity: "HIGH"|"MED"|"LOW", data_points: N, verbatims: [{quote, source}]}>
+              },
+              "non_users": {
+                "functional": Array<{pain_point: string, detail: string, severity: "HIGH"|"MED"|"LOW", data_points: N, verbatims: [{quote, source}]}>,
+                "emotional": Array<{pain_point: string, detail: string, severity: "HIGH"|"MED"|"LOW", data_points: N, verbatims: [{quote, source}]}>
+              }
+           },
            "whisper_ultra_clean": {
               "product_context": string,
               "consumer_feedback": Array<{aspect, sentiment: "POS"|"NEG"|"MIX", insight}>,
@@ -906,6 +916,13 @@ SANITARY PADS REPORT — ADDITIONAL MANDATORY RULES:
         Same 9 parameters but also: Packaging, Subscription convenience, Organic/eco claims, Brand trust.
         
         NON-USERS OF ULTRA (still on Fluff): Why haven't they upgraded? Barriers specific to Tier 2/3.
+
+        PAIN POINT SUMMARY (MANDATORY ONE-PAGER):
+        Users Functional (min 5): Rash, leakage, wing adhesion, sizing, absorption failure, disposal.
+        Users Emotional (min 4): Stain anxiety, brand distrust, social embarrassment, feeling "cheated" by marketing claims.
+        Non-Users Functional (min 4): Price barrier, availability, lack of awareness about Ultra benefits, disposal concerns.
+        Non-Users Emotional (min 4): Loyalty to familiar brand, distrust of D2C, "my current pad works fine" inertia, peer influence gap.
+        Each pain point: severity + data_points (calibrated to 23,700 total) + min 2 verbatims.
         
         WHISPER ULTRA CLEAN — DISCONTINUED PRODUCT:
         This was a Premium Ultra pad discontinued last year. Capture any residual consumer feedback:

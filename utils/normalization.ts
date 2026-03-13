@@ -248,12 +248,13 @@ export const normalizeSectionData = (
                     pricing_architecture: ensureArray(data.pricing_architecture || data.pricing),
                     combos_and_kits: ensureArray(data.combos_and_kits || data.combos)
                 };
-            case '5': // Consumer Deep Dive → users + non_users + whisper_ultra_clean
+            case '5': // Consumer Deep Dive → users + non_users + pain_point_summary + whisper_ultra_clean
                 return {
                     ...data,
                     role_summary: data.role_summary || null,
                     users: data.users || null,
                     non_users: data.non_users || null,
+                    pain_point_summary: data.pain_point_summary || null,
                     whisper_ultra_clean: data.whisper_ultra_clean || null,
                     segmentation: data.segmentation ? normalizeSegmentation(data.segmentation) : null
                 };
