@@ -153,10 +153,15 @@ export const TEMPLATE_REGISTRY: Record<ProjectId, TemplatePack> = {
       { sectionId: "7", title: "Brand Performance", uiSpec: "matrix", schema: { type: "object", required: ["brand_performance"] } },
       { sectionId: "8", title: "Awareness & Purchase Channels", uiSpec: "funnel", schema: { type: "object", required: ["discovery_sources"] } },
       { sectionId: "9", title: "Deep Dive: Disposable Panties", uiSpec: "text-list", schema: { type: "object", required: ["users", "non_users"] } },
-      { sectionId: "10", title: "Visual Synthesis", uiSpec: "cards", schema: { type: "object", required: ["word_cloud_themes"] } }
+      { sectionId: "10", title: "Visual Synthesis", uiSpec: "cards", schema: { type: "object", required: ["word_cloud_themes"] } },
+      { sectionId: "11", title: "Geographic & Regional Insights", uiSpec: "cards", schema: { type: "object", required: ["cards"] } }
     ],
     promptPack: {
-      systemPrompt: ANALYST_GRADE_SYSTEM_PROMPT,
+      systemPrompt: ANALYST_GRADE_SYSTEM_PROMPT + `
+DISPOSABLE PERIOD PANTIES — ADDITIONAL RULES:
+- BRAND NAME IN VERBATIMS: For Amazon.in and Flipkart sourced quotes, the "source" field MUST include the brand variant being reviewed. Format: "Amazon.in · Whisper Pants L", "Flipkart · Nua Disposable M-L", "Amazon.in · Sirona Disposable XL". This is NON-NEGOTIABLE.
+- CONSUMER DESCRIPTION: Every verbatim must include consumer description with age, role, city/tier. E.g. "25F, College student, Bangalore", "32F, Working mother, Tier 2 Lucknow".
+`,
       sectionPrompts: {
         "1": `
         SECTION 1: MENSTRUATION CONTEXT & TRENDS (INDIA FOCUS)
@@ -433,6 +438,59 @@ export const TEMPLATE_REGISTRY: Record<ProjectId, TemplatePack> = {
         REQUIREMENTS:
         - Source Volume: ALWAYS render full distribution. Include Flipkart.
         - Themes: Extract high-impact strategic themes (e.g. "Travel Freedom", "Sleep Security", "Rash Relief").
+        `,
+
+        "11": `
+        SECTION 11: GEOGRAPHIC & REGIONAL INSIGHTS
+        Output Object: { "cards": Array<{boldTitle: string, bullets: string[], evidence_ids: [], confidence: "HIGH"|"MED"|"LOW", metrics: Array<{label: string, value: string}>}> }
+        
+        STRATEGIC DIRECTIVE:
+        Extract geographic and regional trends from the evidence base. Analyze how disposable period panty adoption, brand preference, channel usage, and consumer sentiment vary by geography.
+        
+        MANDATORY CARDS (min 6):
+        
+        1. "Metro vs Tier 2/3 Adoption Gap":
+        - Metro cities (Mumbai, Delhi, Bangalore, Chennai, Hyderabad, Pune, Kolkata): adoption rate, brand preferences, purchase channel (D2C/Quick Commerce dominant?)
+        - Tier 2/3 cities: awareness levels, barriers, which brands penetrate, chemist vs online
+        - Data points count for each tier
+        
+        2. "North India Regional Trends":
+        - Delhi NCR, UP, Punjab, Rajasthan patterns
+        - Brand preferences, price sensitivity, channel (pharmacy vs Amazon)
+        - Cultural factors affecting adoption
+        
+        3. "South India Regional Trends":
+        - Bangalore, Chennai, Hyderabad, Kerala patterns
+        - Higher health awareness? Different brand preferences?
+        - Language/content consumption patterns affecting discovery
+        
+        4. "East & Northeast India":
+        - Kolkata, Assam, Odisha patterns
+        - Availability gaps, awareness levels
+        - Any emerging adoption signals?
+        
+        5. "West India Regional Trends":
+        - Mumbai, Pune, Gujarat, Goa patterns
+        - Quick commerce penetration (Blinkit/Zepto), D2C adoption
+        - Price elasticity differences
+        
+        6. "E-Commerce Geography: Where Orders Ship":
+        - Pin code concentration from Amazon/Flipkart review data
+        - Which cities dominate verified purchase reviews?
+        - Metro vs non-metro ordering patterns
+        
+        7. "Regional Brand Dominance Map":
+        - Which brand dominates which region/city?
+        - Whisper (national) vs D2C brands (metro-concentrated)?
+        - Any regional brands or local preferences?
+        
+        For EACH card:
+        - Include brand names in verbatim sources: "Amazon.in · Whisper Pants L"
+        - Include consumer description with city/region
+        - metrics: [{label: "Data Points", value: "N"}, {label: "Key City", value: "CityName"}]
+        - Confidence: HIGH if supported by review location data, MED if inferred from language/context, LOW if thin data
+        
+        If geographic data is sparse for a region, explicitly state the data limitation and provide whatever signals exist.
         `
       }
     },
@@ -444,7 +502,8 @@ export const TEMPLATE_REGISTRY: Record<ProjectId, TemplatePack> = {
       "4": (d: any) => hasMinItems(d.roles, 3),
       "6": (d: any) => hasMinItems(d.tradeoff_matrix, 8),
       "7": (d: any) => hasMinItems(d.brand_performance, 5),
-      "9": (d: any) => d.users && hasMinItems(d.users.experience_parameters, 8)
+      "9": (d: any) => d.users && hasMinItems(d.users.experience_parameters, 8),
+      "11": (d: any) => hasMinItems(d.cards, 4)
     },
     fallbacks: {
       "1": { cards: [
