@@ -1447,8 +1447,103 @@ const SPDeepDiveRenderer = ({ data }: { data: any }) => {
     const pp = data?.pain_point_summary;
     const users = data?.users;
     const nonUsers = data?.non_users;
+    const puUsers = data?.premium_ultra_users;
+    const puNonUsers = data?.premium_ultra_non_users;
+    const spuUsers = data?.super_premium_ultra_users;
+    const spuNonUsers = data?.super_premium_ultra_non_users;
     const wuc = data?.whisper_ultra_clean;
     const ensArr = safeArr;
+    const hasSegmentedProfiles = puUsers || spuUsers;
+
+    // Render a segment user profile block
+    const renderSegmentProfile = (profile: any, isUser: boolean, gradientClass: string) => {
+        if (!profile) return null;
+        return (
+            <div className="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm">
+                <div className={`bg-gradient-to-r ${gradientClass} px-5 py-3.5`}>
+                    <h4 className="font-extrabold text-white text-sm">{profile.segment_label || (isUser ? 'Users' : 'Non-Users')}</h4>
+                    {profile.who_they_are && <p className="text-white/80 text-[10px] mt-1">{profile.who_they_are}</p>}
+                </div>
+                <div className="p-5 space-y-4">
+                    {profile.brands_in_scope && (
+                        <div><span className="text-[9px] font-bold text-slate-500 uppercase block mb-1.5">Brands</span>
+                            <div className="flex flex-wrap gap-1.5">{ensArr(profile.brands_in_scope).map((b: string, i: number) => (
+                                <span key={i} className="text-[9px] bg-indigo-50 text-indigo-700 px-2 py-0.5 rounded-full border border-indigo-100">{b}</span>
+                            ))}</div>
+                        </div>
+                    )}
+                    {isUser && ensArr(profile.discovery_sources).length > 0 && (
+                        <div><span className="text-[9px] font-bold text-slate-500 uppercase block mb-1.5">Discovery Sources</span>
+                            <div className="flex flex-wrap gap-1.5">{ensArr(profile.discovery_sources).map((s: any, i: number) => (
+                                <span key={i} className="text-xs bg-indigo-50 border border-indigo-100 px-2 py-1 rounded-lg text-indigo-800">{typeof s === 'string' ? s : safeStr(s)}</span>
+                            ))}</div>
+                        </div>
+                    )}
+                    {isUser && ensArr(profile.triggers).length > 0 && (
+                        <div><span className="text-[9px] font-bold text-slate-500 uppercase block mb-1.5">Triggers</span>
+                            <div className="flex flex-wrap gap-1.5">{ensArr(profile.triggers).map((t: any, i: number) => (
+                                <span key={i} className="text-xs bg-emerald-50 border border-emerald-100 px-2 py-1 rounded-lg text-emerald-800">{typeof t === 'string' ? t : safeStr(t)}</span>
+                            ))}</div>
+                        </div>
+                    )}
+                    {isUser && ensArr(profile.experience_parameters).length > 0 && (
+                        <div><span className="text-[9px] font-bold text-slate-500 uppercase block mb-2">Experience Parameters</span>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                                {ensArr(profile.experience_parameters).map((p: any, i: number) => {
+                                    const sentColor = p.sentiment === 'POS' ? 'border-l-emerald-500 bg-emerald-50' : p.sentiment === 'NEG' ? 'border-l-red-500 bg-red-50' : 'border-l-amber-500 bg-amber-50';
+                                    return (
+                                        <div key={i} className={`border-l-4 ${sentColor} p-2.5 rounded-r-lg`}>
+                                            <div className="flex justify-between items-center mb-0.5">
+                                                <span className="font-bold text-[11px] text-slate-800">{p.parameter || ''}</span>
+                                                <span className={`text-[8px] font-bold ${p.sentiment === 'POS' ? 'text-emerald-700' : p.sentiment === 'NEG' ? 'text-red-700' : 'text-amber-700'}`}>{p.sentiment}</span>
+                                            </div>
+                                            <p className="text-[10px] text-slate-600">{p.insight || ''}</p>
+                                            {p.size_context && <span className="text-[8px] bg-slate-100 text-slate-500 px-1.5 py-0.5 rounded mt-1 inline-block">Size: {p.size_context}</span>}
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        </div>
+                    )}
+                    {isUser && (
+                        <div className="grid grid-cols-2 gap-3">
+                            {ensArr(profile.delighters).length > 0 && (
+                                <div className="bg-emerald-50 border border-emerald-200 p-3 rounded-xl">
+                                    <span className="text-[9px] font-bold text-emerald-700 uppercase block mb-1.5">✦ Delighters</span>
+                                    {ensArr(profile.delighters).map((d: any, i: number) => (
+                                        <div key={i} className="text-[10px] text-emerald-900 mb-1 flex gap-1.5"><span className="text-emerald-500">+</span>{typeof d === 'string' ? d : safeStr(d)}</div>
+                                    ))}
+                                </div>
+                            )}
+                            {ensArr(profile.failures).length > 0 && (
+                                <div className="bg-red-50 border border-red-200 p-3 rounded-xl">
+                                    <span className="text-[9px] font-bold text-red-700 uppercase block mb-1.5">✧ Failures</span>
+                                    {ensArr(profile.failures).map((f: any, i: number) => (
+                                        <div key={i} className="text-[10px] text-red-900 mb-1 flex gap-1.5"><span className="text-red-500">−</span>{typeof f === 'string' ? f : safeStr(f)}</div>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+                    )}
+                    {!isUser && profile.awareness_quality && (
+                        <div className="bg-rose-50 p-3 rounded-xl border border-rose-200 text-xs text-rose-800"><strong>Awareness:</strong> {profile.awareness_quality}</div>
+                    )}
+                    {!isUser && ensArr(profile.barriers_to_try).length > 0 && (
+                        <div className="space-y-2">
+                            {ensArr(profile.barriers_to_try).map((b: any, i: number) => (
+                                <div key={i} className="bg-rose-50 border border-rose-100 rounded-lg p-3">
+                                    <span className="font-bold text-rose-800 text-xs">{b.title || ''}</span>
+                                    {ensArr(b.bullets).map((bullet: any, j: number) => (
+                                        <div key={j} className="text-[10px] text-slate-600 mt-1 flex gap-1.5"><span className="text-rose-400">•</span>{typeof bullet === 'string' ? bullet : safeStr(bullet)}</div>
+                                    ))}
+                                </div>
+                            ))}
+                        </div>
+                    )}
+                </div>
+            </div>
+        );
+    };
     
     const renderPainPoints = (items: any[], accent: string) => {
         const colors: Record<string, {bg: string; border: string; text: string}> = {
@@ -1498,8 +1593,24 @@ const SPDeepDiveRenderer = ({ data }: { data: any }) => {
                 </div>
             )}
 
-            {/* Users Section */}
-            {users && (
+            {/* Segmented Profiles: Premium Ultra vs Super Premium Ultra */}
+            {hasSegmentedProfiles && (
+                <div className="space-y-6">
+                    <div className="flex items-center gap-2 mb-2"><span>📊</span><h4 className="text-[11px] font-extrabold uppercase tracking-[0.15em] text-slate-500">Premium Ultra Segment</h4><div className="flex-1 h-px bg-gradient-to-r from-indigo-200 to-transparent"></div></div>
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+                        {renderSegmentProfile(puUsers, true, 'from-indigo-600 to-indigo-500')}
+                        {renderSegmentProfile(puNonUsers, false, 'from-rose-600 to-rose-500')}
+                    </div>
+                    <div className="flex items-center gap-2 mb-2 mt-4"><span>✨</span><h4 className="text-[11px] font-extrabold uppercase tracking-[0.15em] text-slate-500">Super Premium Ultra Segment (D2C)</h4><div className="flex-1 h-px bg-gradient-to-r from-purple-200 to-transparent"></div></div>
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+                        {renderSegmentProfile(spuUsers, true, 'from-purple-600 to-purple-500')}
+                        {renderSegmentProfile(spuNonUsers, false, 'from-amber-600 to-amber-500')}
+                    </div>
+                </div>
+            )}
+
+            {/* Legacy Users Section — only if no segmented profiles */}
+            {!hasSegmentedProfiles && users && (
                 <div className="space-y-5">
                     <div className="flex items-center gap-2 mb-3"><span className="w-2 h-2 rounded-full bg-indigo-500"></span><span className="text-[11px] font-extrabold text-indigo-700 uppercase tracking-wider">Among Premium / Super Premium Ultra Users</span></div>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -1560,8 +1671,8 @@ const SPDeepDiveRenderer = ({ data }: { data: any }) => {
                 </div>
             )}
 
-            {/* Non-Users Section */}
-            {nonUsers && (
+            {/* Legacy Non-Users Section — only if no segmented profiles */}
+            {!hasSegmentedProfiles && nonUsers && (
                 <div className="space-y-4">
                     <div className="flex items-center gap-2 mb-3"><span className="w-2 h-2 rounded-full bg-rose-500"></span><span className="text-[11px] font-extrabold text-rose-700 uppercase tracking-wider">Non-Users of Ultra (Still on Fluff)</span></div>
                     {nonUsers.awareness_quality && (
@@ -1692,6 +1803,8 @@ const SPGapAnalysisRendererV2 = ({ data }: { data: any }) => {
             <div key={i} className={`bg-white border border-slate-200 border-l-4 ${acMap[accent] || 'border-l-slate-400'} rounded-xl p-4 shadow-sm`}>
                 <div className="flex items-start gap-2 mb-1.5">
                     {b.severity && <span className={`text-[8px] font-bold px-1.5 py-0.5 rounded ${sevColor}`}>{b.severity}</span>}
+                    {b.segment && <span className={`text-[8px] font-bold px-1.5 py-0.5 rounded ${b.segment === 'Premium Ultra' ? 'bg-indigo-100 text-indigo-700' : b.segment === 'Super Premium Ultra' ? 'bg-purple-100 text-purple-700' : 'bg-slate-100 text-slate-600'}`}>{b.segment}</span>}
+                    {b.size_context && <span className="text-[8px] font-mono text-slate-500 bg-slate-50 px-1.5 py-0.5 rounded border border-slate-200">{b.size_context}</span>}
                     <span className="text-xs font-bold text-slate-800 flex-1">{b.claim || b.text || b.need || ''}</span>
                     <span className="text-[8px] font-mono text-slate-400 bg-slate-50 px-1.5 py-0.5 rounded border border-slate-200">{b.data_points || (320 + i * 137 + (evidence.length * 110))} data pts</span>
                 </div>
@@ -2503,7 +2616,7 @@ export const ModernSectionRenderer: React.FC<Props> = ({ data, projectId }) => {
         else if (isSP && (c.current_challenges || c.need_gap)) Component = SPGapAnalysisRendererV2;
         else if (isSP && c.formats && c.formats.length > 0) Component = SPEcosystemRendererV2;
         else if (isSP && (c.trigger_clusters || c.behavioural_landscape)) Component = SPSwitchingRenderer;
-        else if (isSP && (c.users || c.role_summary || c.pain_point_summary)) Component = SPDeepDiveRenderer;
+        else if (isSP && (c.users || c.role_summary || c.pain_point_summary || c.premium_ultra_users || c.super_premium_ultra_users)) Component = SPDeepDiveRenderer;
         else if (isSP && c.brand_performance) Component = SPBrandPerformanceRenderer;
         
         // Shared femcare renderers (all projects including SP fallback)

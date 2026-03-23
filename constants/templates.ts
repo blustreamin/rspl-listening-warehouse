@@ -690,16 +690,18 @@ SANITARY PADS REPORT — ADDITIONAL MANDATORY RULES:
 - CATEGORICALLY NEVER mention "Period Panties", "Disposable Period Panties", "Reusable Period Panties", or any form of "panties/panty" anywhere in the output. This report is EXCLUSIVELY about Sanitary Pads. If evidence data contains period panty mentions, IGNORE them completely.
 - NEVER mention the brand "Always" — it is not sold in India. Remove any Always references.
 - Focus sub-categories: Fluff Regular, Fluff XL, Fluff Night, Mid Ultra, Premium Ultra, Night Ultra, Super Premium Ultra.
-- STRATEGIC FOCUS: Premium Ultra and Super Premium Ultra must receive 2x depth and detail.
-- CONSUMER DESCRIPTION: Every consumer quote/verbatim MUST include a short description of the consumer. Format: "Age, Role, City/Tier". Examples: "22F, College student, Pune", "35F, Working mother, Tier 2 Lucknow", "28F, First-time buyer, Mumbai". NEVER leave consumer descriptions blank.
-- NO INFERRED CONTENT: Do NOT use "INFERRED:" tags or "Consumer" as a source label. Use real consumer data and quotes from the evidence base. Every quote source must be specific: "Amazon.in", "Flipkart", "Instagram", "Reddit", "YouTube", "Social", "Awario", "Web Forum". NEVER use generic "Consumer" or "Inference" as a source. If data is thin, use available evidence from adjacent themes.
-- EVIDENCE FORMAT: When providing consumer evidence in bullet arrays, use this format: "Insight text → 📢 quote1 (Source) 📢 quote2 (Source)". Each 📢 must be on a separate conceptual unit.
+- STRATEGIC FOCUS: Premium Ultra and Super Premium Ultra must be analyzed SEPARATELY — do NOT combine them. They are distinct segments with different brands, price points, and consumer profiles.
+- BRAND NAME IN VERBATIMS: For Amazon.in and Flipkart sourced quotes, the "source" field MUST include the brand variant being reviewed. Format: "Amazon.in · Whisper No Gap XL" or "Flipkart · Nua Ultra Thin". This is NON-NEGOTIABLE for understanding which brand the feedback relates to.
+- CONSUMER DESCRIPTION: Every consumer quote/verbatim MUST include a short description of the consumer. Format: "Age, Role, City/Tier". NEVER leave consumer descriptions blank.
+- SIZING CONTEXT: Every insight about product performance MUST mention the pad size/variant being discussed (Regular, XL, XXL, XXXL). Do NOT make generic statements without sizing context.
+- NO INFERRED CONTENT: Do NOT use "INFERRED:" tags or "Consumer" as a source label. Every quote source must be specific: "Amazon.in · BrandVariant", "Flipkart · BrandVariant", "Instagram", "Reddit", "YouTube", "Social", "Awario".
 - DATA POINT CALIBRATION: The total evidence base contains ~23,700 usable verbatims. data_points per insight MUST reflect this scale:
   HIGH frequency themes (rash, leakage, absorption, cost): 800-2500 data points
   MEDIUM frequency themes (comfort, sizing, brand switching, disposal): 300-800 data points  
   LOW frequency themes (fragrance, packaging, eco concerns): 100-300 data points
   NICHE themes (specific brand issues, regional patterns): 40-150 data points
   NEVER use data_points below 40. NEVER repeat the same number for adjacent insights.
+- SKU ACCURACY: For Sofy Anti Bacteria XL+, this is the PREMIUM ULTRA variant only. Do NOT include Sofy Bodyfit, Sofy Night, or Sofy Overnight SKUs under this — those are separate Fluff products.
 `,
       sectionPrompts: {
         "1": `
@@ -774,29 +776,36 @@ SANITARY PADS REPORT — ADDITIONAL MANDATORY RULES:
         `,
 
         "gap_analysis": `
-        SECTION: GAP ANALYSIS — PREMIUM ULTRA & SUPER PREMIUM ULTRA (INDIA)
+        SECTION: GAP ANALYSIS — PREMIUM ULTRA vs SUPER PREMIUM ULTRA (INDIA)
+        
+        CRITICAL: Analyze Premium Ultra and Super Premium Ultra SEPARATELY. They are different segments.
+        
         Output Object: {
-          "current_challenges": { "heading": "What Premium Ultra & Super Premium Ultra Don't Solve", "bullets": Array<{claim, explanation, consumer_evidence: Array<{quote, source}>, evidence_ids: [], severity: "HIGH"|"MED"|"LOW", impacted_occasions: []}> },
-          "resolved_challenges": { "heading": "What Ultra Pads Have Successfully Solved vs Fluff", "bullets": Array<same> },
-          "unresolved_challenges": { "heading": "Persistent Pain Points in Premium Segment", "bullets": Array<same> },
-          "need_gap": { "heading": "White Space: Super Premium at Premium Ultra Price Point", "need_statements": Array<{need, why_now, who, consumer_evidence: Array<{quote, source}>, evidence_ids: [], priority: "P0"|"P1"|"P2"}> }
+          "current_challenges": { "heading": "What Premium Ultra Doesn't Solve", "bullets": Array<{claim, explanation, segment: "Premium Ultra"|"Super Premium Ultra"|"Both", size_context: string, consumer_evidence: Array<{quote, source}>, evidence_ids: [], severity: "HIGH"|"MED"|"LOW", impacted_occasions: []}> },
+          "resolved_challenges": { "heading": "What Ultra Pads Have Solved vs Fluff", "bullets": Array<same> },
+          "unresolved_challenges": { "heading": "What Super Premium Ultra Still Can't Crack", "bullets": Array<same> },
+          "need_gap": { "heading": "White Space: Super Premium at Premium Ultra Price Point", "need_statements": Array<{need, why_now, who, segment: "Premium Ultra"|"Super Premium Ultra"|"Entry Gap", consumer_evidence: Array<{quote, source}>, evidence_ids: [], priority: "P0"|"P1"|"P2"}> }
         }
 
         STRATEGIC CONTEXT: The client wants to enter with a SUPER PREMIUM offering at a PREMIUM ULTRA price point.
         
-        Current Challenges (min 7): Rash persistence even in Ultra, price barrier for Tier 2/3 upgraders, 
-        availability of Premium Ultra outside metros, D2C trust gap, humidity/heat issues with Ultra thinness,
-        disposal challenges, wing adhesion failures.
+        Current Challenges — PREMIUM ULTRA specifically (min 4):
+        Brands: Whisper No Gap XL, Whisper Ultra Soft (Skin Love) XL, Sofy Anti Bacteria XL+.
+        Issues: Rash from synthetic top-sheets (mention size: XL/XXL), wing adhesion failure, absorption clumping after 3hrs, sizing mismatch for Indian body.
+        
+        Current Challenges — SUPER PREMIUM ULTRA specifically (min 4):
+        Brands: Nua, Plush, Carmesi, Azah, Pee Safe.
+        Issues: Price barrier (₹15-20/pad), counterfeit products on Amazon, structural tearing, D2C-only distribution.
+        
+        Each bullet MUST specify: which segment (Premium Ultra / Super Premium Ultra / Both), and size_context (e.g. "XL", "XXL", "Regular").
         
         Resolved (min 5): What Ultra solved vs Fluff — discretion, thinness, reduced bulk, better absorption tech.
         
-        Unresolved (min 5): What even Super Premium D2C brands haven't cracked — Tier 2/3 distribution,
-        chemist trust, price-to-value perception, night-time confidence, Indian body fit.
+        Unresolved — SUPER PREMIUM specifically (min 5): Tier 2/3 distribution gap, chemist trust, price-to-value perception, night-time confidence, Indian body fit. Tag each with the specific D2C brand it applies to.
         
         Need Gap (min 6): Frame as opportunities for "super premium quality at premium ultra price".
-        Include: Rash-free at ₹8-10/pad, Tier 2/3 accessible premium, Chemist-available ultra-thin,
-        Humidity-optimized absorption, Indian body sizing, Combo/kit packaging for trial.
-        EVERY bullet: min 2 consumer quotes. India only.
+        Each need statement MUST specify the segment it addresses.
+        EVERY bullet: min 2 consumer quotes with brand variant in source. India only.
         `,
 
         "2": `
@@ -878,29 +887,52 @@ SANITARY PADS REPORT — ADDITIONAL MANDATORY RULES:
         `,
 
         "5": `
-        SECTION 5: CONSUMER DEEP DIVE — PREMIUM ULTRA & SUPER PREMIUM ULTRA
+        SECTION 5: CONSUMER DEEP DIVE — PREMIUM ULTRA vs SUPER PREMIUM ULTRA (SEPARATE ANALYSIS)
+        
+        CRITICAL: Profile users and non-users SEPARATELY for Premium Ultra and Super Premium Ultra. They are different consumer segments.
+        
         Output Object: {
            "role_summary": { boldTitle, bullets[], confidence },
-           "users": { 
+           "premium_ultra_users": { 
+              "segment_label": "Premium Ultra Users",
+              "brands_in_scope": ["Whisper No Gap XL", "Whisper Ultra Soft (Skin Love) XL", "Sofy Anti Bacteria XL+"],
+              "who_they_are": "Profile description — age, tier, income, buying channel",
               "discovery_sources": string[], 
               "triggers": string[], 
-              "experience_parameters": Array<{parameter, sentiment: "POS"|"NEG"|"MIX", insight}>,
+              "experience_parameters": Array<{parameter, sentiment: "POS"|"NEG"|"MIX", insight, size_context: string}>,
               "delighters": string[],
               "failures": string[]
            },
-           "non_users": { 
+           "premium_ultra_non_users": {
+              "segment_label": "Non-Users of Premium Ultra (Still on Mid Ultra or Fluff)",
               "awareness_quality": string,
-              "brands_aware": string[],
-              "barriers_to_try": Array<{title, bullets[]}> 
+              "barriers_to_try": Array<{title, bullets[]}>
            },
+           "super_premium_ultra_users": { 
+              "segment_label": "Super Premium Ultra Users (D2C)",
+              "brands_in_scope": ["Nua", "Plush", "Carmesi", "Azah", "Pee Safe", "Everteen"],
+              "who_they_are": "Profile description — age, tier, income, buying channel",
+              "discovery_sources": string[], 
+              "triggers": string[], 
+              "experience_parameters": Array<{parameter, sentiment: "POS"|"NEG"|"MIX", insight, size_context: string}>,
+              "delighters": string[],
+              "failures": string[]
+           },
+           "super_premium_ultra_non_users": {
+              "segment_label": "Non-Users of Super Premium Ultra (Still on Premium Ultra or below)",
+              "awareness_quality": string,
+              "barriers_to_try": Array<{title, bullets[]}>
+           },
+           "users": null,
+           "non_users": null,
            "pain_point_summary": {
               "users": {
-                "functional": Array<{pain_point: string, detail: string, severity: "HIGH"|"MED"|"LOW", data_points: N, verbatims: [{quote, source}]}>,
-                "emotional": Array<{pain_point: string, detail: string, severity: "HIGH"|"MED"|"LOW", data_points: N, verbatims: [{quote, source}]}>
+                "functional": Array<{pain_point: string, detail: string, segment: "Premium Ultra"|"Super Premium Ultra"|"Both", severity: "HIGH"|"MED"|"LOW", data_points: N, verbatims: [{quote, source}]}>,
+                "emotional": Array<{pain_point: string, detail: string, segment: "Premium Ultra"|"Super Premium Ultra"|"Both", severity: "HIGH"|"MED"|"LOW", data_points: N, verbatims: [{quote, source}]}>
               },
               "non_users": {
-                "functional": Array<{pain_point: string, detail: string, severity: "HIGH"|"MED"|"LOW", data_points: N, verbatims: [{quote, source}]}>,
-                "emotional": Array<{pain_point: string, detail: string, severity: "HIGH"|"MED"|"LOW", data_points: N, verbatims: [{quote, source}]}>
+                "functional": Array<{pain_point: string, detail: string, segment: "Premium Ultra"|"Super Premium Ultra"|"Both", severity: "HIGH"|"MED"|"LOW", data_points: N, verbatims: [{quote, source}]}>,
+                "emotional": Array<{pain_point: string, detail: string, segment: "Premium Ultra"|"Super Premium Ultra"|"Both", severity: "HIGH"|"MED"|"LOW", data_points: N, verbatims: [{quote, source}]}>
               }
            },
            "whisper_ultra_clean": {
@@ -912,27 +944,29 @@ SANITARY PADS REPORT — ADDITIONAL MANDATORY RULES:
            ${SEGMENTATION_SCHEMA_DESCRIPTION}
         }
         
-        PREMIUM ULTRA USER EXPERIENCE — 9 parameters:
-        Absorption, Rash-free, Leak protection, Thinness, Wing adhesion, Length, Odour control, Comfort in humidity, Value for money.
+        PREMIUM ULTRA USER PROFILE:
+        - Who: Tier 1-2 women, 25-40, buying from Amazon/pharmacy, upgrading from Fluff XL
+        - Brands: Whisper No Gap, Whisper Ultra Soft (Skin Love), Sofy Anti Bacteria XL+
+        - Experience (9 params): Absorption, Rash-free, Leak protection, Thinness, Wing adhesion, Length (mention XL/XXL), Odour control, Comfort in humidity, Value for money
+        - Include SIZE CONTEXT for every parameter
         
-        SUPER PREMIUM ULTRA (D2C) USER EXPERIENCE:
-        Same 9 parameters but also: Packaging, Subscription convenience, Organic/eco claims, Brand trust.
+        PREMIUM ULTRA NON-USER PROFILE:
+        - Who: Tier 2-3 women still on Fluff/Mid Ultra
+        - Why haven't they upgraded? Price gap ₹4→₹10/pad, chemist doesn't stock, unaware
         
-        NON-USERS OF ULTRA (still on Fluff): Why haven't they upgraded? Barriers specific to Tier 2/3.
-
-        PAIN POINT SUMMARY (MANDATORY ONE-PAGER):
-        Users Functional (min 5): Rash, leakage, wing adhesion, sizing, absorption failure, disposal.
-        Users Emotional (min 4): Stain anxiety, brand distrust, social embarrassment, feeling "cheated" by marketing claims.
-        Non-Users Functional (min 4): Price barrier, availability, lack of awareness about Ultra benefits, disposal concerns.
-        Non-Users Emotional (min 4): Loyalty to familiar brand, distrust of D2C, "my current pad works fine" inertia, peer influence gap.
-        Each pain point: severity + data_points (calibrated to 23,700 total) + min 2 verbatims.
+        SUPER PREMIUM ULTRA USER PROFILE:
+        - Who: Metro/Tier 1 women, 22-35, buying D2C/Amazon, influenced by Instagram
+        - Brands: Nua, Plush, Carmesi, Azah, Pee Safe, Everteen
+        - Experience (13 params): Same 9 + Packaging, Subscription convenience, Organic/eco claims, Brand trust
         
-        WHISPER ULTRA CLEAN — DISCONTINUED PRODUCT:
-        This was a Premium Ultra pad discontinued last year. Capture any residual consumer feedback:
-        - What consumers liked about it
-        - Why they miss it / what they switched to
-        - Any Amazon/Flipkart reviews still referencing it
-        If data is thin, explicitly state "Limited data available" and provide what exists.
+        SUPER PREMIUM ULTRA NON-USER PROFILE:
+        - Who: Premium Ultra users who considered but rejected D2C
+        - Barriers: ₹15-20/pad too expensive, can't touch/feel before buying, no chemist availability
+        
+        PAIN POINTS: Each pain point MUST tag which segment it applies to.
+        
+        WHISPER ULTRA CLEAN — DISCONTINUED PRODUCT (Premium Ultra):
+        Capture residual feedback. If data thin, state "Limited data available".
         `,
 
         "7": `
@@ -954,7 +988,7 @@ SANITARY PADS REPORT — ADDITIONAL MANDATORY RULES:
         MANDATORY BRANDS (map each to their sub-categories):
         - Whisper: Fluff Regular/XL/Night + Mid Ultra + Premium Ultra + Night Ultra (full range leader)
         - Stayfree: Fluff Regular/XL/Night + Night Ultra
-        - Sofy: Fluff XL + Premium Ultra
+        - Sofy: Fluff XL + Premium Ultra (Sofy Anti Bacteria XL+ ONLY for Premium Ultra. DO NOT include Sofy Bodyfit, Sofy Night, Sofy Overnight, or any Sofy Bodyfit Overnight variant under Sofy Anti Bacteria — those are separate Fluff products)
         - Paree/Niine/Kotex: Fluff Regular (value segment)
         - Pro-ease: Fluff XL + Mid Ultra
         - Nua: Super Premium Ultra (D2C)
@@ -966,6 +1000,7 @@ SANITARY PADS REPORT — ADDITIONAL MANDATORY RULES:
         
         For each brand:
         - List actual SKU names with sub-category and ₹/pad pricing
+        - BRAND NAME IN VERBATIM SOURCE: Every Amazon/Flipkart quote must include brand variant: "Amazon.in · Whisper No Gap XL", "Flipkart · Nua Ultra Thin"
         - Strengths/weaknesses from Amazon/Flipkart reviews
         - Brand share estimate (% of voice in evidence)
         
