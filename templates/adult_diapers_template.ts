@@ -31,6 +31,10 @@ GLOBAL NON-NEGOTIABLES:
        "72M, Bedridden patient, Rural UP" / "55F, Wife caregiver, Chennai" / "45M, Son buying for mother, Delhi"
        If exact age unknown, INFER from context: caregiver buying for parent → 35-50F. Elderly self-use → 60-80M/F.
        NEVER leave the consumer field blank or without age.
+    g) BRAND NAME IN QUOTES: For Amazon.in and Flipkart sourced quotes, the "source" field MUST include the brand name being reviewed.
+       Format: "Amazon.in · Friends" or "Flipkart · Lifree" or "Amazon.in · TENA".
+       This tells the reader which brand's review the quote comes from.
+       For Reddit/Social/Blog sources, brand name is optional.
     d) ABSOLUTE UNIQUENESS: NO two verbatims across the ENTIRE JSON output may share the same quote text — not even partially similar. 
        Before generating any quote, mentally check: "Have I already used this quote or a very similar one in any other section?" If yes, generate a completely different one.
        Each section (incontinence, awareness, user_profiles, behavioural, brand_landscape) must have its OWN DISTINCT set of quotes with ZERO overlap.
@@ -252,6 +256,7 @@ export const ADULT_DIAPERS_TEMPLATE: TemplatePack = {
         CRITICAL SOURCE PRIORITIZATION:
         - PRIMARY: Amazon.in + Flipkart verified purchase reviews ONLY for attribute scores and verbatims.
         - DEPRIORITIZE: Instagram/YouTube (paid media). Label any social quote as "PROMOTIONAL CONTEXT".
+        - BRAND IN SOURCE: Every Amazon/Flipkart verbatim source field must include brand name: "Amazon.in · Friends", "Flipkart · Lifree" etc.
 
         **brands** (Array, MINIMUM 8 brands):
         Must include: Friends, Lifree, Teddyy, KareIn, TENA, Dignity, Romsons, Flamingo.
@@ -266,7 +271,7 @@ export const ADULT_DIAPERS_TEMPLATE: TemplatePack = {
           "strengths": ["Specific from reviews"],
           "weaknesses": ["Specific from reviews"],
           "data_points": N,
-          "verbatims": ["Quote 1 (Amazon)", "Quote 2 (Flipkart)", "Quote 3", "Quote 4", "Quote 5"]
+          "verbatims": [{"quote": "...", "source": "Amazon.in · BrandName", "consumer": "AgeGender, Role, City"}]
         }
 
         Attributes (min 7 per brand): absorbency, skin_comfort, fit_for_indian_body, discretion_thinness, odor_control, value_for_money, availability, leak_protection, ease_of_disposal.
@@ -274,7 +279,28 @@ export const ADULT_DIAPERS_TEMPLATE: TemplatePack = {
         Min 5 verbatims per brand from e-commerce reviews.
         **market_structure**: Array of 5 strategic bullets.
 
-        JSON: { "brands": [...], "market_structure": [...] }
+        **driver_analysis** (MANDATORY — NEW):
+        {
+          "category_drivers": {
+            "heading": "Category Performance Drivers (Amazon.in + Flipkart)",
+            "positive_drivers": Array<{attribute: string, impact: "HIGH"|"MED", insight: string, data_points: N, verbatims: [{quote, source, consumer}]}>,
+            "negative_drivers": Array<{attribute: string, impact: "HIGH"|"MED", insight: string, data_points: N, verbatims: [{quote, source, consumer}]}>
+          },
+          "brand_drivers": Array<{
+            brand: string,
+            positive_drivers: Array<{attribute: string, impact: "HIGH"|"MED", insight: string}>,
+            negative_drivers: Array<{attribute: string, impact: "HIGH"|"MED", insight: string}>,
+            net_sentiment_driver: string
+          }>
+        }
+
+        DRIVER ANALYSIS REQUIREMENTS:
+        Category Positive Drivers (min 5): Which attributes DRIVE positive reviews? E.g. "Absorbency for overnight use", "Pant-style convenience", "Skin softness".
+        Category Negative Drivers (min 5): Which attributes DRIVE negative reviews? E.g. "Leakage from sides", "Rash from prolonged use", "Price per piece", "Sizing mismatch".
+        Brand Drivers (for EACH of the 8 brands): Top 3 positive + top 3 negative attributes driving that brand's reviews.
+        SOURCE: Amazon.in and Flipkart reviews ONLY. Include star rating distribution context where available.
+
+        JSON: { "brands": [...], "market_structure": [...], "driver_analysis": {...} }
     `
         }
     },

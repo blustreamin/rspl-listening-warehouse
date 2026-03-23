@@ -1020,6 +1020,116 @@ const AdultBrandLandscapeSection = ({ data }: { data: any }) => {
                     </div>
                 </div>
             )}
+
+            {/* Driver Analysis — Category + Brand Level */}
+            {data.driver_analysis && (
+                <div className="space-y-6">
+                    {/* Category Drivers */}
+                    {data.driver_analysis.category_drivers && (
+                        <div>
+                            <div className="bg-gradient-to-r from-slate-800 to-slate-700 px-6 py-4 rounded-2xl mb-4">
+                                <h4 className="font-extrabold text-white text-base uppercase tracking-wide">{data.driver_analysis.category_drivers.heading || 'Category Performance Drivers'}</h4>
+                                <span className="text-[10px] text-slate-400">Amazon.in + Flipkart Review Analysis</span>
+                            </div>
+                            <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+                                {safeArr(data.driver_analysis.category_drivers.positive_drivers).length > 0 && (
+                                    <div className="bg-white border border-emerald-200 rounded-xl p-5 shadow-sm">
+                                        <span className="text-[10px] font-extrabold text-emerald-700 uppercase tracking-wider flex items-center gap-2 mb-4">
+                                            <span className="w-2 h-2 rounded-full bg-emerald-500"></span> Positive Drivers
+                                        </span>
+                                        <div className="space-y-3">
+                                            {safeArr(data.driver_analysis.category_drivers.positive_drivers).map((d: any, i: number) => (
+                                                <div key={i} className="bg-emerald-50 border border-emerald-100 rounded-xl p-4">
+                                                    <div className="flex items-start gap-2 mb-1.5">
+                                                        <span className={`text-[8px] font-bold px-1.5 py-0.5 rounded ${d.impact === 'HIGH' ? 'bg-emerald-500 text-white' : 'bg-emerald-200 text-emerald-700'}`}>{d.impact || 'MED'}</span>
+                                                        <span className="text-xs font-bold text-emerald-900 flex-1">{d.attribute || ''}</span>
+                                                        {d.data_points && <span className="text-[8px] font-mono text-slate-400 bg-white px-1.5 py-0.5 rounded border border-slate-200">{d.data_points} data pts</span>}
+                                                    </div>
+                                                    <div className="text-[11px] text-emerald-800 mb-2">{d.insight || ''}</div>
+                                                    {safeArr(d.verbatims).length > 0 && (
+                                                        <div className="space-y-1.5">
+                                                            {safeArr(d.verbatims).slice(0, 2).map((v: any, j: number) => (
+                                                                <AdVerbatim key={j} v={v} accentClass="text-emerald-800 bg-white/80 border-emerald-200" />
+                                                            ))}
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
+                                {safeArr(data.driver_analysis.category_drivers.negative_drivers).length > 0 && (
+                                    <div className="bg-white border border-red-200 rounded-xl p-5 shadow-sm">
+                                        <span className="text-[10px] font-extrabold text-red-700 uppercase tracking-wider flex items-center gap-2 mb-4">
+                                            <span className="w-2 h-2 rounded-full bg-red-500"></span> Negative Drivers
+                                        </span>
+                                        <div className="space-y-3">
+                                            {safeArr(data.driver_analysis.category_drivers.negative_drivers).map((d: any, i: number) => (
+                                                <div key={i} className="bg-red-50 border border-red-100 rounded-xl p-4">
+                                                    <div className="flex items-start gap-2 mb-1.5">
+                                                        <span className={`text-[8px] font-bold px-1.5 py-0.5 rounded ${d.impact === 'HIGH' ? 'bg-red-500 text-white' : 'bg-red-200 text-red-700'}`}>{d.impact || 'MED'}</span>
+                                                        <span className="text-xs font-bold text-red-900 flex-1">{d.attribute || ''}</span>
+                                                        {d.data_points && <span className="text-[8px] font-mono text-slate-400 bg-white px-1.5 py-0.5 rounded border border-slate-200">{d.data_points} data pts</span>}
+                                                    </div>
+                                                    <div className="text-[11px] text-red-800 mb-2">{d.insight || ''}</div>
+                                                    {safeArr(d.verbatims).length > 0 && (
+                                                        <div className="space-y-1.5">
+                                                            {safeArr(d.verbatims).slice(0, 2).map((v: any, j: number) => (
+                                                                <AdVerbatim key={j} v={v} accentClass="text-red-800 bg-white/80 border-red-200" />
+                                                            ))}
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Brand-Level Drivers */}
+                    {safeArr(data.driver_analysis.brand_drivers).length > 0 && (
+                        <div>
+                            <div className="flex items-center gap-2 mb-4">
+                                <span className="w-2 h-2 rounded-full bg-indigo-500"></span>
+                                <h4 className="text-[11px] font-extrabold uppercase tracking-[0.15em] text-slate-500">Brand-Level Driver Analysis</h4>
+                                <div className="flex-1 h-px bg-gradient-to-r from-slate-200 to-transparent"></div>
+                            </div>
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                                {safeArr(data.driver_analysis.brand_drivers).map((bd: any, i: number) => (
+                                    <div key={i} className="bg-white border border-slate-200 rounded-xl p-4 shadow-sm hover:shadow-md transition-all">
+                                        <h5 className="font-extrabold text-slate-900 text-sm mb-3 pb-2 border-b border-slate-100">{bd.brand || ''}</h5>
+                                        <div className="space-y-2 mb-3">
+                                            <span className="text-[9px] font-bold text-emerald-600 uppercase">Driving Positives</span>
+                                            {safeArr(bd.positive_drivers).map((d: any, j: number) => (
+                                                <div key={j} className="text-[10px] text-emerald-800 bg-emerald-50 px-2.5 py-1.5 rounded-lg border border-emerald-100 flex gap-1.5">
+                                                    <span className="text-emerald-500 font-bold flex-shrink-0">+</span>
+                                                    <span><strong>{d.attribute}:</strong> {d.insight || ''}</span>
+                                                </div>
+                                            ))}
+                                        </div>
+                                        <div className="space-y-2">
+                                            <span className="text-[9px] font-bold text-red-600 uppercase">Driving Negatives</span>
+                                            {safeArr(bd.negative_drivers).map((d: any, j: number) => (
+                                                <div key={j} className="text-[10px] text-red-800 bg-red-50 px-2.5 py-1.5 rounded-lg border border-red-100 flex gap-1.5">
+                                                    <span className="text-red-500 font-bold flex-shrink-0">−</span>
+                                                    <span><strong>{d.attribute}:</strong> {d.insight || ''}</span>
+                                                </div>
+                                            ))}
+                                        </div>
+                                        {bd.net_sentiment_driver && (
+                                            <div className="mt-3 pt-2 border-t border-slate-100 text-[10px] text-slate-600 italic">
+                                                <strong className="not-italic text-slate-800">Net Driver:</strong> {bd.net_sentiment_driver}
+                                            </div>
+                                        )}
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+                </div>
+            )}
         </div>
     );
 };
