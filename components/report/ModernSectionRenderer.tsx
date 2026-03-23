@@ -2389,6 +2389,99 @@ const FemcareBrandPerformanceRenderer = ({ data }: { data: any }) => {
                 );
             })}
         </div>
+
+        {/* Driver Analysis — Category + Brand Level (renders only if data.driver_analysis exists) */}
+        {data.driver_analysis && (
+            <div className="space-y-6 mt-8">
+                {/* Category-Level Attribute Hierarchy */}
+                {data.driver_analysis.category_drivers && (
+                    <div>
+                        <div className="bg-gradient-to-r from-slate-800 to-slate-700 px-6 py-4 rounded-2xl mb-4">
+                            <h4 className="font-extrabold text-white text-base uppercase tracking-wide">{data.driver_analysis.category_drivers.heading || 'Category Attribute Driver Hierarchy'}</h4>
+                            <span className="text-[10px] text-slate-400">Amazon.in + Flipkart Review Analysis — % of reviews mentioning each attribute</span>
+                        </div>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            {ensureArray(data.driver_analysis.category_drivers.attribute_hierarchy).map((attr: any, i: number) => {
+                                const posPct = attr.sentiment_split?.positive_pct || 0;
+                                const negPct = attr.sentiment_split?.negative_pct || 0;
+                                return (
+                                    <div key={i} className="bg-white border border-slate-200 rounded-xl p-4 shadow-sm">
+                                        <div className="flex items-center justify-between mb-2">
+                                            <span className="font-bold text-sm text-slate-800 capitalize">{(attr.attribute || '').replace(/_/g, ' ')}</span>
+                                            <div className="flex items-center gap-2">
+                                                <span className={`text-[8px] font-bold px-1.5 py-0.5 rounded ${attr.impact === 'HIGH' ? 'bg-indigo-500 text-white' : attr.impact === 'MED' ? 'bg-indigo-200 text-indigo-700' : 'bg-slate-100 text-slate-600'}`}>{attr.impact || 'MED'}</span>
+                                                <span className="text-sm font-extrabold text-indigo-700">{attr.pct_of_reviews || 0}%</span>
+                                            </div>
+                                        </div>
+                                        <div className="w-full h-3 bg-slate-100 rounded-full overflow-hidden flex mb-2">
+                                            <div className="h-full bg-emerald-500 rounded-l-full" style={{ width: `${posPct}%` }}></div>
+                                            <div className="h-full bg-red-400 rounded-r-full" style={{ width: `${negPct}%` }}></div>
+                                        </div>
+                                        <div className="flex justify-between text-[9px] text-slate-500 mb-2">
+                                            <span className="text-emerald-600">{posPct}% positive</span>
+                                            <span className="text-red-500">{negPct}% negative</span>
+                                        </div>
+                                        {attr.insight && <div className="text-[11px] text-slate-600 leading-relaxed">{attr.insight}</div>}
+                                        {ensureArray(attr.verbatims).length > 0 && (
+                                            <div className="pt-2 border-t border-slate-100 mt-2 space-y-1.5">
+                                                {ensureArray(attr.verbatims).slice(0, 2).map((v: any, j: number) => (
+                                                    <div key={j} className="bg-indigo-50 border border-indigo-100 rounded-lg px-3 py-2">
+                                                        <div className="text-[10px] italic text-indigo-900">"{typeof v === 'string' ? v : (v.quote || '')}"</div>
+                                                        {v.source && <div className="text-[9px] font-bold text-indigo-500 mt-0.5">{v.source}</div>}
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        )}
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    </div>
+                )}
+
+                {/* Brand-Level Drivers */}
+                {ensureArray(data.driver_analysis.brand_drivers).length > 0 && (
+                    <div>
+                        <div className="flex items-center gap-2 mb-4">
+                            <span className="w-2 h-2 rounded-full bg-indigo-500"></span>
+                            <h4 className="text-[11px] font-extrabold uppercase tracking-[0.15em] text-slate-500">Brand-Level Attribute Driver Hierarchy</h4>
+                            <div className="flex-1 h-px bg-gradient-to-r from-slate-200 to-transparent"></div>
+                        </div>
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+                            {ensureArray(data.driver_analysis.brand_drivers).map((bd: any, i: number) => (
+                                <div key={i} className="bg-white border border-slate-200 rounded-xl p-4 shadow-sm">
+                                    <h5 className="font-extrabold text-slate-900 text-sm mb-3 pb-2 border-b border-slate-100">{bd.brand || ''}</h5>
+                                    <div className="space-y-2.5">
+                                        {ensureArray(bd.attribute_hierarchy).slice(0, 8).map((attr: any, j: number) => {
+                                            const posPct = attr.sentiment_split?.positive_pct || 0;
+                                            const negPct = attr.sentiment_split?.negative_pct || 0;
+                                            return (
+                                                <div key={j}>
+                                                    <div className="flex items-center justify-between mb-1">
+                                                        <span className="text-[11px] font-medium text-slate-700 capitalize">{(attr.attribute || '').replace(/_/g, ' ')}</span>
+                                                        <span className="text-[10px] font-extrabold text-indigo-700">{attr.pct_of_reviews || 0}%</span>
+                                                    </div>
+                                                    <div className="w-full h-2 bg-slate-100 rounded-full overflow-hidden flex">
+                                                        <div className="h-full bg-emerald-500 rounded-l-full" style={{ width: `${posPct}%` }}></div>
+                                                        <div className="h-full bg-red-400 rounded-r-full" style={{ width: `${negPct}%` }}></div>
+                                                    </div>
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+                                    {bd.net_sentiment_driver && (
+                                        <div className="mt-3 pt-2 border-t border-slate-100 text-[10px] text-slate-600 italic">
+                                            <strong className="not-italic text-slate-800">Key Driver:</strong> {bd.net_sentiment_driver}
+                                        </div>
+                                    )}
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                )}
+            </div>
+        )}
+    </div>
     );
 };
 

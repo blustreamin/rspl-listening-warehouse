@@ -281,26 +281,68 @@ export const TEMPLATE_REGISTRY: Record<ProjectId, TemplatePack> = {
         `,
 
         "7": `
-        SECTION 7: BRAND PERFORMANCE
+        SECTION 7: BRAND PERFORMANCE + DRIVER ANALYSIS
         Output Object: {
-           "brand_performance": Array<{brand, key_strengths: string[], key_weaknesses: string[], attribute_verdict: string, brand_share_estimate: string, price_band: string, evidence_ids: []}>
+           "brand_performance": Array<{
+              brand: string, 
+              attribute_scale: Array<{attribute: string, score_0_5: number, pct_of_reviews_mentioning: number}>,
+              key_strengths: string[], 
+              key_weaknesses: string[], 
+              attribute_verdict: string, 
+              brand_share_estimate: string, 
+              price_band: string, 
+              evidence_ids: [],
+              verbatims: Array<{quote: string, source: string, consumer: string}>
+           }>,
+           "driver_analysis": {
+              "category_drivers": {
+                "heading": "Disposable Period Panty Category — Attribute Driver Hierarchy",
+                "attribute_hierarchy": Array<{attribute: string, pct_of_reviews: number, impact: "HIGH"|"MED"|"LOW", sentiment_split: {positive_pct: number, negative_pct: number}, insight: string, verbatims: Array<{quote, source, consumer}>}>
+              },
+              "brand_drivers": Array<{
+                brand: string,
+                attribute_hierarchy: Array<{attribute: string, pct_of_reviews: number, impact: "HIGH"|"MED"|"LOW", sentiment_split: {positive_pct: number, negative_pct: number}, insight: string}>,
+                net_sentiment_driver: string
+              }>
+           }
         }
         
         STRATEGIC DIRECTIVE:
-        Competitive Landscape Audit (India).
-        MANDATORY BRANDS: Sirona, Carmesi, Nua, Plush, Pee Safe, Azah, Whisper, Always, Clovia, Rael.
-        For each:
-        - Attribute Leadership (e.g. "Owning Comfort", "Price Leader").
-        - Price Band (Approx ₹ per unit).
-        - Brand Share Estimate (% of voice from evidence data).
-        - Vulnerability Risks.
-        DO NOT include market_position labels like "Leader", "Challenger", "Niche", "Emerging".
+        Competitive Landscape Audit (India) + Attribute Driver Analysis from Amazon.in & Flipkart reviews ONLY.
+
+        MANDATORY BRANDS FOR DRIVER ANALYSIS (focus brands):
+        Whisper, Nua, Evereve, Plush, Pee Safe, Sirona.
         
-        REQUIREMENTS:
-        - "attribute_verdict": Concise strategic summary.
-        - "brand_share_estimate": Estimated % share of mentions/reviews (e.g. "26% of mentions").
-        - If emerging/no-data: "INFERRED: Low conversational salience relative to category leaders suggests weak visibility."
+        ADDITIONAL BRANDS (include in brand_performance but not detailed driver analysis):
+        Carmesi, Azah, Clovia, Always.
+
+        For EACH brand in brand_performance:
+        - attribute_scale: Min 8 attributes rated 0-5 (from e-commerce reviews). Scores MUST be differentiated across brands.
+        - attribute_verdict: Concise strategic summary.
+        - brand_share_estimate: Estimated % share of mentions/reviews.
+        - price_band: Approx ₹ per unit.
+        - Min 3 verbatims per brand with source including brand variant: "Amazon.in · Whisper Pants L", "Flipkart · Nua Disposable".
         - NO empty strengths/weaknesses.
+        DO NOT include market_position labels like "Leader", "Challenger", "Niche", "Emerging".
+
+        ATTRIBUTE LIST (use these consistently across all brands):
+        comfort, softness, dryness, wetness_control, leak_protection, fit, absorption, rash_free, odour_control, ease_of_use, discretion, value_for_money, disposal_ease, breathability
+        
+        DRIVER ANALYSIS (MANDATORY):
+        
+        A. CATEGORY-LEVEL ATTRIBUTE HIERARCHY:
+        Rank ALL 14 attributes by % of reviews mentioning them for the entire Disposable Period Panty category.
+        Example: comfort: 68% of reviews, leak_protection: 62%, fit: 55%, dryness: 48%...
+        For each: sentiment split (what % mention it positively vs negatively), insight on WHY it matters.
+        Min 2 verbatims per top-5 attribute.
+        
+        B. BRAND-LEVEL ATTRIBUTE HIERARCHY (for 6 focus brands ONLY):
+        For each of Whisper, Nua, Evereve, Plush, Pee Safe, Sirona:
+        Rank their top attributes by % of THAT BRAND's reviews.
+        Show where each brand over-indexes vs category average.
+        net_sentiment_driver: "What single attribute most drives this brand's rating?"
+        
+        SOURCE: Amazon.in and Flipkart verified reviews ONLY for scores, %, and driver analysis.
         `,
         
         "8": `

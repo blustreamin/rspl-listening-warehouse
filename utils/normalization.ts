@@ -350,9 +350,10 @@ export const normalizeSectionData = (
                  tradeoff_matrix: ensureArray(rootEco6.tradeoff_matrix || rootEco6.matrix || data.tradeoff_matrix, 'attribute')
              };
         
-        case '7': // Brand Performance
+        case '7': // Brand Performance + Driver Analysis
              return {
-                 brand_performance: ensureArray(data.brand_performance || data.brands, 'brand')
+                 brand_performance: ensureArray(data.brand_performance || data.brands, 'brand'),
+                 driver_analysis: data.driver_analysis || null
              };
 
         case '8': // Awareness
