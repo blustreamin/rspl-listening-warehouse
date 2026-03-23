@@ -2275,8 +2275,7 @@ const FemcareBrandPerformanceRenderer = ({ data }: { data: any }) => {
     };
 
     return (
-        <div className="space-y-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+        <><div className="grid grid-cols-1 md:grid-cols-2 gap-5">
             {brands.map((b: any, i: number) => {
                 const borderColors = ['border-l-indigo-500', 'border-l-emerald-500', 'border-l-amber-500', 'border-l-rose-500', 'border-l-purple-500', 'border-l-blue-500'];
                 const borderClass = borderColors[i % borderColors.length];
@@ -2482,8 +2481,7 @@ const FemcareBrandPerformanceRenderer = ({ data }: { data: any }) => {
                 )}
             </div>
         )}
-        </div>
-        </div>
+        </>
     );
 };
 
