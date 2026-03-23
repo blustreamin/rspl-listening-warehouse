@@ -2482,8 +2482,8 @@ const FemcareBrandPerformanceRenderer = ({ data }: { data: any }) => {
                 )}
             </div>
         )}
-    </div>
-    </div>
+        </div>
+        </div>
     );
 };
 
