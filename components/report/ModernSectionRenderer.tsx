@@ -1742,7 +1742,47 @@ const SPDeepDiveRenderer = ({ data }: { data: any }) => {
                         <h4 className="font-extrabold text-white text-base uppercase tracking-wide">Pain Point Summary: Functional vs Emotional</h4>
                         <span className="text-[10px] text-slate-400">One-pager for strategic prioritization</span>
                     </div>
-                    {pp.users && (
+                    {/* Segment-split format: premium_ultra / super_premium_ultra */}
+                    {pp.premium_ultra && (
+                        <div>
+                            <div className="flex items-center gap-2 mb-3"><span className="w-2 h-2 rounded-full bg-indigo-500"></span><span className="text-[11px] font-extrabold text-indigo-700 uppercase tracking-wider">Premium Ultra — Pain Points</span></div>
+                            <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+                                {ensArr(pp.premium_ultra.functional).length > 0 && (
+                                    <div className="bg-white border border-slate-200 rounded-xl p-5 shadow-sm">
+                                        <span className="text-[10px] font-extrabold text-amber-600 uppercase tracking-wider mb-3 block">⚙️ Functional</span>
+                                        <div className="space-y-3">{renderPainPoints(pp.premium_ultra.functional, 'amber')}</div>
+                                    </div>
+                                )}
+                                {ensArr(pp.premium_ultra.emotional).length > 0 && (
+                                    <div className="bg-white border border-slate-200 rounded-xl p-5 shadow-sm">
+                                        <span className="text-[10px] font-extrabold text-rose-600 uppercase tracking-wider mb-3 block">💔 Emotional</span>
+                                        <div className="space-y-3">{renderPainPoints(pp.premium_ultra.emotional, 'rose')}</div>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    )}
+                    {pp.super_premium_ultra && (
+                        <div>
+                            <div className="flex items-center gap-2 mb-3"><span className="w-2 h-2 rounded-full bg-purple-500"></span><span className="text-[11px] font-extrabold text-purple-700 uppercase tracking-wider">Super Premium Ultra — Pain Points</span></div>
+                            <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+                                {ensArr(pp.super_premium_ultra.functional).length > 0 && (
+                                    <div className="bg-white border border-slate-200 rounded-xl p-5 shadow-sm">
+                                        <span className="text-[10px] font-extrabold text-amber-600 uppercase tracking-wider mb-3 block">⚙️ Functional</span>
+                                        <div className="space-y-3">{renderPainPoints(pp.super_premium_ultra.functional, 'amber')}</div>
+                                    </div>
+                                )}
+                                {ensArr(pp.super_premium_ultra.emotional).length > 0 && (
+                                    <div className="bg-white border border-slate-200 rounded-xl p-5 shadow-sm">
+                                        <span className="text-[10px] font-extrabold text-purple-600 uppercase tracking-wider mb-3 block">💔 Emotional</span>
+                                        <div className="space-y-3">{renderPainPoints(pp.super_premium_ultra.emotional, 'purple')}</div>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    )}
+                    {/* Legacy format: users / non_users (fallback) */}
+                    {!pp.premium_ultra && pp.users && (
                         <div>
                             <div className="flex items-center gap-2 mb-3"><span className="w-2 h-2 rounded-full bg-indigo-500"></span><span className="text-[11px] font-extrabold text-indigo-700 uppercase tracking-wider">Users — Pain Points</span></div>
                             <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
@@ -1761,7 +1801,7 @@ const SPDeepDiveRenderer = ({ data }: { data: any }) => {
                             </div>
                         </div>
                     )}
-                    {pp.non_users && (
+                    {!pp.premium_ultra && pp.non_users && (
                         <div>
                             <div className="flex items-center gap-2 mb-3"><span className="w-2 h-2 rounded-full bg-rose-500"></span><span className="text-[11px] font-extrabold text-rose-700 uppercase tracking-wider">Non-Users — Barriers</span></div>
                             <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">

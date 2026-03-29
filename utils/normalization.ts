@@ -210,16 +210,14 @@ export const normalizeSectionData = (
         switch (sectionId) {
             case '1': // Menstruation Context by Sub-Category → cards
                 return { ...data, cards: ensureArray(data.cards || data.menstruation_context?.cards || data.content) };
-            case 'sub_categories': // Sub-Category Landscape → cards + taxonomy
-                return { ...data, cards: ensureArray(data.cards || data.taxonomy_cards || data.landscape), taxonomy: data.taxonomy || null };
-            case 'gap_analysis': // Gap Analysis for sanitary pads
+            case 'gap_analysis': // Gap Analysis - no resolved_challenges per client feedback
                 return {
-                    current_challenges: normalizeGapBlock(data.current_challenges || data.challenges, "Current Challenges"),
-                    resolved_challenges: normalizeGapBlock(data.resolved_challenges || data.resolved, "Resolved"),
-                    unresolved_challenges: normalizeGapBlock(data.unresolved_challenges || data.unresolved, "Unresolved"),
+                    current_challenges: normalizeGapBlock(data.current_challenges || data.challenges, "What Premium Ultra Doesn't Solve"),
+                    resolved_challenges: null,
+                    unresolved_challenges: normalizeGapBlock(data.unresolved_challenges || data.unresolved, "What Super Premium Ultra Still Can't Crack"),
                     need_gap: normalizeNeedBlock(data.need_gap || data.needs)
                 };
-            case '2': { // Switching Dynamics → trigger_clusters + switching
+            case '2': { // Adoption Drivers → trigger_clusters + barriers + switching
                 const root2sp = data.behavioural_landscape || data;
                 let barrierGroupsSP = root2sp.barrier_groups || root2sp.barriers || {};
                 if (Array.isArray(barrierGroupsSP)) {
@@ -234,11 +232,6 @@ export const normalizeSectionData = (
                     brand_switching: ensureArray(root2sp.brand_switching, 'from_brand')
                 };
             }
-            case '3': // Attribute Performance → formats + attribute_matrix (NOT proof_points)
-                return {
-                    formats: ensureArray(data.formats || data.format_cards || data.sub_categories, 'format'),
-                    attribute_matrix: ensureArray(data.attribute_matrix || data.matrix, 'attribute')
-                };
             case '4': // Purchase Behaviour → discovery_sources + purchase_channels + pricing
                 return {
                     ...data,
@@ -248,7 +241,7 @@ export const normalizeSectionData = (
                     pricing_architecture: ensureArray(data.pricing_architecture || data.pricing),
                     combos_and_kits: ensureArray(data.combos_and_kits || data.combos)
                 };
-            case '5': // Consumer Deep Dive → segmented profiles + pain_point_summary + whisper_ultra_clean
+            case '5': // Consumer Deep Dive → segmented profiles + pain_point_summary
                 return {
                     ...data,
                     role_summary: data.role_summary || null,
@@ -262,9 +255,9 @@ export const normalizeSectionData = (
                     whisper_ultra_clean: data.whisper_ultra_clean || null,
                     segmentation: data.segmentation ? normalizeSegmentation(data.segmentation) : null
                 };
-            case '7': // Brand Performance → brand_performance (same as generic)
+            case '7': // Brand Performance → brand_performance
                 return { brand_performance: ensureArray(data.brand_performance || data.brands, 'brand') };
-            case '8': // Whisper Ultra Clean → cards
+            case '9': // Whisper Product Analysis → cards
                 return { ...data, cards: ensureArray(data.cards || data.analysis || data.feedback) };
             default:
                 return data;
