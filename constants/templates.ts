@@ -779,7 +779,7 @@ DISPOSABLE PERIOD PANTIES — ADDITIONAL RULES:
       { sectionId: "2", title: "Adoption Drivers: Premium Ultra vs Super Premium Ultra", uiSpec: "matrix", schema: { type: "object", required: ["trigger_clusters"] } },
       { sectionId: "gap_analysis", title: "Gap Analysis: Premium Ultra vs Super Premium Ultra", uiSpec: "gap-analysis", schema: { type: "object", required: ["current_challenges", "need_gap"] } },
       { sectionId: "4", title: "Purchase Behaviour & Channels", uiSpec: "funnel", schema: {} },
-      { sectionId: "5", title: "Consumer Deep Dive: Premium Ultra vs Super Premium Ultra", uiSpec: "text-list", schema: { type: "object", required: ["premium_ultra_users"] } },
+      { sectionId: "5", title: "Consumer Deep Dive: Premium Ultra vs Super Premium Ultra", uiSpec: "text-list", schema: { type: "object" } },
       { sectionId: "7", title: "Brand Performance: Premium Ultra & Super Premium Ultra", uiSpec: "cards", schema: {} },
       { sectionId: "9", title: "Whisper Product Analysis: No Gap No Leaks vs Ultra Clean", uiSpec: "cards", schema: { type: "object", required: ["cards"] } }
     ],
@@ -1002,7 +1002,7 @@ SANITARY PADS REPORT — ADDITIONAL MANDATORY RULES:
     fallbacks: {
         "1": { cards: [{ boldTitle: "Fluff Regular", bullets: ["SEED: Entry-level pad for Tier 2/3 consumers."], confidence: "LOW", evidence_ids: [] }, { boldTitle: "Premium Ultra", bullets: ["SEED: Thin, rash-free promise."], confidence: "LOW", evidence_ids: [] }] },
         "gap_analysis": FALLBACK_GAP_ANALYSIS,
-        "5": FALLBACK_DEEP_DIVE
+        "5": { role_summary: { boldTitle: "Premium Ultra vs Super Premium Ultra Deep Dive", bullets: ["Re-run synthesis to generate segmented profiles."], confidence: "LOW", evidence_ids: [] }, premium_ultra_users: null, super_premium_ultra_users: null, pain_point_summary: null }
     }
   }
 };
