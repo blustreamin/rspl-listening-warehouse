@@ -998,11 +998,11 @@ SANITARY PADS REPORT — ADDITIONAL MANDATORY RULES:
       }
     },
     validators: {},
-    validators: {},
     fallbacks: {
         "1": { cards: [{ boldTitle: "Fluff Regular", bullets: ["SEED: Entry-level pad for Tier 2/3 consumers."], confidence: "LOW", evidence_ids: [] }, { boldTitle: "Premium Ultra", bullets: ["SEED: Thin, rash-free promise."], confidence: "LOW", evidence_ids: [] }] },
         "gap_analysis": FALLBACK_GAP_ANALYSIS,
-        "5": { role_summary: { boldTitle: "Premium Ultra vs Super Premium Ultra Deep Dive", bullets: ["Re-run synthesis to generate segmented profiles."], confidence: "LOW", evidence_ids: [] }, premium_ultra_users: null, super_premium_ultra_users: null, pain_point_summary: null }
+        "5": { role_summary: { boldTitle: "Premium Ultra vs Super Premium Ultra Deep Dive", bullets: ["Re-run synthesis to generate segmented profiles."], confidence: "LOW", evidence_ids: [] }, premium_ultra_users: null, super_premium_ultra_users: null, pain_point_summary: null },
+        "9": { cards: [{ boldTitle: "Whisper No Gap No Leaks — Consumer Analysis", bullets: ["Run synthesis to generate Whisper product comparison."], confidence: "LOW", evidence_ids: [] }] }
     }
   }
 };
