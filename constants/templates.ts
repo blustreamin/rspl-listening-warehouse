@@ -833,7 +833,7 @@ SANITARY PADS REPORT — ADDITIONAL MANDATORY RULES:
             "Super Premium Ultra": { "Price": string[], "Availability": string[], "Awareness": string[], "Trust": string[], "D2C Friction": string[] }
           },
           "switching_dynamics": Array<{pathway: "From -> To", segment: "Premium Ultra"|"Super Premium Ultra", insight, logic_bullets: string[], evidence_ids: []}>,
-          "brand_switching": Array<{from_brand: string, to_brand: string, reason: string, trigger: string, segment: "Premium Ultra"|"Super Premium Ultra", evidence_ids: []}>
+          "brand_switching": Array<{from_brand: string, to_brand: string, reason: string, trigger: string, segment: "Premium Ultra"|"Super Premium Ultra", verbatims: Array<{quote: string, source: string}>, evidence_ids: []}>
         }
         
         A. ADOPTION DRIVERS FOR PREMIUM ULTRA (min 4):

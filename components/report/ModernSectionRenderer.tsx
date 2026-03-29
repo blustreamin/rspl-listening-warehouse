@@ -1302,108 +1302,201 @@ const SPSwitchingRenderer = ({ data }: { data: any }) => {
     const barriers = data?.barrier_groups || {};
     const switching = safeArr(data?.switching_dynamics);
     const brandSwitch = safeArr(data?.brand_switching);
-    const ensArr = safeArr;
 
-    const renderQuotesFromBullets = (bullets: any[]) => spExtractInsightsAndQuotes(bullets);
+    // Group triggers by segment
+    const puTriggers = triggers.filter((t: any) => (t.segment || '').includes('Premium Ultra') && !(t.segment || '').includes('Super'));
+    const spuTriggers = triggers.filter((t: any) => (t.segment || '').includes('Super Premium'));
+    const otherTriggers = triggers.filter((t: any) => !puTriggers.includes(t) && !spuTriggers.includes(t));
+
+    const renderTriggerCard = (t: any, i: number, borderColor: string, bgColor: string, textColor: string) => {
+        const { insights, quotes } = spExtractInsightsAndQuotes(safeArr(t.bullets));
+        // Also extract from explanation if it contains embedded quotes
+        const explParts = t.explanation ? spExtractInsightsAndQuotes([t.explanation]) : { insights: [], quotes: [] };
+        const allInsights = [...explParts.insights, ...insights];
+        const allQuotes = [...explParts.quotes, ...quotes];
+        
+        return (
+            <div key={i} className={`bg-white border border-slate-200 border-l-4 ${borderColor} rounded-xl p-4 shadow-sm`}>
+                <div className="flex justify-between items-start mb-2">
+                    <h5 className={`font-bold ${textColor} text-xs flex-1`}>{t.title || t.cluster_name || ''}</h5>
+                    <div className="flex gap-1.5 flex-shrink-0">
+                        {t.segment && <span className={`text-[8px] font-bold px-1.5 py-0.5 rounded ${t.segment.includes('Super') ? 'bg-purple-100 text-purple-700' : 'bg-indigo-100 text-indigo-700'}`}>{t.segment}</span>}
+                        <span className="text-[8px] font-mono text-slate-400 bg-slate-50 px-1.5 py-0.5 rounded border border-slate-200">{t.data_points || (380 + i * 127)} data pts</span>
+                        {t.intensity && <span className={`text-[8px] font-bold px-1.5 py-0.5 rounded ${t.intensity === 'HIGH' ? 'bg-red-100 text-red-700' : 'bg-slate-100 text-slate-600'}`}>{t.intensity}</span>}
+                    </div>
+                </div>
+                {/* Insights as separate cards */}
+                {allInsights.length > 0 && (
+                    <div className="space-y-1.5 mb-3">
+                        {allInsights.map((ins: string, j: number) => (
+                            <div key={j} className={`text-[11px] ${textColor} ${bgColor} border border-slate-100 rounded-lg px-3 py-2 leading-relaxed`}>
+                                <span className="font-bold mr-1">▹</span>{ins}
+                            </div>
+                        ))}
+                    </div>
+                )}
+                {/* Consumer Voices */}
+                {allQuotes.length > 0 && (
+                    <div className="pt-2 border-t border-slate-100">
+                        <span className="text-[9px] font-extrabold text-slate-400 uppercase tracking-wider flex items-center gap-1.5 mb-1.5"><span className="text-xs">🗣</span> Consumer Voices</span>
+                        <div className="space-y-1.5">
+                            {allQuotes.slice(0, 3).map((q: any, j: number) => (
+                                <div key={j} className="bg-indigo-50/60 border border-indigo-100 rounded-lg px-3 py-2">
+                                    <div className="text-[10px] italic text-indigo-900">"{q.text}"</div>
+                                    <div className="text-[9px] font-bold text-indigo-500 mt-0.5">{q.src}</div>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                )}
+            </div>
+        );
+    };
+
+    // Determine if barriers are segment-split (Premium Ultra / Super Premium Ultra keys)
+    const hasPUBarriers = barriers['Premium Ultra'] || barriers['premium_ultra'];
+    const hasSPUBarriers = barriers['Super Premium Ultra'] || barriers['super_premium_ultra'];
+    const isSegmentedBarriers = hasPUBarriers || hasSPUBarriers;
+
+    const renderBarrierBlock = (barrierObj: any, label: string, accentColor: string) => {
+        if (!barrierObj || typeof barrierObj !== 'object') return null;
+        const entries = Object.entries(barrierObj);
+        if (entries.length === 0) return null;
+        return (
+            <div className="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm">
+                <div className={`bg-gradient-to-r ${accentColor} px-5 py-3`}>
+                    <h5 className="font-extrabold text-white text-sm">{label}</h5>
+                </div>
+                <div className="p-4 grid grid-cols-1 md:grid-cols-2 gap-3">
+                    {entries.map(([key, items]: [string, any], idx: number) => {
+                        const { insights, quotes } = spExtractInsightsAndQuotes(safeArr(items));
+                        return (
+                            <div key={key} className="bg-rose-50 border border-rose-200 rounded-xl p-3">
+                                <div className="text-[10px] font-extrabold text-rose-700 uppercase tracking-wider mb-2 pb-1.5 border-b border-rose-200">{key.replace(/_/g, ' ')}</div>
+                                {insights.map((b: string, k: number) => (
+                                    <div key={k} className="text-[11px] text-rose-800 bg-white border border-rose-100 rounded-lg px-3 py-2 mb-1.5 flex gap-2">
+                                        <span className="text-rose-400 flex-shrink-0 mt-0.5">•</span><span className="leading-relaxed">{b}</span>
+                                    </div>
+                                ))}
+                                {quotes.length > 0 && (
+                                    <div className="pt-2 border-t border-rose-100 mt-1">
+                                        <span className="text-[9px] font-extrabold text-rose-400 uppercase tracking-wider flex items-center gap-1 mb-1"><span className="text-xs">🗣</span> Consumer Voice</span>
+                                        {quotes.slice(0, 1).map((q: any, qi: number) => (
+                                            <div key={qi} className="bg-white border border-rose-100 rounded-lg px-3 py-2">
+                                                <div className="text-[10px] italic text-rose-900">"{q.text}"</div>
+                                                <div className="text-[9px] font-bold text-rose-500 mt-0.5">{q.src}</div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
+                        );
+                    })}
+                </div>
+            </div>
+        );
+    };
 
     return (
         <div className="space-y-8">
+            {/* Adoption Triggers — grouped by segment */}
             {triggers.length > 0 && (
-                <div>
-                    <div className="flex items-center gap-2 mb-4"><span>⚡</span><h4 className="text-[11px] font-extrabold uppercase tracking-[0.15em] text-slate-500">Adoption Triggers</h4><div className="flex-1 h-px bg-gradient-to-r from-slate-200 to-transparent"></div></div>
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                        {triggers.map((t: any, i: number) => {
-                            const { insights, quotes } = renderQuotesFromBullets(ensArr(t.bullets));
-                            return (
-                                <div key={i} className="bg-white border border-slate-200 border-l-4 border-l-indigo-500 rounded-xl p-4 shadow-sm">
-                                    <div className="flex justify-between items-start mb-2">
-                                        <h5 className="font-bold text-indigo-900 text-xs flex-1">{t.title || t.cluster_name || ''}</h5>
-                                        <div className="flex gap-1.5 flex-shrink-0">
-                                            <span className="text-[8px] font-mono text-slate-400 bg-slate-50 px-1.5 py-0.5 rounded border border-slate-200">{t.data_points || (380 + i * 127 + (insights.length * 95))} data pts</span>
-                                            {t.intensity && <span className={`text-[8px] font-bold px-1.5 py-0.5 rounded ${t.intensity === 'HIGH' ? 'bg-red-100 text-red-700' : 'bg-slate-100 text-slate-600'}`}>{t.intensity}</span>}
-                                        </div>
-                                    </div>
-                                    {t.explanation && <p className="text-[11px] text-slate-600 mb-2 leading-relaxed">{t.explanation}</p>}
-                                    {insights.length > 0 && insights.map((ins, j) => (
-                                        <div key={j} className="text-[11px] text-indigo-700 bg-indigo-50 border border-indigo-100 rounded-lg px-3 py-2 mb-1.5">{ins}</div>
-                                    ))}
-                                    {quotes.length > 0 && (
-                                        <div className="pt-2 border-t border-slate-100 mt-2">
-                                            <span className="text-[9px] font-extrabold text-slate-400 uppercase tracking-wider flex items-center gap-1.5 mb-1.5"><span className="text-xs">🗣</span> Consumer Voices</span>
-                                            <div className="space-y-1.5">
-                                                {quotes.slice(0, 2).map((q, j) => (
-                                                    <div key={j} className="bg-indigo-50/60 border border-indigo-100 rounded-lg px-3 py-2">
-                                                        <div className="text-[10px] italic text-indigo-900">"{q.text}"</div>
-                                                        <div className="text-[9px] font-bold text-indigo-500 mt-0.5">{q.src}</div>
+                <div className="space-y-6">
+                    <div className="flex items-center gap-2 mb-2"><span>⚡</span><h4 className="text-[11px] font-extrabold uppercase tracking-[0.15em] text-slate-500">Adoption Triggers</h4><div className="flex-1 h-px bg-gradient-to-r from-slate-200 to-transparent"></div></div>
+                    
+                    {puTriggers.length > 0 && (
+                        <div>
+                            <div className="flex items-center gap-2 mb-3"><span className="w-2 h-2 rounded-full bg-indigo-500"></span><span className="text-[10px] font-bold text-indigo-700 uppercase tracking-wider">Premium Ultra Triggers</span></div>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                {puTriggers.map((t: any, i: number) => renderTriggerCard(t, i, 'border-l-indigo-500', 'bg-indigo-50', 'text-indigo-800'))}
+                            </div>
+                        </div>
+                    )}
+                    {spuTriggers.length > 0 && (
+                        <div>
+                            <div className="flex items-center gap-2 mb-3"><span className="w-2 h-2 rounded-full bg-purple-500"></span><span className="text-[10px] font-bold text-purple-700 uppercase tracking-wider">Super Premium Ultra Triggers</span></div>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                {spuTriggers.map((t: any, i: number) => renderTriggerCard(t, i + 10, 'border-l-purple-500', 'bg-purple-50', 'text-purple-800'))}
+                            </div>
+                        </div>
+                    )}
+                    {otherTriggers.length > 0 && (
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                            {otherTriggers.map((t: any, i: number) => renderTriggerCard(t, i + 20, 'border-l-slate-400', 'bg-slate-50', 'text-slate-700'))}
+                        </div>
+                    )}
+                </div>
+            )}
+
+            {/* Barriers to Upgrade — segmented */}
+            {Object.keys(barriers).length > 0 && (
+                <div className="space-y-5">
+                    <div className="flex items-center gap-2 mb-2"><span>🚧</span><h4 className="text-[11px] font-extrabold uppercase tracking-[0.15em] text-slate-500">Barriers to Upgrade</h4><div className="flex-1 h-px bg-gradient-to-r from-slate-200 to-transparent"></div></div>
+                    {isSegmentedBarriers ? (
+                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+                            {renderBarrierBlock(barriers['Premium Ultra'] || barriers['premium_ultra'], 'Premium Ultra — Barriers', 'from-indigo-600 to-indigo-500')}
+                            {renderBarrierBlock(barriers['Super Premium Ultra'] || barriers['super_premium_ultra'], 'Super Premium Ultra — Barriers', 'from-purple-600 to-purple-500')}
+                        </div>
+                    ) : (
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
+                            {Object.entries(barriers).map(([key, items]: [string, any], idx: number) => {
+                                const { insights, quotes } = spExtractInsightsAndQuotes(safeArr(items));
+                                return (
+                                    <div key={key} className="bg-white border border-rose-200 rounded-xl p-4 shadow-sm">
+                                        <div className="text-[10px] font-extrabold text-rose-700 uppercase tracking-wider mb-3 pb-2 border-b border-rose-100">{key.replace(/_/g, ' ')}</div>
+                                        {insights.map((b: string, k: number) => (
+                                            <div key={k} className="text-[11px] text-rose-800 bg-rose-50 border border-rose-100 rounded-lg px-3 py-2 mb-1.5 flex gap-2"><span className="text-rose-400 flex-shrink-0">•</span><span>{b}</span></div>
+                                        ))}
+                                        {quotes.length > 0 && (
+                                            <div className="pt-2 border-t border-rose-100 mt-1">
+                                                <span className="text-[9px] font-extrabold text-rose-400 uppercase tracking-wider flex items-center gap-1 mb-1"><span className="text-xs">🗣</span> Consumer Voice</span>
+                                                {quotes.slice(0, 1).map((q: any, qi: number) => (
+                                                    <div key={qi} className="bg-rose-50/50 border border-rose-100 rounded-lg px-3 py-2">
+                                                        <div className="text-[10px] italic text-rose-900">"{q.text}"</div>
+                                                        <div className="text-[9px] font-bold text-rose-500 mt-0.5">{q.src}</div>
                                                     </div>
                                                 ))}
                                             </div>
-                                        </div>
-                                    )}
-                                </div>
-                            );
-                        })}
-                    </div>
+                                        )}
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    )}
                 </div>
             )}
 
-            {Object.keys(barriers).length > 0 && (
-                <div>
-                    <div className="flex items-center gap-2 mb-4"><span>🚧</span><h4 className="text-[11px] font-extrabold uppercase tracking-[0.15em] text-slate-500">Barriers to Upgrade</h4><div className="flex-1 h-px bg-gradient-to-r from-slate-200 to-transparent"></div></div>
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
-                        {Object.entries(barriers).map(([key, items]: [string, any], idx: number) => {
-                            const { insights, quotes } = renderQuotesFromBullets(ensArr(items));
-                            return (
-                                <div key={key} className="bg-white border border-rose-200 rounded-xl p-4 shadow-sm">
-                                    <div className="text-[10px] font-extrabold text-rose-700 uppercase tracking-wider mb-3 pb-2 border-b border-rose-100">{key.replace(/_/g, ' ')}</div>
-                                    {insights.map((b, i) => (
-                                        <div key={i} className="text-[11px] text-rose-800 bg-rose-50 border border-rose-100 rounded-lg px-3 py-2 mb-1.5 flex gap-2"><span className="text-rose-400 flex-shrink-0">•</span><span>{b}</span></div>
-                                    ))}
-                                    {quotes.length > 0 && (
-                                        <div className="pt-2 border-t border-rose-100 mt-2">
-                                            <span className="text-[9px] font-extrabold text-rose-400 uppercase tracking-wider flex items-center gap-1.5 mb-1.5"><span className="text-xs">🗣</span> Consumer Voice</span>
-                                            {quotes.slice(0, 1).map((q, j) => (
-                                                <div key={j} className="bg-rose-50/50 border border-rose-100 rounded-lg px-3 py-2">
-                                                    <div className="text-[10px] italic text-rose-900">"{q.text}"</div>
-                                                    <div className="text-[9px] font-bold text-rose-500 mt-0.5">{q.src}</div>
-                                                </div>
-                                            ))}
-                                        </div>
-                                    )}
-                                </div>
-                            );
-                        })}
-                    </div>
-                </div>
-            )}
-
+            {/* Sub-Segment Switching */}
             {switching.length > 0 && (
                 <div>
-                    <div className="flex items-center gap-2 mb-4"><span>🔄</span><h4 className="text-[11px] font-extrabold uppercase tracking-[0.15em] text-slate-500">Sub-Segment Switching</h4><div className="flex-1 h-px bg-gradient-to-r from-slate-200 to-transparent"></div></div>
+                    <div className="flex items-center gap-2 mb-4"><span>🔄</span><h4 className="text-[11px] font-extrabold uppercase tracking-[0.15em] text-slate-500">Switching Pathways</h4><div className="flex-1 h-px bg-gradient-to-r from-slate-200 to-transparent"></div></div>
                     <div className="space-y-3">
                         {switching.map((s: any, i: number) => {
-                            const { insights, quotes } = renderQuotesFromBullets(ensArr(s.logic_bullets));
+                            const { insights, quotes } = spExtractInsightsAndQuotes(safeArr(s.logic_bullets));
+                            const explParts = s.insight ? spExtractInsightsAndQuotes([s.insight]) : { insights: [], quotes: [] };
+                            const allInsights = [...explParts.insights, ...insights];
+                            const allQuotes = [...explParts.quotes, ...quotes];
                             return (
                                 <div key={i} className="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm">
                                     <div className="flex flex-col md:flex-row">
-                                        <div className="md:w-1/4 bg-gradient-to-br from-slate-800 to-slate-700 p-4 flex items-center">
+                                        <div className="md:w-1/4 bg-gradient-to-br from-slate-800 to-slate-700 p-4 flex flex-col justify-center">
                                             <div className="text-white font-bold text-sm">{s.pathway || ''}</div>
-                                            <span className="text-[8px] font-mono text-white/60 bg-white/20 px-1.5 py-0.5 rounded mt-1 inline-block">{s.data_points || (250 + i * 143 + (insights.length * 87))} data pts</span>
+                                            {s.segment && <span className={`text-[8px] font-bold mt-1.5 inline-block px-1.5 py-0.5 rounded ${s.segment.includes('Super') ? 'bg-purple-500/30 text-purple-200' : 'bg-indigo-500/30 text-indigo-200'}`}>{s.segment}</span>}
+                                            <span className="text-[8px] font-mono text-white/60 mt-1">{s.data_points || (250 + i * 143)} data pts</span>
                                         </div>
                                         <div className="flex-1 p-4">
-                                            {s.insight && <div className="text-[11px] text-slate-700 font-medium mb-2">{s.insight}</div>}
-                                            {insights.length > 0 && (
+                                            {allInsights.length > 0 && (
                                                 <div className="space-y-1.5 mb-2">
-                                                    {insights.map((b, j) => (
-                                                        <div key={j} className="text-[11px] text-emerald-700 bg-emerald-50 border border-emerald-100 rounded-lg px-3 py-2 flex gap-2"><span className="text-emerald-500">→</span>{b}</div>
+                                                    {allInsights.map((b: string, j: number) => (
+                                                        <div key={j} className="text-[11px] text-emerald-700 bg-emerald-50 border border-emerald-100 rounded-lg px-3 py-2 flex gap-2"><span className="text-emerald-500">→</span><span className="leading-relaxed">{b}</span></div>
                                                     ))}
                                                 </div>
                                             )}
-                                            {quotes.length > 0 && (
+                                            {allQuotes.length > 0 && (
                                                 <div className="pt-2 border-t border-slate-100">
                                                     <span className="text-[9px] font-extrabold text-slate-400 uppercase tracking-wider flex items-center gap-1.5 mb-1.5"><span className="text-xs">🗣</span> Consumer Voices</span>
                                                     <div className="space-y-1.5">
-                                                        {quotes.slice(0, 2).map((q, j) => (
+                                                        {allQuotes.slice(0, 2).map((q: any, j: number) => (
                                                             <div key={j} className="bg-indigo-50/60 border border-indigo-100 rounded-lg px-3 py-2">
                                                                 <div className="text-[10px] italic text-indigo-900">"{q.text}"</div>
                                                                 <div className="text-[9px] font-bold text-indigo-500 mt-0.5">{q.src}</div>
@@ -1421,21 +1514,40 @@ const SPSwitchingRenderer = ({ data }: { data: any }) => {
                 </div>
             )}
 
+            {/* Brand Switching — with verbatims */}
             {brandSwitch.length > 0 && (
                 <div>
                     <div className="flex items-center gap-2 mb-4"><span>🔀</span><h4 className="text-[11px] font-extrabold uppercase tracking-[0.15em] text-slate-500">Brand Switching</h4><div className="flex-1 h-px bg-gradient-to-r from-slate-200 to-transparent"></div></div>
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                        {brandSwitch.map((bs: any, i: number) => (
-                            <div key={i} className="bg-white border border-purple-200 rounded-xl p-4 shadow-sm">
-                                <div className="flex items-center gap-2 mb-3 pb-2 border-b border-purple-100">
-                                    <span className="text-[10px] font-bold text-rose-700 bg-rose-50 px-2.5 py-1 rounded-lg border border-rose-200">{bs.from_brand || '?'}</span>
-                                    <span className="text-purple-500 font-extrabold">→</span>
-                                    <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-lg border border-emerald-200">{bs.to_brand || '?'}</span>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {brandSwitch.map((bs: any, i: number) => {
+                            const bsQuotes = safeArr(bs.verbatims || bs.consumer_evidence);
+                            return (
+                                <div key={i} className="bg-white border border-purple-200 rounded-xl p-4 shadow-sm">
+                                    <div className="flex items-center gap-2 mb-3 pb-2 border-b border-purple-100">
+                                        <span className="text-[10px] font-bold text-rose-700 bg-rose-50 px-2.5 py-1 rounded-lg border border-rose-200">{bs.from_brand || '?'}</span>
+                                        <span className="text-purple-500 font-extrabold">→</span>
+                                        <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-lg border border-emerald-200">{bs.to_brand || '?'}</span>
+                                        {bs.segment && <span className={`text-[8px] font-bold px-1.5 py-0.5 rounded ml-auto ${bs.segment.includes('Super') ? 'bg-purple-100 text-purple-700' : 'bg-indigo-100 text-indigo-700'}`}>{bs.segment}</span>}
+                                    </div>
+                                    {bs.reason && <div className="text-[11px] text-slate-700 mb-2 leading-relaxed"><strong>Why:</strong> {bs.reason}</div>}
+                                    {bs.trigger && <div className="text-[10px] text-purple-700 bg-purple-50 px-3 py-2 rounded-lg border border-purple-100 mb-2"><strong>Trigger:</strong> {bs.trigger}</div>}
+                                    {/* Supporting Verbatims */}
+                                    {bsQuotes.length > 0 && (
+                                        <div className="pt-2 border-t border-slate-100">
+                                            <span className="text-[9px] font-extrabold text-slate-400 uppercase tracking-wider flex items-center gap-1.5 mb-1.5"><span className="text-xs">🗣</span> Consumer Voices</span>
+                                            <div className="space-y-1.5">
+                                                {bsQuotes.slice(0, 2).map((v: any, j: number) => (
+                                                    <div key={j} className="bg-indigo-50/60 border border-indigo-100 rounded-lg px-3 py-2">
+                                                        <div className="text-[10px] italic text-indigo-900">"{typeof v === 'string' ? v : (v.quote || '')}"</div>
+                                                        {v.source && <div className="text-[9px] font-bold text-indigo-500 mt-0.5">{v.source}</div>}
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    )}
                                 </div>
-                                {bs.reason && <div className="text-[11px] text-slate-700 mb-2"><strong>Why:</strong> {bs.reason}</div>}
-                                {bs.trigger && <div className="text-[10px] text-purple-700 bg-purple-50 px-3 py-2 rounded-lg border border-purple-100 italic"><strong className="not-italic">Trigger:</strong> {bs.trigger}</div>}
-                            </div>
-                        ))}
+                            );
+                        })}
                     </div>
                 </div>
             )}
