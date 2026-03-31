@@ -801,6 +801,14 @@ SANITARY PADS REPORT — ADDITIONAL MANDATORY RULES:
   NICHE themes (specific brand issues, regional patterns): 40-150 data points
   NEVER use data_points below 40. NEVER repeat the same number for adjacent insights.
 - SKU ACCURACY: For Sofy Anti Bacteria XL+, this is the PREMIUM ULTRA variant only. Do NOT include Sofy Bodyfit, Sofy Night, or Sofy Overnight SKUs under this — those are separate Fluff products.
+- BRAND CLASSIFICATION QC (NON-NEGOTIABLE):
+  Whisper No Gap No Leaks XL = Premium Ultra
+  Whisper Ultra Soft (Skin Love) XL = Premium Ultra  
+  Whisper Bindazzz Nights = NIGHT ULTRA (never Premium Ultra)
+  Whisper Choice Ultra = MID ULTRA (never Premium Ultra, never Fluff)
+  Whisper Choice XL = FLUFF XL (never Premium Ultra)
+  These are SEPARATE brand tiles in Section 7 — Whisper Ultra Soft and Whisper No Gap are different products.
+- SWITCHING RULES: NEVER use generic "Standard Fluff" — always "Fluff Regular" or "Fluff XL" or "Fluff Night". ONE pathway card per unique From→To transition.
 `,
       sectionPrompts: {
         "1": `
@@ -850,14 +858,20 @@ SANITARY PADS REPORT — ADDITIONAL MANDATORY RULES:
         
         C. BARRIERS — SEPARATE for Premium Ultra and Super Premium Ultra
         
-        D. SWITCHING TO PREMIUM ULTRA (min 4 pathways) with brand variant in source
+        D. SWITCHING PATHWAYS — STRICT RULES:
+           NEVER use generic "Standard Fluff" or just "Fluff". ALWAYS specify exact sub-category: "Fluff Regular", "Fluff XL", "Fluff Night", "Mid Ultra".
+           Do NOT create multiple pathways for the same transition. If the switch is Premium Ultra → Super Premium Ultra, combine ALL reasons (skin sensitivity, pack sizes, eco awareness) into ONE pathway card.
+           Each unique From→To pair should appear EXACTLY ONCE.
+           Min 4 distinct pathways for Premium Ultra, min 3 for Super Premium Ultra.
         
-        E. SWITCHING TO SUPER PREMIUM ULTRA (min 4 pathways)
-        
-        F. BRAND SWITCHING within segment (min 4)
+        E. BRAND SWITCHING — STRICT RULES:
+           Whisper Bindazzz Nights is NIGHT ULTRA — NEVER include it under Premium Ultra brand switching.
+           Whisper Choice Ultra is MID ULTRA — NEVER include it under Premium Ultra.
+           Only these brands qualify for Premium Ultra switching: Whisper No Gap No Leaks XL, Whisper Ultra Soft (Skin Love) XL, Sofy Anti Bacteria XL+.
+           Only these qualify for Super Premium Ultra switching: Nua, Plush, Carmesi, Azah, Pee Safe, Everteen, Sirona.
         
         EVERY verbatim must include brand variant in source. 
-        QC: Whisper = Premium Ultra ONLY. Nua/Plush/Carmesi/Azah/Pee Safe = Super Premium Ultra ONLY.
+        QC: Whisper Premium Ultra variants = No Gap No Leaks XL, Ultra Soft (Skin Love) XL ONLY.
         Do NOT reference UK geography or non-India contexts.
         `,
 
@@ -887,7 +901,7 @@ SANITARY PADS REPORT — ADDITIONAL MANDATORY RULES:
         `,
 
         "4": `
-        SECTION 4: PURCHASE BEHAVIOUR & CHANNELS — SPLIT BY SEGMENT
+        SECTION 4: PURCHASE BEHAVIOUR & CHANNELS — PREMIUM ULTRA & SUPER PREMIUM ULTRA ONLY
         Output Object: {
            "discovery_sources": Array<{source, strength: "High"|"Med", segment: "Premium Ultra"|"Super Premium Ultra"|"Both"}>,
            "purchase_channels": Array<{channel, role: "Primary"|"Secondary"|"Emerging", segment: "Premium Ultra"|"Super Premium Ultra", consumer_evidence: Array<{quote, source}>}>,
@@ -899,6 +913,20 @@ SANITARY PADS REPORT — ADDITIONAL MANDATORY RULES:
         SPLIT channels by segment:
         Premium Ultra: Chemist/pharmacy (primary), Amazon/Flipkart (secondary), supermarket
         Super Premium Ultra: D2C websites (primary), Amazon (secondary), Nykaa, Quick Commerce (Blinkit/Zepto). Minimal offline.
+        
+        SEARCH INTENT CLUSTERS (MANDATORY — min 4 per segment):
+        Premium Ultra search queries: "best rash-free pads XL", "Whisper No Gap review", "leak-proof ultra thin pads", "Sofy anti bacteria pads review", "pads for sensitive skin XL"
+        Super Premium Ultra search queries: "organic cotton pads India", "Nua vs Plush review", "best D2C sanitary pads", "chemical free pads for periods", "Carmesi vs Azah"
+        
+        PRICING ARCHITECTURE — ONLY Premium Ultra and Super Premium Ultra:
+        DO NOT include Fluff Regular, Fluff XL, Fluff Night, or Mid Ultra in pricing.
+        - Premium Ultra: ₹8-14/pad. SKUs: Whisper No Gap No Leaks XL, Whisper Ultra Soft XL, Sofy Anti Bacteria XL+
+        - Super Premium Ultra: ₹15-25/pad. SKUs: Nua Ultra Thin, Carmesi Sensitive XL, Plush 100% Pure US Cotton
+        
+        QC RULES:
+        - Whisper Choice Ultra is MID ULTRA — do NOT include it under Premium Ultra or in pricing
+        - Whisper Bindazzz Nights is NIGHT ULTRA — do NOT include
+        - Only Premium Ultra and Super Premium Ultra brands/SKUs in this section
         `,
 
         "5": `
@@ -963,12 +991,32 @@ SANITARY PADS REPORT — ADDITIONAL MANDATORY RULES:
         
         ONLY Premium Ultra and Super Premium Ultra brands. NO Fluff/Mid Ultra/Night Ultra data.
         
-        PREMIUM ULTRA: Whisper No Gap No Leaks XL, Whisper Ultra Soft (Skin Love) XL, Sofy Anti Bacteria XL+ (exclude Bodyfit/Night/Overnight), Everteen Ultra Thin XL.
-        SUPER PREMIUM ULTRA: Nua, Plush, Carmesi, Azah, Pee Safe, Sirona.
+        CRITICAL — WHISPER MUST BE SPLIT INTO TWO SEPARATE BRAND CARDS:
+        1. "Whisper Ultra Soft (Skin Love) XL" — Premium Ultra. Separate attribute scores, strengths, weaknesses, verbatims for THIS variant ONLY.
+        2. "Whisper No Gap No Leaks XL" — Premium Ultra. Separate attribute scores, strengths, weaknesses, verbatims for THIS variant ONLY.
+        These are different products with different consumer sentiment. Do NOT combine them into one "Whisper" card.
         
-        CROSS-CHECK: Whisper scores MUST NOT include Fluff/Mid Ultra/Night Ultra reviews.
-        Sofy scores MUST NOT include Bodyfit/Night/Overnight reviews.
+        OTHER PREMIUM ULTRA BRANDS:
+        3. Sofy Anti Bacteria XL+ (exclude Bodyfit/Night/Overnight)
+        4. Everteen Ultra Thin XL (if data available)
+        
+        SUPER PREMIUM ULTRA BRANDS:
+        5. Nua Ultra Thin
+        6. Plush 100% Pure US Cotton
+        7. Carmesi Sensitive
+        8. Azah Organic
+        9. Pee Safe Organic Cotton
+        10. Sirona Natural Biodegradable
+        
+        CROSS-CHECK: 
+        - Whisper Ultra Soft scores MUST NOT include No Gap No Leaks reviews, and vice versa.
+        - Neither Whisper card should include Fluff/Mid Ultra/Night Ultra reviews.
+        - Sofy scores MUST NOT include Bodyfit/Night/Overnight reviews.
+        - Whisper Bindazzz Nights is NIGHT ULTRA — never include.
+        - Whisper Choice Ultra is MID ULTRA — never include.
+        
         Attributes: absorption, rash_free, leak_protection, thinness, wing_adhesion, odour_control, value_for_money, disposal_ease, softness.
+        Min 3 verbatims per brand card with brand variant in source.
         `,
 
         "9": `
