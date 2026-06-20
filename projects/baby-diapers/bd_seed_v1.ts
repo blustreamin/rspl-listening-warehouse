@@ -418,4 +418,136 @@ export const BD_SEEDS_V1: Record<string, any> = {
       { brand: "Lovingle", tier: "mass", share_of_voice: { share_pct: 12 }, overall_sentiment: "MIX", positioning_summary: "RSPL's value/availability entrant. Daytime value appreciated; key objection cluster is rash / skin-safety reassurance. Headroom to own an affordable skin-safety / value-night position.", attribute_scale: [{ attribute: "Leak protection", score_0_5: 3.3 }, { attribute: "Skin comfort", score_0_5: 3.2 }, { attribute: "Overnight", score_0_5: 3.0 }, { attribute: "Value", score_0_5: 4.1 }, { attribute: "Availability", score_0_5: 3.9 }], strengths: ["Value", "Kirana availability"], weaknesses: ["Skin-safety perception", "Overnight"], data_points: 320, verbatims: [v("Lovingle is good value for daytime, I just want more reassurance on rashes.", "Amazon.in · Lovingle", "30F, Mother of 8-month-old, Tier 2 Lucknow")] },
     ],
   },
+
+  // ════════════════════════════════════════════════════════════════════════
+  // F3 GATE 3 — NEW SECTIONS (INDICATIVE seed; analyst-grade, India-grounded).
+  // Marked "indicative" in-render; replaced by live corpus when synthesis runs.
+  // ════════════════════════════════════════════════════════════════════════
+
+  // ── EXEC SUMMARY (lead / cover) ────────────────────────────────────────
+  exec_summary: {
+    stats: [
+      { stat: "36m+", label: "Listening window · 6 source layers triangulated" },
+      { stat: "~3,800", label: "Indexed parent verbatims & evidence points" },
+      { stat: "₹399", label: "The considered-mid rung where premiumisation unlocks" },
+    ],
+    north_star: "Win the ₹399 considered-mid rung with an affordable overnight, skin-safe pant — converting value-led daytime buyers into premium-night loyalists.",
+    insights: [
+      { headline: "Premiumisation is occasion-led, not income-led", what_it_means: "The same household trades up for night and travel while staying value for daytime — the step-up is triggered by the occasion, not the wallet.", verbatims: [v("Night I buy the premium pack, daytime the local laddi is fine.", "Amazon.in · Pampers Premium Care", "31F, Mother of 1, Mumbai")] },
+      { headline: "Rash / skin-safety is Lovingle's locked objection", what_it_means: "Aware non-triers hold back on skin-safety reassurance — not price or availability. Resolving it is the single biggest conversion lever.", verbatims: [v("I'm not sure a budget brand is safe enough for newborn skin, so I haven't risked it.", "BabyChakra", "27F, First-time mother, Pune")] },
+      { headline: "The tape→pant handoff is the biggest style switch", what_it_means: "Mobility around 8–14 months forces the move to pant-style — the moment to capture an active-baby buyer.", verbatims: [v("Once she started crawling, tape became a wrestling match — moved to pant style.", "Instagram", "30F, Mother of 9-month-old, Mumbai")] },
+      { headline: "Overnight protection is the #1 trade-up trigger", what_it_means: "One leak wakes the whole family; night is where parents will pay extra, making it the gateway from value to mid.", verbatims: [v("Night is when I'll pay extra — one leak and nobody sleeps.", "Amazon.in · MamyPoko All Night Absorb", "30F, Mother of 5-month-old, Pune")] },
+      { headline: "Channel maps to pack: kirana=laddi, online=jumbo", what_it_means: "Laddi trial happens in general trade; planned premium bulk happens online via subscribe-and-save — the premiumisation funnel runs left to right.", verbatims: [v("The subscription discount is why I stick to the premium box online.", "Amazon.in · Pampers Premium Care", "32F, Mother of 1, Delhi")] },
+      { headline: "Affordable all-night dryness is open white space", what_it_means: "Value seekers feel reliable overnight protection is premium-only — a credible value-night option is unclaimed territory for Lovingle.", verbatims: [v("Why can't a normal-priced diaper last the whole night?", "Reddit", "29F, Mother of 1, Tier 2 Indore")] },
+    ],
+    moves: [
+      { n: 1, title: "Own the ₹399 considered-mid rung", rationale: "Lead with an overnight-protection pant SKU — overnight is the #1 trade-up trigger." },
+      { n: 2, title: "Turn rash-anxiety into a premium claim", rationale: "A skin-safe line at ₹399–₹999 converts the locked objection into a reason to pay more." },
+      { n: 3, title: "Use gifting to seed ₹999+ trial", rationale: "Festive & baby-shower packs are the cheapest entry into the premium buyer — push MT & online." },
+      { n: 4, title: "Hold laddi as defence, not anchor", rationale: "Keep a kirana single/twin for trial & repeat, but don't position the brand at the entry rung." },
+    ],
+  },
+
+  // ── SEASONALITY & DEMAND RHYTHM ────────────────────────────────────────
+  seasonality: {
+    monthly: [54, 50, 60, 78, 90, 74, 96, 92, 70, 84, 88, 66], // Jan→Dec relative demand index
+    spikes: [
+      { month: "Jul–Aug", label: "Monsoon rash-anxiety", verbatim: v("Every monsoon the rashes come back and I start trying breathable brands again.", "BabyChakra", "27F, Mother of 6-month-old, Kochi") },
+      { month: "Apr–May", label: "Summer heat & sweat", verbatim: v("In peak summer I change far more often and look for the thinnest, most breathable one.", "Reddit", "29F, Mother of 1, Nagpur") },
+      { month: "Oct–Nov", label: "Festive & travel stock-up", verbatim: v("Before Diwali travel I stock the jumbo pant packs — quick changes on the road.", "Flipkart · MamyPoko", "34F, Mother of 2, Tier 2 Lucknow") },
+    ],
+    occasions: [
+      { headline: "Monsoon: breathability & rash-relief peak", what_it_means: "Humid months drive active brand trial seeking rash relief — the window to win switchers with a skin-safe claim.", data_points: 360, verbatims: [v("Monsoon I keep switching looking for the most breathable option.", "BabyChakra", "27F, First-time mother, Kochi")] },
+      { headline: "Summer: thinness & frequent changes", what_it_means: "Heat raises change frequency and per-piece cost salience; value packs and breathable thin variants both rise.", data_points: 240, verbatims: [v("Summer means more changes, so cost per piece really starts to matter.", "Reddit", "28F, Mother of 8-month-old, Ahmedabad")] },
+      { headline: "Festive & travel: non-laddi bulk stock-up", what_it_means: "Festival travel triggers trade-up to larger pant packs and gifting — the cheapest route into premium trial.", data_points: 300, verbatims: [v("Festival season I gift premium packs and stock up for the trips.", "Instagram", "33F, Mother of 1, Mumbai")] },
+    ],
+  },
+
+  // ── TARGET GROUP & SEGMENTS ────────────────────────────────────────────
+  target_group: {
+    segments: [
+      { segment: "Parents of 0–3y (baby-age anchored)", definition: "The core buyer across the full diaper journey; segmented by the baby's lifestage, never the parent's age. Needs reset at each milestone.", behaviours: ["Run different formats by occasion — night vs day vs travel.", "Trade up on a reason (overnight, rash); stay value for routine daytime."], verbatims: [v("I decide the brand by what stage she's in — newborn tape, now pant for my crawler.", "Reddit", "30F, Mother of 9-month-old, Bangalore")] },
+      { segment: "Third-trimester expecting mothers", definition: "Research-heavy, anticipation-led first-time deciders building the newborn kit and shortlisting the first brand before delivery.", behaviours: ["Lean on paediatrician advice and the hospital discharge kit.", "Anxious about size and skin-safety; high influencer/community exposure."], verbatims: [v("Making my hospital bag list — confused between tape and pant for a newborn.", "BabyChakra", "28F, Expecting (3rd trimester), Chennai")] },
+      { segment: "Family structure: nuclear+nanny vs joint+grandparents", definition: "Household structure shapes who influences format and cost — the nanny's convenience preference vs the grandparent's cloth/value pressure.", behaviours: ["Nuclear+nanny → pant-style convenience wins.", "Joint+grandparents → cloth/value negotiation and cost scrutiny."], verbatims: [v("My mother-in-law insists cloth is better — it's a constant negotiation at home.", "BabyChakra", "28F, First-time mother, Tier 2 Kanpur")] },
+    ],
+  },
+
+  // ── CHANNEL & RETAIL ARCHITECTURE ──────────────────────────────────────
+  channel_retail: {
+    nodes: [
+      { node: "General Trade / Kirana", share: 48, maps_to_pack: "Laddi · single / twin", note: "Impulse & emergency top-up; value-led; the trial & repeat engine. Defends volume, not margin.", verbatims: [v("I grab a single piece from the kirana when I run out at night.", "Reddit", "29F, Mother of 7-month-old, Tier 2 Patna")] },
+      { node: "Modern Trade", share: 22, maps_to_pack: "Non-Laddi · ₹99–₹399", note: "Planned weekly/monthly stock-up; mid-premium discovery; value-pack sweet spot.", verbatims: [v("At the supermarket I pick the value pack for the month, it's easier to plan.", "Flipkart · MamyPoko", "31F, Mother of 1, Pune")] },
+      { node: "Online", share: 30, maps_to_pack: "Non-Laddi · ₹399–₹999 + subscribe", note: "The premiumisation engine — best per-piece value, jumbo boxes and subscribe-and-save.", verbatims: [v("Jumbo box on subscription — never run out and best per-piece price.", "Amazon.in · Pampers Premium Care", "32F, Mother of 1, Delhi")] },
+    ],
+    flow_notes: [
+      "Premiumisation flows left → right: kirana laddi trial → modern-trade value packs → online jumbo & subscription.",
+      "Pack architecture maps cleanly onto channel — laddi is a general-trade format, non-laddi is a modern-trade/online format.",
+      "Online subscriptions are the strongest mechanism for locking a premium buyer into repeat.",
+    ],
+  },
+
+  // ── GEOGRAPHY & REGIONAL PATTERNS ──────────────────────────────────────
+  geography_regional: {
+    regions: [
+      { name: "Metro", intensity: 90, note: "Premiumisation is the default — overnight & skin-safe are baseline, not splurge; online-led, subscription-friendly.", verbatims: [v("In the city everyone I know uses premium pant style now, it's just normal.", "Instagram", "31F, Mother of 1, Mumbai")] },
+      { name: "Tier 2 / 3", intensity: 55, note: "Value-led; laddi & kirana dominate; premium reserved for night packs or received gifts. Rupees-per-piece governs.", verbatims: [v("Here we mostly buy the laddi from the shop; premium only for night sometimes.", "Reddit", "29F, Mother of 1, Tier 2 Indore")] },
+      { name: "South & coastal", intensity: 70, note: "High humidity makes breathability & rash-relief the dominant claim; active brand trial through monsoon.", verbatims: [v("In our Kerala humidity breathable is the first thing I check.", "BabyChakra", "27F, Mother of 6-month-old, Kochi")] },
+      { name: "North & West", intensity: 66, note: "Strong festive & gifting culture; bulk stock-up seeds premium trial; pant-style adoption rising fast.", verbatims: [v("Festive season we gift the premium packs and stock up the big boxes.", "Flipkart · Pampers", "33F, Mother of 2, Delhi")] },
+      { name: "East", intensity: 48, note: "Most value-sensitive; higher cloth co-use; availability gaps in smaller towns keep laddi central.", verbatims: [v("Good packs aren't always in stock nearby, so I keep cloth as backup.", "Reddit", "30F, Mother of 1, Tier 2 Patna")] },
+    ],
+    summary: [
+      "Metro premiumisation vs Tier 2/3 value-seeking is the sharpest geographic split in the category.",
+      "Climate is a real driver: humid South skews to breathability; festive North/West skews to bulk & gifting.",
+    ],
+  },
+
+  // ── INFLUENCER & COMMUNITY ECOSYSTEM ───────────────────────────────────
+  influencer_community: {
+    center: "Parent (mother-led, father increasingly co-deciding)",
+    nodes: [
+      { name: "Paediatricians", role: "Anchor the first decision", weight: 92, verbatim: v("Our paediatrician told us to avoid scented ones for the newborn — I followed that completely.", "Quora", "30F, First-time mother, Delhi") },
+      { name: "Mommy-influencers", role: "Set ongoing brand norms", weight: 76, verbatim: v("I picked the brand my favourite parenting influencer kept using in her reels.", "Instagram", "26F, Expecting (3rd trimester), Hyderabad") },
+      { name: "Mothers'-group communities", role: "Peer validation (unbranded)", weight: 70, verbatim: v("I posted in my mom group and went with what most mothers recommended.", "BabyChakra", "31F, Mother of 1, Pune") },
+      { name: "Review communities", role: "Pre-purchase cross-check", weight: 58, verbatim: v("Doctor first, then I cross-check YouTube and Amazon reviews before buying.", "YouTube", "29F, First-time mother, Hyderabad") },
+    ],
+    excluded: ["WhatsApp groups — closed / end-to-end encrypted; not part of the deliverable and never cited."],
+    notes: [
+      "Trust descends doctor → influencer → peer community → reviews → family, varying by platform.",
+      "Closed Facebook groups are best-effort/manual only; WhatsApp is explicitly out of scope.",
+    ],
+  },
+
+  // ── WHITE SPACE & RECOMMENDATIONS (decision-ready payoff) ───────────────
+  whitespace_recommendations: {
+    xAxis: { low: "Low effort", high: "High effort" },
+    yAxis: { low: "Low impact", high: "High impact" },
+    points: [
+      { label: "Affordable all-night pant", x: 58, y: 92, quadrant: "Big bet", note: "Value-night white space for SEC B/C — the clearest unclaimed territory." },
+      { label: "Skin-safe / rash-free claim", x: 34, y: 86, quadrant: "Quick win", note: "Directly converts Lovingle's locked objection into a reason to pay more." },
+      { label: "Festive gifting packs", x: 26, y: 62, quadrant: "Quick win", note: "Cheapest route into ₹999+ premium trial." },
+      { label: "Monsoon breathability line", x: 62, y: 72, quadrant: "Big bet", note: "South & coastal loyalty anchor against recurrent rash churn." },
+      { label: "Kirana laddi defence", x: 22, y: 38, quadrant: "Maintain", note: "Hold trial/repeat volume; do not anchor the brand here." },
+    ],
+    moves: [
+      { n: 1, title: "Launch an affordable overnight pant at ₹399", rationale: "Plant the flag on value-night white space before a competitor does — the top-right big bet." },
+      { n: 2, title: "Lead communication with skin-safety proof", rationale: "Dermatologically-tested / rash-free messaging unlocks the aware non-trier at low effort." },
+      { n: 3, title: "Build a festive gifting SKU", rationale: "Seed premium trial cheaply via baby-shower & festive packs through MT and online." },
+      { n: 4, title: "Re-mix the portfolio across the ladder", rationale: "Laddi defends trial; non-laddi ₹399–₹999 carries the margin and the premium story." },
+    ],
+  },
+
+  // ── METHODOLOGY & EVIDENCE BASE (credibility appendix) ─────────────────
+  methodology_evidence: {
+    sources: ["Social platforms", "E-commerce reviews", "Content communities", "Influencer ecosystem", "Vernacular & search"],
+    excluded: ["WhatsApp groups (closed / end-to-end encrypted)", "Closed Facebook groups (best-effort / manual only)"],
+    window: "Minimum 36-month (three-year) historical listening window — enough to observe a baby's full diaper journey end-to-end.",
+    coverage: [
+      { label: "Geography", detail: "Metro, Tier 2 and Tier 3; North, South, East, West & Central India." },
+      { label: "Lifestage", detail: "Expecting (3rd trimester) through 2–3y, anchored to the baby's age." },
+      { label: "Channels", detail: "General Trade (kirana/chemist), Modern Trade, and Online (Amazon.in, Flipkart, FirstCry)." },
+      { label: "Verbatim hygiene", detail: "Every quote carries source + baby-age-anchored consumer descriptor; no duplicate text." },
+    ],
+    confidence: "Medium-High — multiple corroborating source layers per signal.",
+    disclaimer: "Indicative worked example — figures and verbatims demonstrate the report's format, density and visual system. Production sections render verbatims and evidence weights directly from the live Urchin corpus.",
+  },
 };

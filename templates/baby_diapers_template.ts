@@ -66,19 +66,28 @@ const validateBrands = (d: any) => !!d && Array.isArray(d.brands) && d.brands.le
 export const BABY_DIAPERS_TEMPLATE: TemplatePack = {
   templateId: "baby_diapers_v1",
   versionPolicy: { locked: true, version: "1.0.0" },
+  // CANONICAL 20-SECTION ORDER (F3 Gate 3). ★ = new in Gate 3 (indicative seed).
   sections: [
-    { sectionId: "category_context",     title: "Category Context & Cultural Trends",                 uiSpec: "cards",        schema: {} },
-    { sectionId: "babys_world_journey",  title: "The Baby's World — Needs Across the Journey",         uiSpec: "baby-journey", schema: {} },
-    { sectionId: "diaper_styles",        title: "Diaper Styles & Format Interaction",                  uiSpec: "style-matrix", schema: {} },
-    { sectionId: "pack_architecture",    title: "Pack Architecture — Laddi vs Non-Laddi",             uiSpec: "pack-axis",    schema: {} },
-    { sectionId: "behaviour_usage",      title: "Behaviour & Usage Mapping",                           uiSpec: "cards",        schema: {} },
-    { sectionId: "needs_triggers_pains", title: "Needs, Triggers & Pain Points",                       uiSpec: "needs",        schema: {} },
-    { sectionId: "decision_influencers", title: "Decision-Making, Buyer-vs-Decider & Influencer Roles", uiSpec: "cards",       schema: {} },
-    { sectionId: "attribute_drivers",    title: "Product Attribute Drivers",                           uiSpec: "attributes",   schema: {} },
-    { sectionId: "price_pack_signals",   title: "Price–Pack & Premiumisation Signals",                 uiSpec: "price-pack",   schema: {} },
-    { sectionId: "gap_analysis",         title: "Gap Analysis: Challenges & Need Gaps",                uiSpec: "baby-gap",     schema: {} },
-    { sectionId: "lovingle_diagnostic",  title: "Lovingle Brand Diagnostic",                           uiSpec: "lovingle",     schema: {} },
-    { sectionId: "brand_landscape",      title: "Competitive Brand Landscape",                         uiSpec: "baby-brand",   schema: {} },
+    { sectionId: "exec_summary",            title: "Executive Summary",                                   uiSpec: "cards",        schema: {} }, // ★
+    { sectionId: "category_context",        title: "Category Context & Cultural Trends",                 uiSpec: "cards",        schema: {} },
+    { sectionId: "seasonality",             title: "Seasonality & Demand Rhythm",                         uiSpec: "cards",        schema: {} }, // ★
+    { sectionId: "target_group",            title: "Target Group & Segments",                             uiSpec: "cards",        schema: {} }, // ★
+    { sectionId: "babys_world_journey",     title: "The Baby's World — Needs Across the Journey",         uiSpec: "baby-journey", schema: {} },
+    { sectionId: "needs_triggers_pains",    title: "Needs, Triggers & Pain Points",                       uiSpec: "needs",        schema: {} },
+    { sectionId: "behaviour_usage",         title: "Behaviour & Usage Mapping",                           uiSpec: "cards",        schema: {} },
+    { sectionId: "diaper_styles",           title: "Diaper Styles & Format Interaction",                  uiSpec: "style-matrix", schema: {} },
+    { sectionId: "pack_architecture",       title: "Pack Architecture — Laddi vs Non-Laddi",             uiSpec: "pack-axis",    schema: {} },
+    { sectionId: "channel_retail",          title: "Channel & Retail Architecture",                       uiSpec: "cards",        schema: {} }, // ★
+    { sectionId: "geography_regional",      title: "Geography & Regional Patterns",                       uiSpec: "cards",        schema: {} }, // ★
+    { sectionId: "decision_influencers",    title: "Decision-Making, Buyer-vs-Decider & Influencer Roles", uiSpec: "cards",      schema: {} },
+    { sectionId: "influencer_community",    title: "Influencer & Community Ecosystem",                    uiSpec: "cards",        schema: {} }, // ★
+    { sectionId: "attribute_drivers",       title: "Product Attribute Drivers",                           uiSpec: "attributes",   schema: {} },
+    { sectionId: "price_pack_signals",      title: "Price–Pack & Premiumisation Signals",                 uiSpec: "price-pack",   schema: {} },
+    { sectionId: "brand_landscape",         title: "Competitive Brand Landscape",                         uiSpec: "baby-brand",   schema: {} },
+    { sectionId: "lovingle_diagnostic",     title: "Lovingle Brand Diagnostic",                           uiSpec: "lovingle",     schema: {} },
+    { sectionId: "gap_analysis",            title: "Gap Analysis: Challenges & Need Gaps",                uiSpec: "baby-gap",     schema: {} },
+    { sectionId: "whitespace_recommendations", title: "White Space & Recommendations",                    uiSpec: "cards",        schema: {} }, // ★
+    { sectionId: "methodology_evidence",    title: "Methodology & Evidence Base",                         uiSpec: "cards",        schema: {} }, // ★
   ],
   promptPack: {
     systemPrompt: BABY_DIAPERS_SYSTEM_PROMPT,
@@ -205,6 +214,47 @@ DIRECTIVE: cover the competitive set from the brief mapped to tier:
 - Also tracked: Huggies · Little Angels (across variants/pack sizes)
 - Focus: Lovingle (and its sub-brands, across laddi and non-laddi)
 attribute_scale (0–5): leak protection, skin comfort, overnight, value, availability. Source priority: Amazon.in + Flipkart + FirstCry verified reviews; brand+variant in every commerce verbatim source. Differentiate scores and data_points across brands.`,
+
+      // ── F3 GATE 3: NEW SECTIONS (live-gen prompts; indicative seed until corpus-wired) ──
+      exec_summary: `
+SECTION: EXECUTIVE SUMMARY (board-level lead/cover for the Lovingle report)
+Output: { "stats": Array<{stat, label}> (exactly 3 hero stats), "north_star": string, "insights": Array<{headline, what_it_means, verbatims:[{quote,source,consumer}]}> (5–7), "moves": Array<{n, title, rationale}> (3–4) }
+DIRECTIVE: lead with the PRICE–PACK / PREMIUMISATION headline (the commercial payoff). Three hero stats quantify the opportunity (e.g. listening window, evidence pool, premiumisation headroom). Each insight is a cross-report truth that ladders to a recommendation. north_star = the single strategic thesis. moves = the decision-ready north-star moves.`,
+
+      seasonality: `
+SECTION: SEASONALITY & DEMAND RHYTHM (India, baby diapers)
+Output: { "monthly": number[12] (relative demand index Jan→Dec, 0–100), "spikes": Array<{month, label, verbatim:{quote,source,consumer}}> (3), "occasions": Array<{headline, what_it_means, data_points:N, verbatims:[{quote,source,consumer}]}> (3) }
+DIRECTIVE: three spikes — monsoon rash-anxiety, summer heat, festive-&-travel stock-up. For each: the mechanism and which packs/triggers peak when. Tie demand rhythm to pack architecture (festive→non-laddi bulk; monsoon→breathable premium trial).`,
+
+      target_group: `
+SECTION: TARGET GROUP & SEGMENTS
+Output: { "segments": Array<{segment, definition, behaviours:string[] (2), verbatims:[{quote,source,consumer}]}> (3) }
+DIRECTIVE: three segments — parents of 0–3y (baby-age anchored, parent-age-agnostic), third-trimester expecting mothers, family-structure cuts (nuclear+nanny vs joint+grandparents). Each: a crisp definition + 2 behaviour notes + an indicative verbatim.`,
+
+      channel_retail: `
+SECTION: CHANNEL & RETAIL ARCHITECTURE
+Output: { "nodes": Array<{node, share, maps_to_pack, note, verbatims:[{quote,source,consumer}]}> (GT/kirana, Modern Trade, Online), "flow_notes": string[] }
+DIRECTIVE: GT/kirana → MT → Online with indicative share and the pack architecture each carries (Laddi→GT; Non-Laddi→MT/online), premiumisation flowing rightward. Ladders directly to the pack_architecture section.`,
+
+      geography_regional: `
+SECTION: GEOGRAPHY & REGIONAL PATTERNS
+Output: { "regions": Array<{name, intensity:0–100, note, verbatims:[{quote,source,consumer}]}> (metro, tier_2_3, + 3–4 regional callouts), "summary": string[] }
+DIRECTIVE: metro vs Tier 2/3 premiumisation intensity + North/South/East/West behavioural & vernacular differences (e.g. humid South = breathability; festive North = bulk).`,
+
+      influencer_community: `
+SECTION: INFLUENCER & COMMUNITY ECOSYSTEM
+Output: { "center": string, "nodes": Array<{name, role, weight:0–100, verbatim:{quote,source,consumer}}> (paediatricians, mommy-influencers, mothers'-group communities [UNBRANDED], review communities), "excluded": string[], "notes": string[] }
+DIRECTIVE: parent at centre; each node carries an influence-weight + verbatim. WhatsApp groups are EXPLICITLY EXCLUDED (closed/E2E-encrypted) — state it in 'excluded'. Communities are unbranded.`,
+
+      whitespace_recommendations: `
+SECTION: WHITE SPACE & RECOMMENDATIONS (decision-ready payoff)
+Output: { "xAxis": {low,high}, "yAxis": {low,high}, "points": Array<{label, x:0–100, y:0–100, quadrant, note}> (white-space opportunities), "moves": Array<{n, title, rationale}> (3–4) }
+DIRECTIVE: effort (x) × impact (y) quadrant with white-space opportunities as points. moves = concrete recommendations across portfolio / price-mix / communication, each laddering to the price–pack architecture (esp. affordable all-night protection + skin-safety claim).`,
+
+      methodology_evidence: `
+SECTION: METHODOLOGY & EVIDENCE BASE (credibility appendix)
+Output: { "sources": string[], "excluded": string[], "window": string, "coverage": Array<{label, detail}>, "confidence": string, "disclaimer": string }
+DIRECTIVE: source layers (social, e-commerce reviews, content communities, influencer ecosystem, vernacular & search), a minimum 36-month listening window, an explicit "WhatsApp groups excluded" note, and a coverage + confidence summary. Vendor-genericised.`,
     },
   },
   validators: {
@@ -220,6 +270,15 @@ attribute_scale (0–5): leak protection, skin comfort, overnight, value, availa
     gap_analysis: validateGap,
     lovingle_diagnostic: validateLovingle,
     brand_landscape: validateBrands,
+    // F3 Gate 3 — new sections (lenient; indicative seed always satisfies)
+    exec_summary: (d: any) => !!d && (Array.isArray(d.insights) || Array.isArray(d.stats)),
+    seasonality: (d: any) => !!d && (Array.isArray(d.monthly) || Array.isArray(d.occasions)),
+    target_group: (d: any) => !!d && Array.isArray(d.segments),
+    channel_retail: (d: any) => !!d && Array.isArray(d.nodes),
+    geography_regional: (d: any) => !!d && Array.isArray(d.regions),
+    influencer_community: (d: any) => !!d && Array.isArray(d.nodes),
+    whitespace_recommendations: (d: any) => !!d && (Array.isArray(d.points) || Array.isArray(d.moves)),
+    methodology_evidence: (d: any) => !!d && (Array.isArray(d.sources) || Array.isArray(d.coverage)),
   },
   fallbacks: BD_SEEDS_V1,
 };
