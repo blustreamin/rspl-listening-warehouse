@@ -14,6 +14,13 @@ import { normalizeSectionData, ensureArray } from '../../utils/normalization';
 import { InsightCard, TriggerClusterCard, SwitchingPathway, MatrixTable, SafeText, EvidencePill } from './ModernComponents';
 import { DataQualityNoticeCard } from './DataQualityNotice';
 import { EvidenceTrigger } from './EvidencePanel';
+import {
+    LovingleCategoryContext, LovingleJourney, LovingleStyles, LovinglePack,
+    LovingleBehaviour, LovingleNeeds, LovingleDecision, LovingleAttributes,
+    LovinglePricePackSection, LovingleGap, LovingleDiagnostic, LovingleBrand,
+    LovingleExecSummary, LovingleSeasonality, LovingleTargetGroup, LovingleChannel,
+    LovingleGeography, LovingleInfluencer, LovingleWhitespace, LovingleMethodology,
+} from './LovingleSections';
 import { 
     MenstruationContextRenderer, 
     BehaviouralRenderer, 
@@ -21,20 +28,9 @@ import {
     DeepDiveRenderer, 
     VisualsRenderer 
 } from '../SectionRenderer';
-import {
-    BabyCardsRenderer,
-    BabyBehaviourRenderer,
-    BabyNeedsRenderer,
-    BabyDecisionRenderer,
-    BabyJourneyRenderer,
-    BabyStylesRenderer,
-    BabyPackRenderer,
-    BabyAttributesRenderer,
-    BabyPricePackRenderer,
-    BabyGapRenderer,
-    BabyLovingleRenderer,
-    BabyBrandRenderer,
-} from './BabyDiapersRenderer';
+// NOTE: Baby-diapers sections now route to the F3 warm-premium renderers in
+// ./LovingleSections (imported below). The legacy ./BabyDiapersRenderer atoms are
+// retained in-repo as a pre-F3 reference but are no longer wired here.
 
 interface Props {
   data: SectionOutput;
@@ -2863,22 +2859,32 @@ export const ModernSectionRenderer: React.FC<Props> = ({ data, projectId }) => {
         else if (data.sectionId === 'gap_analysis') Component = AdultGapAnalysisRenderer;
     }
 
-    // --- STRICT ROUTING: BABY DIAPERS / LOVINGLE (Explicit by sectionId) ---
+    // --- STRICT ROUTING: BABY DIAPERS / LOVINGLE (F3 warm-premium, self-chrome) ---
     else if (projectId === 'baby-diapers') {
         switch (data.sectionId) {
-            case 'category_context':     Component = BabyCardsRenderer; break;
-            case 'babys_world_journey':  Component = BabyJourneyRenderer; break;
-            case 'diaper_styles':        Component = BabyStylesRenderer; break;
-            case 'pack_architecture':    Component = BabyPackRenderer; break;
-            case 'behaviour_usage':      Component = BabyBehaviourRenderer; break;
-            case 'needs_triggers_pains': Component = BabyNeedsRenderer; break;
-            case 'decision_influencers': Component = BabyDecisionRenderer; break;
-            case 'attribute_drivers':    Component = BabyAttributesRenderer; break;
-            case 'price_pack_signals':   Component = BabyPricePackRenderer; break;
-            case 'gap_analysis':         Component = BabyGapRenderer; break;
-            case 'lovingle_diagnostic':  Component = BabyLovingleRenderer; break;
-            case 'brand_landscape':      Component = BabyBrandRenderer; break;
-            default:                     Component = BabyCardsRenderer; break;
+            // F3 Gate 3 — new sections
+            case 'exec_summary':              Component = LovingleExecSummary; break;
+            case 'seasonality':               Component = LovingleSeasonality; break;
+            case 'target_group':              Component = LovingleTargetGroup; break;
+            case 'channel_retail':            Component = LovingleChannel; break;
+            case 'geography_regional':        Component = LovingleGeography; break;
+            case 'influencer_community':      Component = LovingleInfluencer; break;
+            case 'whitespace_recommendations': Component = LovingleWhitespace; break;
+            case 'methodology_evidence':      Component = LovingleMethodology; break;
+            // Gate 1–2 — existing sections
+            case 'category_context':     Component = LovingleCategoryContext; break;
+            case 'babys_world_journey':  Component = LovingleJourney; break;
+            case 'diaper_styles':        Component = LovingleStyles; break;
+            case 'pack_architecture':    Component = LovinglePack; break;
+            case 'behaviour_usage':      Component = LovingleBehaviour; break;
+            case 'needs_triggers_pains': Component = LovingleNeeds; break;
+            case 'decision_influencers': Component = LovingleDecision; break;
+            case 'attribute_drivers':    Component = LovingleAttributes; break;
+            case 'price_pack_signals':   Component = LovinglePricePackSection; break;
+            case 'gap_analysis':         Component = LovingleGap; break;
+            case 'lovingle_diagnostic':  Component = LovingleDiagnostic; break;
+            case 'brand_landscape':      Component = LovingleBrand; break;
+            default:                     Component = LovingleCategoryContext; break;
         }
     }
 
@@ -2911,6 +2917,22 @@ export const ModernSectionRenderer: React.FC<Props> = ({ data, projectId }) => {
         else if (c.brand_performance) Component = FemcareBrandPerformanceRenderer;
         else if (c.discovery_sources || c.search_intent_clusters) Component = FemcareAwarenessChannelsRenderer;
         else if (c.roles) Component = FemcareRolesRenderer;
+    }
+
+    // --- F3 WARM-PREMIUM SECTIONS (self-chrome; bring their own header/footer) ---
+    // The whole Lovingle (baby-diapers) report renders in the warm design system
+    // and must NOT be wrapped in the generic slate section shell. Warm components
+    // receive the raw SectionOutput as `section`.
+    const isWarmBaby = projectId === 'baby-diapers';
+
+    if (isWarmBaby && Component) {
+        return (
+            <SafeSectionBoundary title={data.title}>
+                <div className="mb-12 lv-section">
+                    <Component data={normalizedData} section={data} />
+                </div>
+            </SafeSectionBoundary>
+        );
     }
 
     return (

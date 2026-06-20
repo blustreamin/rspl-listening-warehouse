@@ -47,10 +47,10 @@ const App: React.FC = () => {
   const activeEvidence = evidenceByProject[projectId] || null;
 
   return (
-    <div className="flex h-screen bg-slate-50 overflow-hidden">
-      
+    <div className="lv-app-root flex h-screen bg-slate-50 overflow-hidden">
+
       {/* Sidebar Navigation */}
-      <div className="w-64 bg-slate-900 text-slate-300 flex flex-col border-r border-slate-800 flex-shrink-0 z-20">
+      <div className="lv-no-print w-64 bg-slate-900 text-slate-300 flex flex-col border-r border-slate-800 flex-shrink-0 z-20">
         <div className="p-6 border-b border-slate-800">
           <div className="flex items-center gap-3">
              <div className="w-8 h-8 bg-indigo-500 rounded-lg flex items-center justify-center text-white font-bold text-xl">R</div>
@@ -146,7 +146,7 @@ const App: React.FC = () => {
       </div>
 
       {/* Main Content Area */}
-      <main className="flex-1 overflow-y-auto h-full scroll-smooth">
+      <main className="lv-report-scroll flex-1 overflow-y-auto h-full scroll-smooth">
           {view === 'report' ? (
              <ReportView 
                 key={projectId} // CRITICAL FIX: Force remount on project change to wipe state

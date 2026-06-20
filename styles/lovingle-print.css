@@ -1,0 +1,76 @@
+/* ============================================================================
+   LOVINGLE — PRINT / PDF STYLESHEET  (F3 Gate 4a, zero-dependency export)
+   ----------------------------------------------------------------------------
+   Makes the existing warm React render print cleanly to a multi-page, full-colour
+   PDF via window.print(). NOTHING here affects the screen: the only global token
+   is `.lv-no-print` (a print-only utility — it has no screen rules) and everything
+   else lives inside `@media print`. Selectors use the real lv- class names from
+   LovingleBlocks / LovingleSectionShell / LovingleSections.
+
+   Each Lovingle section is its own `.lv-scope > .lv-sheet`; the section wrapper in
+   ModernSectionRenderer carries `.lv-section` (the per-page unit).
+   ============================================================================ */
+
+@media print {
+
+  /* (1) CRITICAL — force the warm brand fills to render, else the PDF is white boxes */
+  .lv-scope, .lv-scope * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  /* (2) page setup */
+  @page { size: A4 portrait; margin: 12mm 12mm 14mm; }
+
+  /* (3) only the report prints — drop all app chrome + interactive affordances */
+  .lv-no-print, [data-no-print] { display: none !important; }
+
+  /* (4) un-clip the whole scroll/height chain, or only page 1 emits */
+  html, body {
+    background: #fff !important;
+    height: auto !important; max-height: none !important; overflow: visible !important;
+  }
+  #root, .lv-app-root, .lv-report-scroll {
+    height: auto !important; max-height: none !important;
+    overflow: visible !important; display: block !important;
+  }
+
+  /* (5) flatten the floating warm sheet into the page (keep inner zones styled) */
+  .lv-scope { background: #fff !important; }
+  .lv-sheet {
+    box-shadow: none !important; border: 0 !important; border-radius: 0 !important;
+    max-width: none !important; margin: 0 !important; padding: 0 !important;
+  }
+
+  /* (6) each section starts a fresh page; section 1 rides with the report title */
+  .lv-section { break-before: page; }
+  .lv-section:first-of-type { break-before: auto; }
+
+  /* never split a discrete block across a page boundary */
+  .lv-card, .lv-rung, .lv-trig, .lv-sband, .lv-move, .lv-vb, .lv-lane, .lv-brand,
+  .lv-gaprow, .lv-need, .lv-driver, .lv-switch, .lv-spine, .lv-bands, .lv-xtab,
+  .lv-notebox, .lv-pcol,
+  /* Gate 3 blocks */
+  .lv-stat, .lv-northstar, .lv-spike, .lv-segment, .lv-flow-node, .lv-region,
+  .lv-netcard, .lv-excluded, .lv-quad, .lv-wave, .lv-network, .lv-quad-legend li {
+    break-inside: avoid;
+  }
+  /* keep headings with the content they introduce */
+  .lv-zone-head, .lv-subhead, .lv-lane-head, .lv-brand-head { break-after: avoid; }
+  /* keep the indicative marker visible in the PDF (flags sample data) */
+  .lv-indicative { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+
+  /* (7) reveal collapsible rung evidence regardless of the collapse mechanism
+     (CSS-grid 0fr→1fr collapse; the JS hook also force-opens <details>) */
+  .lv-rung-ev { grid-template-rows: 1fr !important; }
+  .lv-rung-ev > div { overflow: visible !important; }
+  details:not([open]) .lv-rung-ev { overflow: visible !important; }
+
+  /* (8) drop interactive affordances + freeze entrance animations at final state */
+  .lv-chev { display: none !important; }
+  .lv-reveal { opacity: 1 !important; transform: none !important; animation: none !important; }
+
+  /* (9) keep the soft motifs from bleeding into text */
+  .lv-blob { opacity: .28 !important; }
+  .lv-giraffe { opacity: .5 !important; }
+}

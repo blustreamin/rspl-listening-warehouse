@@ -6,6 +6,7 @@ import { runPipelineForSection } from '../services/pipeline';
 import { SectionRenderer } from './SectionRenderer';
 import { ModernSectionRenderer } from './report/ModernSectionRenderer';
 import { RunInspector } from './RunInspector';
+import { ExportBar } from './report/ExportBar';
 import { DataIngestionInfographic, CustomDataBadge } from './report/DataIngestionInfographic';
 
 interface Props {
@@ -139,7 +140,9 @@ export const ReportView: React.FC<Props> = ({ projectId, injectedEvidence }) => 
 
   return (
     <div className="max-w-5xl mx-auto px-6 py-12 pb-32">
-      <header className="mb-12">
+      {projectId === 'baby-diapers' && <ExportBar sections={sections} />}
+      {/* Baby-diapers leads with the warm exec_summary cover; hide the slate report header. */}
+      {projectId !== 'baby-diapers' && <header className="mb-12 lv-no-print">
         <div className="flex justify-between items-start">
             <div>
                 <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight mb-2">
@@ -171,7 +174,7 @@ export const ReportView: React.FC<Props> = ({ projectId, injectedEvidence }) => 
                 </button>
             )}
         </div>
-      </header>
+      </header>}
 
       {/* Evidence Repository & Data Ingestion Analysis */}
       {validEvidence && showEvidenceModal && (
@@ -236,7 +239,9 @@ export const ReportView: React.FC<Props> = ({ projectId, injectedEvidence }) => 
         })()}
       </div>
 
-      <RunInspector data={inspectorData} projectId={projectId} />
+      <div className="lv-no-print">
+        <RunInspector data={inspectorData} projectId={projectId} />
+      </div>
     </div>
   );
 };

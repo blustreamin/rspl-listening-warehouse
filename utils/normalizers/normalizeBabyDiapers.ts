@@ -305,6 +305,17 @@ export const normalizeBabyDiapers = (sectionId: string, rawData: any): any => {
       };
     }
 
+    // F3 Gate 3 — new sections (indicative seed; shallow-merge live data when present)
+    case 'exec_summary':
+    case 'seasonality':
+    case 'target_group':
+    case 'channel_retail':
+    case 'geography_regional':
+    case 'influencer_community':
+    case 'whitespace_recommendations':
+    case 'methodology_evidence':
+      return Object.keys(data).length ? { ...seed, ...data } : seed;
+
     default:
       // Unknown section — return seed if present, else raw
       return Object.keys(seed).length ? seed : data;
