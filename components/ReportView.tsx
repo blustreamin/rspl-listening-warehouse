@@ -35,7 +35,7 @@ export const ReportView: React.FC<Props> = ({ projectId, injectedEvidence }) => 
   const [showEvidenceModal, setShowEvidenceModal] = useState(false);
   
   // FEATURE FLAG: Enable modern renderer for specific projects
-  const useModernRenderer = ['disposable-period-panties', 'reusable-period-panties', 'adult-diapers', 'sanitary-pads'].includes(projectId);
+  const useModernRenderer = ['disposable-period-panties', 'reusable-period-panties', 'adult-diapers', 'sanitary-pads', 'baby-diapers'].includes(projectId);
 
   // GUARD: Ensure injected evidence belongs to current project if present
   const validEvidence = (injectedEvidence && injectedEvidence.projectId === projectId) ? injectedEvidence : null;

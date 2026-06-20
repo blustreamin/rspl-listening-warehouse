@@ -59,3 +59,58 @@ git push -u origin main
 npm run build    # Output in ./dist
 npm run preview  # Preview production build locally
 ```
+
+---
+
+## v2 Architecture — Multi-provider backend + Supabase persistence
+
+The app no longer calls LLMs from the browser or bakes any key into the bundle.
+A thin **Vercel API tier** (`/api/*`) holds all secrets and does persistence:
+
+```
+Browser (Vite SPA — zero secrets)
+   │  fetch /api/*
+   ▼
+Vercel API routes ── service-role key ──▶  Supabase (Postgres + Storage)
+   └───────────── provider keys ────────▶  Gemini · Anthropic · OpenAI
+```
+
+### LLM providers
+All synthesis routes through `POST /api/llm`, which selects a provider adapter
+(`api/_lib/providers/`). Configure any subset of `GEMINI_API_KEY`,
+`ANTHROPIC_API_KEY`, `OPENAI_API_KEY`. The in-app sidebar selector lets you pick
+which configured provider runs synthesis (handy for comparing output). With **no**
+key set, the app runs in deterministic **seed mode** and still renders fully.
+Models are env-overridable (`GEMINI_MODEL`, `ANTHROPIC_MODEL`, `OPENAI_MODEL`).
+> Note: Google-Search grounding is Gemini-only; Claude/GPT synthesise without it
+> (seed-merge covers thin evidence).
+
+### Persistence (Supabase project `skzkkwvafociwfggwzce`)
+Four tables, all server-only (RLS on, no anon policies; the service role bypasses
+RLS): `datasets` (metadata; raw rows in the private `warehouse-datasets` Storage
+bucket), `evidence_graphs`, `section_outputs` (the synthesis **cache**, keyed on
+`project_id + section_id + evidence_hash + provider`), and `runs`. The bucket is
+created automatically by the API on first upload. If the Supabase env vars are
+absent, every persistence call degrades to a silent no-op.
+
+### Local development
+`vite dev` alone serves the client but **not** `/api`. For the full stack locally:
+
+```bash
+npm i -g vercel
+vercel dev        # or: npm run dev:full
+```
+
+Set the env vars from `.env.example` in the Vercel project (or a local `.env`).
+Alternatively, run `vite dev` and point it at a deployed backend with
+`VITE_API_BASE=https://your-app.vercel.app`.
+
+### Build / typecheck
+```bash
+npm run build       # vite — client only; server SDKs never enter the bundle
+npm run typecheck   # tsc --noEmit across client + /api
+```
+
+> Heads-up: `api/llm.ts` is configured for `maxDuration: 60` in `vercel.json`,
+> which requires a Vercel **Pro** plan. On Hobby (10s cap) heavy synthesis with
+> high thinking budgets may time out.

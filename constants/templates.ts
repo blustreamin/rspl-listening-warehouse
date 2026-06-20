@@ -1,6 +1,7 @@
 
 import { TemplatePack, ProjectId } from '../types';
 import { ADULT_DIAPERS_TEMPLATE } from '../templates/adult_diapers_template';
+import { BABY_DIAPERS_TEMPLATE } from '../templates/baby_diapers_template';
 
 const ANALYST_GRADE_SYSTEM_PROMPT = `
 SYSTEM OVERRIDE: STRATEGIC BOARD-LEVEL SYNTHESIS MODE (McKinsey/BCG Style) - INDIA MARKET FOCUS
@@ -139,6 +140,7 @@ const SEGMENTATION_SCHEMA_DESCRIPTION = `
 
 export const TEMPLATE_REGISTRY: Record<ProjectId, TemplatePack> = {
   "adult-diapers": ADULT_DIAPERS_TEMPLATE,
+  "baby-diapers": BABY_DIAPERS_TEMPLATE,
   "disposable-period-panties": {
     templateId: "femcare_disposable_v3_1",
     versionPolicy: { locked: true, version: "3.1.0" },

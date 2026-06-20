@@ -1,5 +1,6 @@
 import { SectionOutput, EvidenceGraph, ProjectId } from '../types';
 import { normalizeAdultDiapersData } from './normalizers/normalizeAdultDiapers';
+import { normalizeBabyDiapers } from './normalizers/normalizeBabyDiapers';
 
 /**
  * UTILITY: Ensure a value is an array.
@@ -168,6 +169,16 @@ export const normalizeSectionData = (
         const cleanSectionId = sectionId.startsWith('ad_') ? sectionId.replace('ad_', '') : sectionId;
         // DIRECT ROUTE - DO NOT FALL THROUGH
         return normalizeAdultDiapersData(cleanSectionId, data);
+    }
+
+    // GUARD: Baby Diapers (Lovingle) Isolation
+    if ((projectId as string) === 'baby-diapers') {
+        if (templateId && !templateId.startsWith('baby_diapers_v')) {
+            throw new Error(`[Normalization] Critical Project/Template Mismatch: ${projectId} cannot use ${templateId}`);
+        }
+        const cleanSectionId = sectionId.startsWith('bd_') ? sectionId.replace('bd_', '') : sectionId;
+        // DIRECT ROUTE - DO NOT FALL THROUGH
+        return normalizeBabyDiapers(cleanSectionId, data);
     }
 
     // GUARD: Legacy projects attempting to use Adult Diapers logic

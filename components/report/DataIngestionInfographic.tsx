@@ -406,7 +406,7 @@ const EvidenceRepositoryModal = ({ evidence, onClose }: { evidence: EvidenceGrap
                 {/* Footer */}
                 <div className="bg-slate-50 border-t border-slate-200 px-6 py-3 flex items-center justify-between shrink-0">
                     <div className="text-[9px] text-slate-400 font-mono">
-                        {evidence.generatedAtISO ? new Date(evidence.generatedAtISO).toISOString().slice(0, 16) : 'live'} · adult-diapers
+                        {evidence.generatedAtISO ? new Date(evidence.generatedAtISO).toISOString().slice(0, 16) : 'live'} · {evidence.projectId || 'project'}
                     </div>
                     <button onClick={onClose} className="text-xs font-bold text-indigo-600 hover:text-indigo-800 px-4 py-1.5 rounded-lg hover:bg-indigo-50 transition-all">Close</button>
                 </div>

@@ -1,11 +1,12 @@
 
-import { GoogleGenAI } from "@google/genai";
 import { ProjectId, TemplatePack, EvidenceGraph, IngestRequestV1 } from "../types";
 import { INGESTION_SYSTEM_PROMPT } from "./prompts";
 import { adultDiapersIngestion } from "./ingestion/adultDiapersIngestion";
+import { babyDiapersIngestion } from "./ingestion/babyDiapersIngestion";
 import { disposablePeriodPantiesIngestion } from "./ingestion/disposablePeriodPantiesIngestion";
+import { callLLM } from "../lib/llmClient";
 
-const API_KEY = process.env.API_KEY || "";
+// LLM calls now go through the server-side proxy (/api/llm); no client-side key.
 
 // UTILS
 const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
@@ -94,6 +95,12 @@ export const ingestRawData = async (ingestRequest: string | IngestRequestV1): Pr
       return adultDiapersIngestion(requestObj);
   }
 
+  // BRANCH: Baby Diapers (Lovingle) Deterministic Ingestion
+  if (requestObj.projectId === 'baby-diapers') {
+      console.log("Using Deterministic Ingestion for Baby Diapers");
+      return babyDiapersIngestion(requestObj);
+  }
+
   // BRANCH: Disposable Period Panties Deterministic Ingestion
   if (requestObj.projectId === 'disposable-period-panties') {
       console.log("Using Deterministic Ingestion for Disposable Period Panties");
@@ -112,27 +119,22 @@ export const ingestRawData = async (ingestRequest: string | IngestRequestV1): Pr
       return disposablePeriodPantiesIngestion(requestObj);
   }
 
-  if (!API_KEY) return null;
-  const ai = new GoogleGenAI({ apiKey: API_KEY });
   const requestString = JSON.stringify(requestObj, null, 2);
 
   // AUDIT FIX: Increased limit from 30k to 1MB to ensure ALL files are processed.
-  // Gemini 1.5 Pro can handle ~1M tokens, so 1MB text is safe.
   const payload = requestString.length > 1000000 
     ? requestString.substring(0, 1000000) + "\n...[TRUNCATED_SAFETY_LIMIT]..." 
     : requestString;
 
   try {
     return await retryWithBackoff(async () => {
-        const response = await ai.models.generateContent({
-            model: "gemini-3-pro-preview", 
-            contents: `INGEST REQUEST V1:\n${payload}`,
-            config: {
-                systemInstruction: INGESTION_SYSTEM_PROMPT,
-                responseMimeType: "application/json",
-            },
+        const text = await callLLM({
+            system: INGESTION_SYSTEM_PROMPT,
+            prompt: `INGEST REQUEST V1:\n${payload}`,
+            jsonMode: true,
         });
-        return cleanAndParseJSON(response.text || "{}");
+        if (text === null) return null; // no provider configured -> caller handles
+        return cleanAndParseJSON(text || "{}");
     });
   } catch (error) {
     console.error("Ingestion Error:", error);
@@ -144,11 +146,8 @@ export const generateSectionContent = async (
   template: TemplatePack,
   sectionId: string,
   evidenceJson: string,
-  modelName: string = "gemini-3-pro-preview" 
+  modelName?: string
 ): Promise<any> => {
-  if (!API_KEY) return null;
-  const ai = new GoogleGenAI({ apiKey: API_KEY });
-
   const sectionPrompt = template.promptPack.sectionPrompts[sectionId] || "";
   const systemPrompt = template.promptPack.systemPrompt;
 
@@ -175,21 +174,19 @@ export const generateSectionContent = async (
 
   try {
     return await retryWithBackoff(async () => {
-        const response = await ai.models.generateContent({
+        const text = await callLLM({
+            prompt: fullPrompt,
+            jsonMode: true,
             model: modelName,
-            contents: fullPrompt,
-            config: {
-                responseMimeType: "application/json",
-                // Increased thinking budget for complex synthesis
-                thinkingConfig: { thinkingBudget: 2048 },
-            },
+            gemini: { thinkingBudget: 2048 },
         });
-        const parsed = cleanAndParseJSON(response.text || "{}");
+        if (text === null) return null; // no provider -> seed upstream
+        const parsed = cleanAndParseJSON(text || "{}");
         if (parsed.__rawText) throw new Error("Model returned non-JSON text");
         return parsed;
     });
   } catch (error) {
-    console.error("Gemini Generation Error:", error);
+    console.error("Generation Error:", error);
     throw error;
   }
 };
@@ -200,9 +197,6 @@ export const repairSectionContent = async (
     template: TemplatePack, 
     sectionId: string
 ): Promise<any> => {
-    if (!API_KEY) return null;
-    const ai = new GoogleGenAI({ apiKey: API_KEY });
-    
     const repairPrompt = `
         FIX MALFORMED JSON/CONTENT.
         Original Task: ${template.promptPack.sectionPrompts[sectionId]}
@@ -213,12 +207,9 @@ export const repairSectionContent = async (
     `;
 
     try {
-        const response = await ai.models.generateContent({
-            model: "gemini-3-pro-preview",
-            contents: repairPrompt,
-            config: { responseMimeType: "application/json" }
-        });
-        return cleanAndParseJSON(response.text || "{}");
+        const text = await callLLM({ prompt: repairPrompt, jsonMode: true });
+        if (text === null) return null;
+        return cleanAndParseJSON(text || "{}");
     } catch (e) {
         return null;
     }

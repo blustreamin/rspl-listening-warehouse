@@ -23,3 +23,8 @@ dist-ssr
 *.sln
 *.sw?
 metadata.json
+
+# Env files (never commit real keys; keep the template)
+.env
+.env.*
+!.env.example

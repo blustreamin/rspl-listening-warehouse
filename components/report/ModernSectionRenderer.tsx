@@ -20,6 +20,20 @@ import {
     DeepDiveRenderer, 
     VisualsRenderer 
 } from '../SectionRenderer';
+import {
+    BabyCardsRenderer,
+    BabyBehaviourRenderer,
+    BabyNeedsRenderer,
+    BabyDecisionRenderer,
+    BabyJourneyRenderer,
+    BabyStylesRenderer,
+    BabyPackRenderer,
+    BabyAttributesRenderer,
+    BabyPricePackRenderer,
+    BabyGapRenderer,
+    BabyLovingleRenderer,
+    BabyBrandRenderer,
+} from './BabyDiapersRenderer';
 
 interface Props {
   data: SectionOutput;
@@ -2847,7 +2861,26 @@ export const ModernSectionRenderer: React.FC<Props> = ({ data, projectId }) => {
         else if (data.sectionId === 'behavioural_profile') Component = AdultBehaviouralRenderer;
         else if (data.sectionId === 'gap_analysis') Component = AdultGapAnalysisRenderer;
     }
-    
+
+    // --- STRICT ROUTING: BABY DIAPERS / LOVINGLE (Explicit by sectionId) ---
+    else if (projectId === 'baby-diapers') {
+        switch (data.sectionId) {
+            case 'category_context':     Component = BabyCardsRenderer; break;
+            case 'babys_world_journey':  Component = BabyJourneyRenderer; break;
+            case 'diaper_styles':        Component = BabyStylesRenderer; break;
+            case 'pack_architecture':    Component = BabyPackRenderer; break;
+            case 'behaviour_usage':      Component = BabyBehaviourRenderer; break;
+            case 'needs_triggers_pains': Component = BabyNeedsRenderer; break;
+            case 'decision_influencers': Component = BabyDecisionRenderer; break;
+            case 'attribute_drivers':    Component = BabyAttributesRenderer; break;
+            case 'price_pack_signals':   Component = BabyPricePackRenderer; break;
+            case 'gap_analysis':         Component = BabyGapRenderer; break;
+            case 'lovingle_diagnostic':  Component = BabyLovingleRenderer; break;
+            case 'brand_landscape':      Component = BabyBrandRenderer; break;
+            default:                     Component = BabyCardsRenderer; break;
+        }
+    }
+
     // --- STRICT ROUTING: FEMCARE + SANITARY PADS (Shared Renderers) ---
     else if (
         ['disposable-period-panties', 'reusable-period-panties', 'sanitary-pads'].includes(projectId!) || 

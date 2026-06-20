@@ -1,5 +1,5 @@
 
-export type ProjectId = 'disposable-period-panties' | 'reusable-period-panties' | 'sanitary-pads' | 'adult-diapers';
+export type ProjectId = 'disposable-period-panties' | 'reusable-period-panties' | 'sanitary-pads' | 'adult-diapers' | 'baby-diapers';
 
 export interface Quote {
   quoteId: string;
@@ -283,7 +283,7 @@ export interface GapAnalysisSectionDTO {
 export interface TemplateSection {
   sectionId: string;
   title: string;
-  uiSpec: 'cards' | 'matrix' | 'funnel' | 'text-list' | 'gap-analysis' | 'adult-profile' | 'adult-brand';
+  uiSpec: 'cards' | 'matrix' | 'funnel' | 'text-list' | 'gap-analysis' | 'adult-profile' | 'adult-brand' | 'adult-gap' | 'baby-journey' | 'style-matrix' | 'pack-axis' | 'needs' | 'attributes' | 'price-pack' | 'baby-gap' | 'lovingle' | 'baby-brand';
   schema: any;
 }
 
@@ -339,6 +339,7 @@ export interface EvidenceEventV1 {
   content: {
     title?: string;
     text: string;
+    platform?: string;
   };
   derived?: {
     tokens?: string[];

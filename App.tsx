@@ -1,7 +1,9 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { ReportView } from './components/ReportView';
 import { DataStudio } from './components/DataStudio';
+import { ProviderSelector } from './components/ProviderSelector';
+import { persistEvidence, loadEvidence } from './lib/persistence';
 import { ProjectId, EvidenceGraph } from './types';
 
 const App: React.FC = () => {
@@ -18,6 +20,8 @@ const App: React.FC = () => {
               ...prev,
               [data.projectId!]: data
           }));
+          // Persist the computed graph so the report survives a refresh.
+          void persistEvidence(data);
           // Auto-switch project context if data implies a different project (optional safety)
           if (data.projectId !== projectId) {
               setProjectId(data.projectId as ProjectId);
@@ -25,6 +29,19 @@ const App: React.FC = () => {
       }
       setView('report'); 
   };
+
+  // On mount / project switch, if we have no in-session evidence for this project,
+  // try to hydrate the last persisted graph from Supabase. Silent no-op offline.
+  useEffect(() => {
+    let alive = true;
+    if (evidenceByProject[projectId]) return; // in-session data wins
+    loadEvidence(projectId).then((g) => {
+      if (alive && g && g.projectId === projectId) {
+        setEvidenceByProject(prev => prev[projectId] ? prev : { ...prev, [projectId]: g });
+      }
+    });
+    return () => { alive = false; };
+  }, [projectId]);
 
   // Select evidence relevant to current project only
   const activeEvidence = evidenceByProject[projectId] || null;
@@ -104,21 +121,26 @@ const App: React.FC = () => {
                         Adult Diapers
                     </button>
                  </li>
+                 <li>
+                    <button 
+                        onClick={() => { setProjectId('baby-diapers'); setView('report'); }}
+                        className={`w-full text-left px-3 py-2 rounded text-sm transition-colors ${projectId === 'baby-diapers' ? 'text-indigo-300 font-medium' : 'hover:bg-slate-800'}`}
+                    >
+                        Baby Diapers <span className="text-[10px] text-slate-500">· Lovingle</span>
+                    </button>
+                 </li>
               </ul>
            </div>
            
            <div>
               <h2 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-4 px-2">System Status</h2>
-              <div className="px-3">
-                   <div className="flex items-center gap-2 mb-2">
+              <div className="px-3 mb-3">
+                   <div className="flex items-center gap-2">
                        <div className={`w-2 h-2 rounded-full ${activeEvidence ? 'bg-indigo-500 animate-pulse' : 'bg-emerald-500'}`}></div>
                        <span className="text-xs">{activeEvidence ? 'Custom Data Active' : 'Mock Evidence Active'}</span>
                    </div>
-                   <div className="flex items-center gap-2">
-                       <div className="w-2 h-2 rounded-full bg-emerald-500"></div>
-                       <span className="text-xs">Gemini 3 Pro: Ready</span>
-                   </div>
               </div>
+              <ProviderSelector />
            </div>
         </nav>
       </div>

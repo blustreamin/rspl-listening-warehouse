@@ -4,11 +4,16 @@ import { TEMPLATE_REGISTRY } from '../constants/templates';
 import { RAW_MENTIONS } from '../constants/mockData';
 import { generateSectionContent, repairSectionContent } from './gemini';
 import { synthesizeAdultDiapersSection } from './adultDiapersSynthesis';
+import { synthesizeBabyDiapersSection } from './babyDiapersSynthesis';
 import { normalizeSectionData } from '../utils/normalization';
 import { normalizeAdultDiapersData } from '../utils/normalizers/normalizeAdultDiapers';
+import { normalizeBabyDiapers } from '../utils/normalizers/normalizeBabyDiapers';
 import { searchEvidence, isLazyOutput, generateInferenceFallback } from '../utils/evidenceRetrieval';
 import { evaluateAdultDiapersQuality } from './adultDiapersQualityGate';
+import { evaluateBabyDiapersQuality } from './babyDiapersQualityGate';
 import { DiagnosticTrace } from '../utils/diagnostics';
+import { apiGet, apiPost } from '../lib/api';
+import { getProvider, getStatus as getProviderStatus } from '../lib/llmSettings';
 
 // --- A. Evidence Engine (Legacy/Default) ---
 const computeEvidenceGraph = (mentions: Quote[], projectId: ProjectId): EvidenceGraph => {
@@ -193,6 +198,27 @@ export const runPipelineForSection = async (
   let logs: string[] = [];
   const logPrefix = `[${projectId}][${template.templateId}]`;
 
+  // ── PERSISTENCE: section-output cache ───────────────────────────────────
+  // Key by (project, section, evidence_hash, provider). A refresh that hits the
+  // cache returns instantly and re-burns no LLM spend. Degrades to a miss if the
+  // backend / Supabase is unavailable.
+  const hashKey = hash.substring(0, 40);
+  const pStatus = getProviderStatus();
+  const wantProvider: string = (pStatus.any && pStatus.providers[getProvider()]) ? getProvider() : 'seed';
+  let cacheHit = false;
+  try {
+    const cached = await apiGet('/api/cache', {
+      project_id: projectId, section_id: sectionId, evidence_hash: hashKey, provider: wantProvider,
+    });
+    if (cached?.hit && cached.row?.content) {
+      content = cached.row.content;
+      status = (cached.row.status as any) || 'OK';
+      cacheHit = true;
+      logs.push(`${logPrefix} Cache hit (${wantProvider}). Skipping synthesis.`);
+    }
+  } catch { /* no backend -> treat as miss */ }
+
+  if (!cacheHit) {
   try {
     const events = evidence.events || evidence.evidence_graph_v1?.events || [];
     const stats = computeEvidenceSummary(events);
@@ -282,6 +308,35 @@ export const runPipelineForSection = async (
             logs.push(`${logPrefix} Quality Gate Passed (Score ${quality.score}).`);
         }
 
+    } else if (projectId === 'baby-diapers') {
+        // --- BABY DIAPERS (LOVINGLE) EXECUTION BRANCH ---
+        logs.push(`${logPrefix} Running Baby Diapers Synthesis for S${sectionId}...`);
+
+        // 1. Synthesis (returns null when no API key — seed fallback below)
+        content = await synthesizeBabyDiapersSection(sectionId, evidence, template, (msg) => logs.push(`${logPrefix} ${msg}`));
+
+        if (!content || (typeof content === 'object' && Object.keys(content).length === 0)) {
+            logs.push(`${logPrefix} No synthesis output — applying SEEDED render.`);
+            content = normalizeBabyDiapers(sectionId, {});
+            status = 'SEEDED';
+        } else {
+            // 2. Normalize + seed-merge
+            content = normalizeBabyDiapers(sectionId, content);
+
+            // 3. Quality Gate (synthesis already self-repairs; here we only seed-override on hard fail)
+            const quality = evaluateBabyDiapersQuality(sectionId, content);
+            if (!quality.ok) {
+                logs.push(`${logPrefix} Quality Gate soft-fail (Score ${quality.score}: ${quality.failures.join(', ')}). Merging seeds.`);
+                content = normalizeBabyDiapers(sectionId, content); // seed-merge already inside; keep content
+                if (!content || Object.keys(content).length === 0) {
+                    content = normalizeBabyDiapers(sectionId, {});
+                    status = 'SEEDED';
+                }
+            } else {
+                logs.push(`${logPrefix} Quality Gate Passed (Score ${quality.score}).`);
+            }
+        }
+
     } else {
         // --- LEGACY FEMCARE FLOW (UNTOUCHED) ---
         const contextSlice = getStratifiedContext(events, 800);
@@ -338,6 +393,21 @@ export const runPipelineForSection = async (
     }
     status = 'SEEDED';
   }
+
+  // ── PERSISTENCE: write the produced section to the cache ────────────────
+  const resultProvider: string = status === 'SEEDED' ? 'seed' : getProvider();
+  try {
+    await apiPost('/api/cache', {
+      project_id: projectId,
+      section_id: sectionId,
+      template_id: template.templateId,
+      evidence_hash: hashKey,
+      provider: resultProvider,
+      status,
+      content,
+    });
+  } catch { /* no backend -> skip persistence */ }
+  } // end if(!cacheHit)
 
   if (projectId === 'adult-diapers') {
       DiagnosticTrace.end(projectId, sectionId, status);

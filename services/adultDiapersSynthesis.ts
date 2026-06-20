@@ -1,11 +1,9 @@
 
 import { EvidenceGraph, TemplatePack, EvidenceEventV1 } from '../types';
-import { GoogleGenAI } from "@google/genai";
 import { normalizeAdultDiapersData } from '../utils/normalizers/normalizeAdultDiapers';
 import { evaluateAdultDiapersQuality } from './adultDiapersQualityGate';
 import { repairSectionContent } from './gemini';
-
-const API_KEY = process.env.API_KEY || "";
+import { callLLM } from '../lib/llmClient';
 
 // BANNED PHRASES FOR QUALITY GATE
 const BANNED_PHRASES = [
@@ -216,9 +214,6 @@ export const synthesizeAdultDiapersSection = async (
     template: TemplatePack,
     logger?: (msg: string) => void
 ): Promise<any> => {
-    if (!API_KEY) return null;
-    const ai = new GoogleGenAI({ apiKey: API_KEY });
-
     const systemPrompt = template.promptPack.systemPrompt;
     const sectionPrompt = template.promptPack.sectionPrompts[sectionId];
     
@@ -248,22 +243,17 @@ export const synthesizeAdultDiapersSection = async (
     5. **INDIA ONLY**: Do not reference US/EU. Use INR pricing.
     `;
 
-    const callModel = async (model: string, config: any, tierInstruction: string, isRepair = false) => {
+    // Returns model text, or null if no provider configured (-> seed upstream).
+    const callModelText = (tierInstruction: string, isRepair: boolean, budget: number) => {
         const start = Date.now();
-        const res = await ai.models.generateContent({
-            model,
-            contents: buildPrompt(tierInstruction, isRepair),
-            config: {
-                responseMimeType: "application/json",
-                tools: [{googleSearch: {}}], 
-                ...config
-            }
-        });
-        logger?.(`[Diagnostics] Gen Time: ${Date.now() - start}ms`);
-        return res;
+        return callLLM({
+            prompt: buildPrompt(tierInstruction, isRepair),
+            jsonMode: true,
+            maxTokens: 8192,
+            gemini: { grounding: true, thinkingBudget: budget },
+        }).then((t) => { logger?.(`[Diagnostics] Gen Time: ${Date.now() - start}ms`); return t; });
     };
 
-    let response;
     let attempts = 0;
     
     // --- ATTEMPT LOOP ---
@@ -274,14 +264,14 @@ export const synthesizeAdultDiapersSection = async (
             const budget = attempts === 1 ? 24576 : 32768; 
             logger?.(`Tier 1 (Attempt ${attempts}): Synthesis with ${budget} budget...`);
             
-            response = await callModel(
-                "gemini-3-pro-preview", 
-                { thinkingConfig: { thinkingBudget: budget } },
+            const text = await callModelText(
                 `MODE: STRATEGIC SYNTHESIS (Attempt ${attempts})`,
-                attempts > 1
+                attempts > 1,
+                budget
             );
+            if (text === null) { logger?.("No provider configured — seeding."); return null; }
             
-            const parsed = cleanAndParseJSON(response?.text || "{}");
+            const parsed = cleanAndParseJSON(text || "{}");
             if (parsed.__rawText) throw new Error("Model returned non-JSON text");
             
             // Normalize & Merge Seeds (First Pass)
