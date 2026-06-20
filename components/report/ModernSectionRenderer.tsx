@@ -13,6 +13,7 @@ import { SectionOutput, ProjectId } from '../../types';
 import { normalizeSectionData, ensureArray } from '../../utils/normalization';
 import { InsightCard, TriggerClusterCard, SwitchingPathway, MatrixTable, SafeText, EvidencePill } from './ModernComponents';
 import { DataQualityNoticeCard } from './DataQualityNotice';
+import { EvidenceTrigger } from './EvidencePanel';
 import { 
     MenstruationContextRenderer, 
     BehaviouralRenderer, 
@@ -2917,7 +2918,10 @@ export const ModernSectionRenderer: React.FC<Props> = ({ data, projectId }) => {
             <div className="mb-12 border-b border-slate-100 pb-12">
                  <div className="flex items-center justify-between mb-6">
                     <h3 className="text-xl font-extrabold text-slate-900 tracking-tight">{data.title}</h3>
-                    {data.status !== 'OK' && <span className="text-[10px] bg-amber-100 text-amber-700 px-2 py-0.5 rounded font-bold">FALLBACK</span>}
+                    <div className="flex items-center gap-2 flex-shrink-0">
+                        {data.status !== 'OK' && <span className="text-[10px] bg-amber-100 text-amber-700 px-2 py-0.5 rounded font-bold">FALLBACK</span>}
+                        <EvidenceTrigger content={data.content} sectionTitle={data.title} />
+                    </div>
                  </div>
                  {Component ? (
                     <Component data={normalizedData} />

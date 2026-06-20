@@ -11,6 +11,7 @@ import React, { Component, ErrorInfo, ReactNode } from 'react';
 import { SectionOutput, ProjectId } from '../types';
 import { normalizeSectionData } from '../utils/normalization';
 import { DataQualityNoticeCard } from './report/DataQualityNotice';
+import { EvidenceTrigger } from './report/EvidencePanel';
 
 const ensureArray = (val: any): any[] => Array.isArray(val) ? val : val ? [val] : [];
 
@@ -685,7 +686,10 @@ export const SectionRenderer: React.FC<Props> = ({ data, projectId }) => {
                 {data.title}
                 {isSeeded && <span className="bg-blue-100 text-blue-700 text-[10px] px-2 py-0.5 rounded-full font-bold tracking-wide">LOW SIGNAL / SEEDED</span>}
             </h3>
-            <div className={`w-2.5 h-2.5 rounded-full ${data.status === 'OK' ? 'bg-emerald-500 shadow-emerald-200 shadow-md' : 'bg-blue-400'}`}></div>
+            <div className="flex items-center gap-3 flex-shrink-0">
+                <EvidenceTrigger content={data.content} sectionTitle={data.title} />
+                <div className={`w-2.5 h-2.5 rounded-full ${data.status === 'OK' ? 'bg-emerald-500 shadow-emerald-200 shadow-md' : 'bg-blue-400'}`}></div>
+            </div>
         </div>
 
         {/* Content Body */}
