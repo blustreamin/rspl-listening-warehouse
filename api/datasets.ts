@@ -2,7 +2,7 @@ import type { VercelRequest, VercelResponse } from "@vercel/node";
 import {
   getAdmin, supabaseConfigured, ensureBucket, DATASET_BUCKET,
   handlePreflight, readBody,
-} from "./_lib/supabaseAdmin";
+} from "./_lib/supabaseAdmin.js";
 
 // /api/datasets — uploaded social-listening files.
 //   GET    ?project_id           -> { datasets: [...metadata] }

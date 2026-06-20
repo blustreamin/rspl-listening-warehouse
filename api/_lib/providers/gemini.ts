@@ -1,5 +1,5 @@
 import { GoogleGenAI } from "@google/genai";
-import { LLMProvider, SynthesizeArgs, SynthesizeResult, DEFAULT_MAX_TOKENS } from "./types";
+import { LLMProvider, SynthesizeArgs, SynthesizeResult, DEFAULT_MAX_TOKENS } from "./types.js";
 
 // Model is env-overridable so the exact current Gemini model can change without
 // a code edit. Default kept conservative; set GEMINI_MODEL in Vercel to pin.

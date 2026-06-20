@@ -2,7 +2,7 @@ import type { VercelRequest, VercelResponse } from "@vercel/node";
 import {
   getAdmin, supabaseConfigured, ensureBucket, DATASET_BUCKET,
   handlePreflight, readBody,
-} from "./_lib/supabaseAdmin";
+} from "./_lib/supabaseAdmin.js";
 
 // /api/evidence — persisted deterministic evidence graphs (so a refresh keeps data).
 //   GET  ?project_id            -> latest graph for the project (events hydrated from Storage)

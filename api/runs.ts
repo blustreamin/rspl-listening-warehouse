@@ -1,5 +1,5 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
-import { getAdmin, supabaseConfigured, handlePreflight, readBody } from "./_lib/supabaseAdmin";
+import { getAdmin, supabaseConfigured, handlePreflight, readBody } from "./_lib/supabaseAdmin.js";
 
 // /api/runs — lightweight run history for the report inspector.
 //   GET  ?project_id     -> recent runs

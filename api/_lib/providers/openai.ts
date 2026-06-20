@@ -1,5 +1,5 @@
 import OpenAI from "openai";
-import { LLMProvider, SynthesizeArgs, SynthesizeResult, DEFAULT_MAX_TOKENS } from "./types";
+import { LLMProvider, SynthesizeArgs, SynthesizeResult, DEFAULT_MAX_TOKENS } from "./types.js";
 
 // Env-overridable. Default to a broadly available model; set OPENAI_MODEL to pin
 // to whatever current model you want (e.g. a newer GPT or an o-series model).

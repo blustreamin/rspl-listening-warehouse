@@ -1,6 +1,6 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
-import { configuredProviders, defaultProviderId } from "./_lib/providers";
-import { supabaseConfigured, handlePreflight } from "./_lib/supabaseAdmin";
+import { configuredProviders, defaultProviderId } from "./_lib/providers/index.js";
+import { supabaseConfigured, handlePreflight } from "./_lib/supabaseAdmin.js";
 
 // GET /api/providers
 // Tells the client which providers are usable, so the UI selector only offers

@@ -1,5 +1,5 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
-import { getAdmin, supabaseConfigured, handlePreflight, readBody } from "./_lib/supabaseAdmin";
+import { getAdmin, supabaseConfigured, handlePreflight, readBody } from "./_lib/supabaseAdmin.js";
 
 // /api/cache — the section-output cache.
 //   GET  ?project_id&section_id&evidence_hash&provider  -> { hit, row }

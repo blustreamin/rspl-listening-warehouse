@@ -1,7 +1,7 @@
-import { LLMProvider, ProviderId, SynthesizeArgs, SynthesizeResult } from "./types";
-import { geminiProvider } from "./gemini";
-import { anthropicProvider } from "./anthropic";
-import { openaiProvider } from "./openai";
+import { LLMProvider, ProviderId, SynthesizeArgs, SynthesizeResult } from "./types.js";
+import { geminiProvider } from "./gemini.js";
+import { anthropicProvider } from "./anthropic.js";
+import { openaiProvider } from "./openai.js";
 
 // Priority order used when picking a default provider.
 const REGISTRY: LLMProvider[] = [geminiProvider, anthropicProvider, openaiProvider];
@@ -46,4 +46,4 @@ export async function synthesizeWith(
   return provider.synthesize(args);
 }
 
-export type { ProviderId } from "./types";
+export type { ProviderId } from "./types.js";

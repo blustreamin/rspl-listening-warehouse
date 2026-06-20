@@ -1,6 +1,6 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
-import { synthesizeWith } from "./_lib/providers";
-import { handlePreflight, readBody } from "./_lib/supabaseAdmin";
+import { synthesizeWith } from "./_lib/providers/index.js";
+import { handlePreflight, readBody } from "./_lib/supabaseAdmin.js";
 
 // POST /api/llm
 // The single egress point for all LLM calls. API keys live in server env and
