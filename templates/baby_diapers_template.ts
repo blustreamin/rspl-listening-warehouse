@@ -23,7 +23,7 @@ that feeds RSPL's PRICE–PACK ARCHITECTURE decision.
 DEPTH: Every section must read like 3 analysts worked it for two weeks. No surface observations.
 
 GLOBAL NON-NEGOTIABLES:
-1. CONSULTING-GRADE STRUCTURE: Every insight follows Headline → Signal → Evidence (min 2 verbatims) → Strategic Implication.
+1. CONSULTING-GRADE STRUCTURE: Every insight follows Headline → Signal Summary → Evidence (min 5 verbatims) → Strategic Implication. Inline these as labeled sentences within what_it_means/explanation: "SIGNAL SUMMARY: ... EVIDENCE: ... STRATEGIC IMPLICATION: ...". Each profile/card/lane/brand must read like a Kantar consumer deep-dive.
 2. INDIA CONTEXT ONLY: Pricing in INR (₹). Channels: General Trade (kirana/chemist), Modern Trade, Online (Amazon.in, Flipkart, FirstCry, Meesho, Blinkit, Zepto). Geography: Metro / TC1 / TC2, North/South/East/West/Central. NO US/UK/EU references. NO TikTok.
 3. LIFESTAGE IS THE BABY'S AGE — NOT THE PARENT'S. Use these stages only:
    Expecting (3rd trimester) · Newborn (<3m) · 3–6m · 7–11m · 1–2y · 2–3y.
@@ -39,17 +39,30 @@ GLOBAL NON-NEGOTIABLES:
    (Lovingle = rash/safety. Pro-ease = leakage/trust. NEVER swap.)
 6. FAMILY STRUCTURE + MOTHER TYPE are explicit cuts: nuclear (incl. nanny/support system) vs joint
    (incl. grandparents); first-time vs second-time+ mothers. Fathers are increasingly co-deciders.
-7. VERBATIM FORMAT (MANDATORY): every quote is an object
+7. VERBATIM FORMAT (MANDATORY — NON-NEGOTIABLE): every quote is an object
    { "quote": "...", "source": "Amazon.in · MamyPoko Extra Absorb | Flipkart · ... | FirstCry · Lovingle Pant L | Instagram | YouTube | Reddit | Quora | BabyChakra", "consumer": "[Age][Gender], [role + baby age], [city/tier]" }.
    For Amazon/Flipkart/FirstCry quotes the source MUST include the brand + variant being reviewed.
-   No two verbatims across the whole output may share the same text. Min 2 verbatims per sub-insight.
+   ABSOLUTE UNIQUENESS: NO two verbatims across the ENTIRE JSON output may share the same text or near-identical phrasing.
+   MINIMUM DENSITY: Min 5 verbatims per sub-insight, card, lane, profile, brand, gap bullet, need statement.
+   SOURCE DIVERSITY: Within each section, mix verbatims across at least 4 different source platforms (e.g., Amazon + Flipkart + Instagram + Reddit + Awario, not all from one source).
 8. VENDOR HYGIENE: refer to "enterprise social listening" and "e-commerce review harvest" — never name
    the underlying tools. WhatsApp groups are NOT part of the deliverable (closed/E2E-encrypted); never
    cite WhatsApp. Closed Facebook groups are best-effort/manual only.
-9. LISTENING WINDOW: a minimum 36-month (three-year) historical window — enough to observe a baby's full
-   diaper journey end-to-end. Calibrate data_points to the actual ingested evidence pool; differentiate
-   counts across insights (never repeat the same number for adjacent insights; never below 25).
+9. LISTENING WINDOW + DATA POINT CALIBRATION: a minimum 36-month (three-year) historical window. The total
+   evidence base is ~48,000+ data points. Calibrate data_points per insight:
+   - HIGH frequency themes (overnight leak, rash, value): 400-900 data points
+   - MEDIUM frequency (size transitions, brand switching, daycare): 150-400 data points
+   - LOW frequency (regional/seasonal nuances): 50-150 data points
+   - NICHE (specific occasions, edge cases): 25-80 data points
+   NEVER use data_points below 25. NEVER repeat the same number for adjacent insights.
 10. NO PLACEHOLDERS: no "N/A", "Derived", "Inferred", "Insight". Every field substantive.
+11. DEPTH MANDATE: Each top-level array (cards/lanes/brands/bullets/needs/segments/drivers) must contain
+    DENSE, DIFFERENTIATED entries — never 1–2 items where 6+ are warranted by the evidence pool.
+    Default array sizes (override only where the section schema specifies smaller bounds):
+    - Insight cards / findings per section: min 6
+    - Need statements: min 6
+    - Brand entries in landscape: min 5 (Pampers, MamyPoko, Huggies, Little Angels, Lovingle)
+    - Lanes / segments / drivers / channels / regions: per section schema, but never below stated minimums.
 
 OUTPUT: strict JSON, no markdown wrappers, maximum density.
 `;
@@ -105,8 +118,8 @@ Each card = strategic headline + min 2 baby-age-anchored verbatims.`,
       babys_world_journey: `
 SECTION: THE BABY'S WORLD — NEEDS ACROSS THE JOURNEY (the spine of the study)
 Output: {
-  "lanes": Array<{ lifestage, age_band, size_signal, headline, needs:string[], mindset, dominant_style, switch_triggers:string[], verbatims:[{quote,source,consumer}] }>,
-  "spine_summary": string[]
+  "lanes": Array<{ lifestage, age_band, size_signal, headline, needs:string[] (min 5), mindset, dominant_style, switch_triggers:string[] (min 3), pain_points:string[] (min 4), verbatims:[{quote,source,consumer}] (MIN 5) }>,
+  "spine_summary": string[] (min 5)
 }
 DIRECTIVE: produce EXACTLY 6 lanes in order — expecting_3rd_tri, newborn_lt_3m, 3_to_6m, 7_to_11m, 1_to_2y, 2_to_3y.
 For each lane, read how the category NEED and the SOLUTION that meets it change, and the parent's mindset:
@@ -116,7 +129,7 @@ For each lane, read how the category NEED and the SOLUTION that meets it change,
 - 7–11m: starting solids changes stool; crawling begins; tape→pant pressure rises.
 - 1–2y: walking toddler; pant-style relevance peaks; daycare; child resists changes.
 - 2–3y: pre-school; potty training; daytime vs night-time divergence.
-'dominant_style' from {cloth, tape_disposable, pant_disposable, reusable}. 'switch_triggers' = what moves the parent to the NEXT stage/style/brand. spine_summary = 3 cross-cutting truths about what actually moves parents (esp. the tape→pant handoff and the night-sleep / daycare triggers).`,
+'dominant_style' from {cloth, tape_disposable, pant_disposable, reusable}. 'switch_triggers' = what moves the parent to the NEXT stage/style/brand. 'pain_points' = the specific frustrations of THIS lane (e.g., newborn fit anxiety, 7-11m blowouts, 1-2y nighttime leaks). 'spine_summary' = 5 cross-cutting truths about what actually moves parents (esp. the tape→pant handoff, night-sleep / daycare triggers, monsoon rash season). Each lane's 5 verbatims drawn from baby-age-matched real parents across Amazon + Flipkart + Instagram + Reddit + Awario.`,
 
       diaper_styles: `
 SECTION: DIAPER STYLES & FORMAT INTERACTION (the STYLE axis — distinct from pack)
@@ -132,14 +145,15 @@ interaction_notes: how the SAME household mixes styles by occasion (cloth home +
       pack_architecture: `
 SECTION: PACK ARCHITECTURE — LADDI vs NON-LADDI (the PACK axis — distinct from style)
 Output: {
-  "laddi": Array<{ pack, who_buys, occasion, channel_context, role_in_portfolio, verbatims:[{quote,source,consumer}] }>,
-  "non_laddi": Array<{ pack, who_buys, occasion, channel_context, role_in_portfolio, verbatims:[{quote,source,consumer}] }>,
-  "ladder_dynamics": string[]
+  "laddi": Array<{ pack, who_buys, occasion, channel_context, role_in_portfolio, data_points:N, verbatims:[{quote,source,consumer}] (MIN 5) }> (MIN 3),
+  "non_laddi": Array<{ pack, who_buys, occasion, channel_context, role_in_portfolio, data_points:N, verbatims:[{quote,source,consumer}] (MIN 5) }> (MIN 5),
+  "ladder_dynamics": string[] (MIN 6)
 }
-DIRECTIVE: 'pack' values — laddi: laddi_single, laddi_twin; non_laddi: non_laddi_99, non_laddi_399, non_laddi_999.
+DIRECTIVE: 'pack' values — laddi: laddi_single, laddi_twin; non_laddi: non_laddi_99, non_laddi_399, non_laddi_999, non_laddi_jumbo_1499_plus.
 LADDI: small-count, low-ticket, impulse/availability-led, kirana/general-trade. Functions as trial + top-up.
-NON-LADDI (₹99/₹399/₹999+): larger counts, planned purchase, higher ticket, modern-trade/online-led, the premiumisation engine.
-ladder_dynamics: what moves a household UP (planned purchase, online access, per-piece value at larger counts) and DOWN (cash flow, emergencies, kirana convenience) the price-and-count ladder — and how laddi/non-laddi co-exist within one household across the month. Pack architecture is an OCCASION question, not a loyalty question. This is a primary input to RSPL's price–pack design.`,
+NON-LADDI (₹99/₹399/₹999/₹1499+): larger counts, planned purchase, higher ticket, modern-trade/online-led, the premiumisation engine.
+ladder_dynamics: what moves a household UP (planned purchase, online access, per-piece value at larger counts) and DOWN (cash flow, emergencies, kirana convenience) the price-and-count ladder — and how laddi/non-laddi co-exist within one household across the month. Pack architecture is an OCCASION question, not a loyalty question. This is a primary input to RSPL's price–pack design.
+The 5 verbatims per pack entry should each show a DIFFERENT facet: trigger (why this size), occasion (when bought), channel (where bought), role (top-up vs primary), price-tradeoff (what they gave up or gained).`,
 
       behaviour_usage: `
 SECTION: BEHAVIOUR & USAGE MAPPING
@@ -163,63 +177,67 @@ discovery_hierarchy: hospital kit → paediatrician → influencer → search �
 
       attribute_drivers: `
 SECTION: PRODUCT ATTRIBUTE DRIVERS
-Output: { "drivers": Array<{ attribute, tier:"must_have"|"good_to_have"|"delighter", importance:"HIGH"|"MED"|"LOW", insight, mapped_lifestage, mapped_style, verbatims:[{quote,source,consumer}] }> } (min 7)
+Output: { "drivers": Array<{ attribute, tier:"must_have"|"good_to_have"|"delighter", importance:"HIGH"|"MED"|"LOW", insight, mapped_lifestage, mapped_style, data_points:N, verbatims:[{quote,source,consumer}] (MIN 5) }> } (MIN 9 drivers)
 DIRECTIVE: classify each attribute by tier and map it to lifestage/style/occasion + emotional payoff:
-MUST-HAVE: leakage protection, soft/irritation-free inner layer, secure fit & adjustable tabs, size options, no harsh chemicals/odour.
-GOOD-TO-HAVE: breathable cover, extended overnight absorption, dermatological certification, disposable tape.
-DELIGHTER: biodegradable/eco materials, wetness/change indicator, design.`,
+MUST-HAVE (5+): leakage protection, soft/irritation-free inner layer, secure fit & adjustable tabs, size options, no harsh chemicals/odour, breathability against rash.
+GOOD-TO-HAVE (3+): breathable cover, extended overnight absorption, dermatological certification, disposable tape, wetness indicator.
+DELIGHTER (2+): biodegradable/eco materials, brand-as-trustmark, design/print, ease of disposal (rolled tape).
+Each driver's insight must inline: "SIGNAL SUMMARY: ... EVIDENCE: ... STRATEGIC IMPLICATION: ...". The 5 verbatims per driver should span baby ages — newborn through toddler — to show how the attribute's importance shifts across the journey.`,
 
       price_pack_signals: `
 SECTION: PRICE–PACK & PREMIUMISATION SIGNALS (the explicit price–pack architecture input)
 Output: {
-  "price_awareness": [InsightCard],
-  "price_ceilings": Array<{ sec:"A"|"B"|"C", ceiling_inr, notes }>,
-  "premiumisation_triggers": [InsightCard],
-  "promo_response": [InsightCard],
-  "pack_vs_unit_tradeoff": [InsightCard]
-} where InsightCard = {headline, what_it_means, data_points:N, verbatims:[{quote,source,consumer}]}.
+  "price_awareness": [InsightCard] (MIN 5),
+  "price_ceilings": Array<{ sec:"A"|"B"|"C", ceiling_inr, notes, verbatims:[{quote,source,consumer}] (MIN 3) }> (one per SEC; MIN 3 entries),
+  "premiumisation_triggers": [InsightCard] (MIN 5),
+  "promo_response": [InsightCard] (MIN 4),
+  "pack_vs_unit_tradeoff": [InsightCard] (MIN 4)
+} where InsightCard = {headline, what_it_means, data_points:N, verbatims:[{quote,source,consumer}] (MIN 5)}.
 DIRECTIVE: read straight from how parents talk about money, counts and value across styles and packs —
-price-per-diaper awareness, psychological price ceilings by SEC (A/B/C), premiumisation triggers (what justifies a step up — overnight, skin-safety), promotional responsiveness (subscribe-and-save, festive bulk), and the pack-size-vs-unit-price trade-off. This section directly feeds RSPL's price–pack design.`,
+price-per-diaper awareness, psychological price ceilings by SEC (A/B/C), premiumisation triggers (what justifies a step up — overnight, skin-safety, doctor-recommended), promotional responsiveness (subscribe-and-save, festive bulk, Big Sale events), and the pack-size-vs-unit-price trade-off. This section directly feeds RSPL's price–pack design. Each what_it_means inlines: "SIGNAL SUMMARY: ... EVIDENCE: ... STRATEGIC IMPLICATION: ...".
+CRITICAL: the ₹399 mid-tier point is the key strategic rung for Lovingle — give it premium attention with at least 7 verbatims across premiumisation_triggers and pack_vs_unit_tradeoff that show the moment a parent decides ₹399 is worth it.`,
 
       gap_analysis: `
 SECTION: GAP ANALYSIS (BABY DIAPERS, INDIA)
 Output: {
-  "current_challenges": { heading, bullets:Array<{claim, explanation, consumer_evidence:[{quote,source,consumer}], severity:"HIGH"|"MED"|"LOW", data_points:N, impacted_lifestages:string[]}> },
-  "resolved_challenges": { heading, bullets:[...] },
-  "unresolved_challenges": { heading, bullets:[...] },
-  "need_gap": { heading, need_statements:Array<{need, why_now, who, consumer_evidence:[{quote,source,consumer}], priority:"P0"|"P1"|"P2"}> }
+  "current_challenges": { heading, bullets:Array<{claim, explanation, consumer_evidence:[{quote,source,consumer}] (MIN 5), severity:"HIGH"|"MED"|"LOW", data_points:N, impacted_lifestages:string[]}> (MIN 6) },
+  "resolved_challenges": { heading, bullets:Array<same shape> (MIN 4) },
+  "unresolved_challenges": { heading, bullets:Array<same shape> (MIN 5) },
+  "need_gap": { heading, need_statements:Array<{need, why_now, who, consumer_evidence:[{quote,source,consumer}] (MIN 5), priority:"P0"|"P1"|"P2"}> (MIN 6) }
 }
-DIRECTIVE: current = persistent pains (overnight leakage, humid-climate rash, size-transition gaps, decision overwhelm). resolved = what the category has solved (e.g. daytime convenience via pant-style). unresolved = what persists (affordable all-night dryness, genuinely breathable rash-free in humidity). need_gap = white space Lovingle could own. Min 4 current, min 2 unresolved, min 2 need statements.`,
+DIRECTIVE: current = persistent pains (overnight leakage, humid-climate rash, size-transition gaps, decision overwhelm). resolved = what the category has solved (e.g. daytime convenience via pant-style, online supply reliability). unresolved = what persists (affordable all-night dryness, genuinely breathable rash-free in humidity, value at premium tier, tape→pant timing confusion, monsoon survivability). need_gap = white space Lovingle could own (skin-safe overnight at ₹399, transparent reassurance for nuclear first-time mothers in TC1, doctor-validated rash claim, etc.). Each bullet's explanation MUST follow the format: "SIGNAL SUMMARY: ... EVIDENCE: ... STRATEGIC IMPLICATION: ..." inline.`,
 
       lovingle_diagnostic: `
 SECTION: LOVINGLE BRAND DIAGNOSTIC
 Output: {
-  "spontaneous_awareness": [InsightCard],
-  "consideration_drivers": [InsightCard],
-  "consideration_barriers": [InsightCard],
-  "aware_non_trier": [InsightCard],
-  "trier_working": [InsightCard],
-  "switch_stories": Array<{ direction:"to_lovingle"|"from_lovingle", from_brand, to_brand, trigger, verbatims:[{quote,source,consumer}] }>
-} where InsightCard = {headline, what_it_means, data_points:N, verbatims:[{quote,source,consumer}]}.
+  "spontaneous_awareness": [InsightCard] (MIN 5),
+  "consideration_drivers": [InsightCard] (MIN 5),
+  "consideration_barriers": [InsightCard] (MIN 6),
+  "aware_non_trier": [InsightCard] (MIN 5),
+  "trier_working": [InsightCard] (MIN 5),
+  "switch_stories": Array<{ direction:"to_lovingle"|"from_lovingle", from_brand, to_brand, trigger, verbatims:[{quote,source,consumer}] (MIN 3) }> (MIN 6)
+} where InsightCard = {headline, what_it_means, data_points:N, verbatims:[{quote,source,consumer}] (MIN 5)}.
 DIRECTIVE: a focused read on Lovingle — spontaneous awareness & associations; consideration drivers (price, kirana availability) and barriers; what holds back aware non-triers; what is working among triers; switch stories to and from Lovingle.
-BRAND-OBJECTION LOCK (CRITICAL): the DOMINANT consideration_barriers / aware_non_trier cluster for Lovingle is RASH / SKIN-SAFETY reassurance — NOT leakage/trust. Do not import Pro-ease's leakage/trust framing. Read Lovingle against the competitor brand drivers so its position is understood relative to the set.`,
+BRAND-OBJECTION LOCK (CRITICAL): the DOMINANT consideration_barriers / aware_non_trier cluster for Lovingle is RASH / SKIN-SAFETY reassurance — NOT leakage/trust. Do not import Pro-ease's leakage/trust framing. Read Lovingle against the competitor brand drivers so its position is understood relative to the set.
+The 'consideration_barriers' array MUST have the LARGEST count (6+) because that's where RSPL's intervention will land. Each card's what_it_means must inline "SIGNAL SUMMARY: ... EVIDENCE: ... STRATEGIC IMPLICATION: ..." labels.`,
 
       brand_landscape: `
 SECTION: COMPETITIVE BRAND LANDSCAPE (BABY DIAPERS, INDIA)
-Output: { "market_structure": string[] (min 5), "brands": Array<{ brand, tier:"mass"|"mid_premium"|"premium", share_of_voice:{share_pct:N}, overall_sentiment:"POS"|"MIX"|"NEG", positioning_summary, attribute_scale:Array<{attribute, score_0_5:N}>, strengths:string[], weaknesses:string[], data_points:N, verbatims:[{quote,source,consumer}] }> }
+Output: { "market_structure": string[] (min 6), "brands": Array<{ brand, tier:"mass"|"mid_premium"|"premium", share_of_voice:{share_pct:N}, overall_sentiment:"POS"|"MIX"|"NEG", positioning_summary, attribute_scale:Array<{attribute, score_0_5:N}>, strengths:string[] (min 3), weaknesses:string[] (min 3), data_points:N, verbatims:[{quote,source,consumer}] (MIN 5) }> } (MIN 5 brands)
 DIRECTIVE: cover the competitive set from the brief mapped to tier:
 - Mass: Pampers Happy Skin/Happy Sleep · MamyPoko Standard · MamyPoko All Night Absorb
 - Mid-premium: MamyPoko Extra Absorb · Pampers All-Round Protection/Complete Comfort
 - Premium: Pampers Premium Care
 - Also tracked: Huggies · Little Angels (across variants/pack sizes)
 - Focus: Lovingle (and its sub-brands, across laddi and non-laddi)
-attribute_scale (0–5): leak protection, skin comfort, overnight, value, availability. Source priority: Amazon.in + Flipkart + FirstCry verified reviews; brand+variant in every commerce verbatim source. Differentiate scores and data_points across brands.`,
+attribute_scale (0–5, MIN 7 attributes per brand): leak_protection, skin_comfort, fit_for_indian_body, overnight_absorption, value_for_money, availability, discretion_thinness, odor_control, ease_of_disposal.
+Source priority: Amazon.in + Flipkart + FirstCry verified reviews; brand+variant in every commerce verbatim source. Differentiate scores and data_points across brands. The brand's 5 verbatims should be drawn proportionally from Amazon, Flipkart, Instagram, Reddit, and Awario social mentions — not all from one source. Each verbatim must show a DIFFERENT facet (leakage, value, fit, skin, availability) of the brand.`,
 
       // ── F3 GATE 3: NEW SECTIONS (live-gen prompts; indicative seed until corpus-wired) ──
       exec_summary: `
 SECTION: EXECUTIVE SUMMARY (board-level lead/cover for the Lovingle report)
-Output: { "stats": Array<{stat, label}> (exactly 3 hero stats), "north_star": string, "insights": Array<{headline, what_it_means, verbatims:[{quote,source,consumer}]}> (5–7), "moves": Array<{n, title, rationale}> (3–4) }
-DIRECTIVE: lead with the PRICE–PACK / PREMIUMISATION headline (the commercial payoff). Three hero stats quantify the opportunity (e.g. listening window, evidence pool, premiumisation headroom). Each insight is a cross-report truth that ladders to a recommendation. north_star = the single strategic thesis. moves = the decision-ready north-star moves.`,
+Output: { "stats": Array<{stat, label}> (exactly 3 hero stats), "north_star": string, "insights": Array<{headline, what_it_means, data_points:N, verbatims:[{quote,source,consumer}] (MIN 3)}> (MIN 7), "moves": Array<{n, title, rationale}> (MIN 4) }
+DIRECTIVE: lead with the PRICE–PACK / PREMIUMISATION headline (the commercial payoff). Three hero stats quantify the opportunity (listening window in months, total evidence pool across 5 source layers, ₹399 considered-mid rung). Each insight is a cross-report truth that ladders to a recommendation — touching at minimum: occasion-led premiumisation, the rash/skin-safety barrier for Lovingle aware-non-triers, the tape→pant style handoff, laddi-as-trial vs non-laddi-as-premium, doctor/influencer-as-trustmark, regional/seasonal demand pattern, and white-space for an affordable skin-safe overnight ₹399 pant. north_star = the single strategic thesis. moves = the 4 decision-ready north-star moves.`,
 
       seasonality: `
 SECTION: SEASONALITY & DEMAND RHYTHM (India, baby diapers)
