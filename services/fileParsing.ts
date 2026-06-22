@@ -14,6 +14,12 @@ const detectSourceTag = (fileName: string, headers: string[]): FileSourceTag => 
     return 'amazon_apify';
   }
 
+  // Apify Facebook Comments Scraper — must be checked BEFORE posts so a comments
+  // export is not mistaken for a posts export. One row per comment (no explosion needed).
+  if (fn.includes('facebook-comments-scraper') || fn.includes('facebook_comments')) {
+    return 'facebook_comments_apify';
+  }
+
   // Apify Facebook Posts Scraper
   if (fn.includes('facebook-posts-scraper') || fn.includes('facebook_posts')) {
     return 'facebook_apify';
@@ -39,6 +45,12 @@ const detectSourceTag = (fileName: string, headers: string[]): FileSourceTag => 
   }
   if (headersLower.includes('caption') && headersLower.includes('ownerusername') && headersLower.includes('likescount')) {
     return 'instagram_apify';
+  }
+  // Facebook Comments Apify: small file, comment text + a facebook url + commenter name
+  if (headers.length <= 500 && headersLower.includes('text') &&
+      (headersLower.includes('facebookurl') || headersLower.includes('commenturl') || headersLower.includes('posturl')) &&
+      (headersLower.includes('profilename') || headersLower.includes('name'))) {
+    return 'facebook_comments_apify';
   }
   // Facebook Apify: massive column count with url, text, likes, comments, shares at the end
   if (headers.length > 500 && headersLower.includes('text') && headersLower.includes('likes') && headersLower.includes('shares')) {
@@ -71,6 +83,37 @@ const INSTAGRAM_KEEP_COLS = new Set([
 ]);
 
 const FACEBOOK_KEEP_COLS = new Set(['url', 'text', 'likes', 'comments', 'shares']);
+
+/**
+ * Facebook Comments Scraper output is already one row per comment (no explosion
+ * needed). Map each comment to the same clean evidence shape Instagram uses, reading
+ * alias field names defensively since actor schemas vary.
+ */
+const FACEBOOK_COMMENTS_KEEP_COLS = new Set([
+  'text', 'date', 'timestamp', 'commentDate', 'likesCount', 'likes',
+  'profileName', 'name', 'author', 'facebookUrl', 'postUrl', 'commentUrl', 'url',
+]);
+
+const explodeFacebookComments = (rows: Record<string, any>[]): Record<string, any>[] => {
+  const out: Record<string, any>[] = [];
+  for (const row of rows) {
+    const text = row['text'];
+    if (!text || String(text).trim().length < 5) continue;
+    out.push({
+      text: String(text).trim(),
+      url: row['facebookUrl'] || row['postUrl'] || row['commentUrl'] || row['url'] || '',
+      date: row['date'] || row['timestamp'] || row['commentDate'] || '',
+      author: row['profileName'] || row['name'] || row['author'] || 'comment_user',
+      location: '',
+      platform: 'Facebook',
+      engagement: row['likesCount'] || row['likes'] || 0,
+      hashtags: '',
+      record_type: 'comment',
+      _sourceFile: 'facebook_comments_apify',
+    });
+  }
+  return out;
+};
 
 /**
  * Explode Instagram rows into multiple evidence rows:
@@ -222,6 +265,23 @@ export const parseFile = async (file: File, sourceTag: FileSourceTag = 'other'):
           
           console.log(`[fileParsing] Facebook: ${jsonData.length} posts, ${finalRows.filter(r => r.text && String(r.text).length > 10).length} with text`);
           
+        } else if (detectedTag === 'facebook_comments_apify') {
+          // One row per comment -> map to clean evidence shape (same as Instagram comments)
+          const jsonData = XLSX.utils.sheet_to_json(worksheet) as Record<string, any>[];
+          rowCount = jsonData.length;
+          const filteredRows = jsonData.map(row => {
+            const filtered: Record<string, any> = {};
+            for (const key of Object.keys(row)) {
+              if (FACEBOOK_COMMENTS_KEEP_COLS.has(key)) filtered[key] = row[key];
+            }
+            return filtered;
+          });
+          const mapped = explodeFacebookComments(filteredRows);
+          finalHeaders = ['text', 'url', 'date', 'author', 'location', 'platform', 'engagement', 'hashtags', 'record_type', '_sourceFile'];
+          finalRows = mapped;
+          rowCount = mapped.length;
+          console.log(`[fileParsing] Facebook comments: ${jsonData.length} rows -> ${mapped.length} comment evidence rows`);
+
         } else if (detectedTag === 'flipkart_apify') {
           // Clean 8-column format - parse as objects directly
           const jsonData = XLSX.utils.sheet_to_json(worksheet) as Record<string, any>[];
