@@ -181,7 +181,7 @@ export const InsightCard: React.FC<{ c: InsightCardContent }> = ({ c }) => (
       </div>
     </div>
     {c.signal && <div className="lv-card-sig">{c.signal}</div>}
-    <VerbatimChipList items={c.verbatims} max={3} />
+    <VerbatimChipList items={c.verbatims} max={6} />
   </div>
 );
 
@@ -261,7 +261,7 @@ export const PriceLadder: React.FC<{ rungs: PriceRung[] }> = ({ rungs }) => {
               </summary>
               <div className="lv-rung-ev"><div><div className="lv-rung-ev-inner">
                 <p className="lv-lead">Consumer evidence</p>
-                <VerbatimChipList items={r.verbatims} max={4} />
+                <VerbatimChipList items={r.verbatims} max={6} />
               </div></div></div>
             </details>
           );
@@ -560,7 +560,7 @@ export const JourneySpine: React.FC<{ lanes: JourneyLane[]; spineSummary?: strin
             </div>
             <div>
               <div className="lv-lane-lab">Evidence</div>
-              <VerbatimChipList items={l.verbatims} max={2} />
+              <VerbatimChipList items={l.verbatims} max={5} />
             </div>
           </div>
         </div>
@@ -603,7 +603,7 @@ export const RankedBars: React.FC<{ drivers: DriverContent[] }> = ({ drivers }) 
               </div>
               <div className="lv-weightbar"><span style={{ width: `${impWeight(d.importance)}%` }} /></div>
               {d.insight && <div className="lv-driver-insight">{d.insight}</div>}
-              <VerbatimChipList items={d.verbatims} max={1} />
+              <VerbatimChipList items={d.verbatims} max={5} />
             </div>
           ))}
         </div>
@@ -635,7 +635,7 @@ const GapRows: React.FC<{ bullets: GapBullet[] }> = ({ bullets }) => (
           </span>
         </div>
         {b.explanation && <div className="lv-gap-exp">{b.explanation}</div>}
-        <VerbatimChipList items={b.consumer_evidence} max={1} />
+        <VerbatimChipList items={b.consumer_evidence} max={5} />
       </div>
     ))}
   </>
@@ -674,7 +674,7 @@ export const GapColumns: React.FC<GapColumnsContent> = ({ current, resolved, unr
             </div>
             {n.why_now && <div className="lv-need-meta"><b>Why now:</b> {n.why_now}</div>}
             {n.who && <div className="lv-need-meta"><b>Who:</b> {n.who}</div>}
-            <VerbatimChipList items={n.consumer_evidence} max={1} />
+            <VerbatimChipList items={n.consumer_evidence} max={5} />
           </div>
         ))}
       </div>
@@ -721,7 +721,7 @@ export const SovBars: React.FC<{ marketStructure?: string[]; brands: BrandConten
                   {asArray<string>(b.strengths).map((s, j) => <span key={j} className="lv-tagpos">+ {s}</span>)}
                   {asArray<string>(b.weaknesses).map((w, j) => <span key={j} className="lv-tagneg">− {w}</span>)}
                 </div>
-                <VerbatimChipList items={b.verbatims} max={1} />
+                <VerbatimChipList items={b.verbatims} max={5} />
               </div>
               <div>
                 {asArray<any>(b.attribute_scale).map((a, j) => (
@@ -760,7 +760,7 @@ export const SwitchStories: React.FC<{ stories: SwitchStory[] }> = ({ stories })
               <span className="lv-switch-flag">{into ? 'Win' : 'Leak'}</span>
             </div>
             {s.trigger && <div className="lv-switch-trigger">{s.trigger}</div>}
-            <VerbatimChipList items={s.verbatims} max={1} />
+            <VerbatimChipList items={s.verbatims} max={3} />
           </div>
         );
       })}
@@ -864,7 +864,7 @@ export const SegmentCards: React.FC<{ segments: SegmentItem[] }> = ({ segments }
           {asArray<string>(s.behaviours).length > 0 && (
             <ul className="lv-notes">{asArray<string>(s.behaviours).map((b, j) => <li key={j}>{b}</li>)}</ul>
           )}
-          <VerbatimChipList items={s.verbatims} max={1} />
+          <VerbatimChipList items={s.verbatims} max={3} />
         </div>
       ))}
     </div>
@@ -890,7 +890,7 @@ export const ChannelFlow: React.FC<{ nodes: ChannelNode[]; flowNotes?: string[] 
               {typeof n.share === 'number' && <div className="lv-flow-bar"><span style={{ width: `${clamp(n.share)}%` }} /></div>}
               {n.maps_to_pack && <div className="lv-flow-pack">{n.maps_to_pack}</div>}
               {n.note && <div className="lv-flow-note">{n.note}</div>}
-              <VerbatimChipList items={n.verbatims} max={1} />
+              <VerbatimChipList items={n.verbatims} max={3} />
             </div>
             {i < list.length - 1 && <div className="lv-flow-arrow" aria-hidden="true">→</div>}
           </React.Fragment>
@@ -919,7 +919,7 @@ export const RegionMap: React.FC<{ regions: RegionItem[]; summary?: string[] }> 
             <div className="lv-region-body">
               <div className="lv-region-name">{r.name}</div>
               {r.note && <div className="lv-region-note">{r.note}</div>}
-              <VerbatimChipList items={r.verbatims} max={1} />
+              <VerbatimChipList items={r.verbatims} max={3} />
             </div>
           </div>
         ))}

@@ -149,7 +149,7 @@ export async function buildDocx(docx: any, sections: SectionOutput[]): Promise<B
             ...l.needs.map(bullet),
             ...(l.mindset ? [para([run(`Mindset · ${l.mindset}`, { italics: true, color: C.ink3, size: 16 })], { before: 20 })] : []),
           ], { w: w[1] }),
-          cell([...l.switchTriggers.map(bullet), ...verbatims(l.verbatims, 2)], { w: w[2] }),
+          cell([...l.switchTriggers.map(bullet), ...verbatims(l.verbatims, 5)], { w: w[2] }),
         ] })));
         const out = [subhead(b.title), table(rows, w)];
         if (b.spineSummary.length) { out.push(subhead('The spine — what moves parents')); out.push(...b.spineSummary.map(bullet)); }
@@ -182,7 +182,7 @@ export async function buildDocx(docx: any, sections: SectionOutput[]): Promise<B
             ...(typeof x.weight === 'number' ? [run(`  ${x.weight.toLocaleString()} pts`, { color: C.orange700, size: 15 })] : []),
           ], { before: 60, after: x.explanation ? 20 : 40 })];
           if (x.explanation) ps.push(para([run(x.explanation, { color: C.ink2, size: 18 })], { after: 40 }));
-          ps.push(...verbatims(x.verbatims, 1));
+          ps.push(...verbatims(x.verbatims, 5));
           return ps;
         }) : []);
         if (b.current) { out.push(para([run((b.current.heading || 'Current challenges').toUpperCase(), { color: C.orange700, bold: true, size: 16 })], { before: 80, after: 30 })); out.push(...gapRows(b.current)); }
@@ -199,7 +199,7 @@ export async function buildDocx(docx: any, sections: SectionOutput[]): Promise<B
             out.push(para([run(n.need, { bold: true, color: C.blue, size: 20 }), run(`  [${n.priority}]`, { bold: true, color: C.orange700, size: 15 })], { before: 60, after: 20 }));
             if (n.whyNow) out.push(para([run('Why now: ', { bold: true, color: C.ink, size: 17 }), run(n.whyNow, { color: C.ink2, size: 17 })], { after: 10 }));
             if (n.who) out.push(para([run('Who: ', { bold: true, color: C.ink, size: 17 }), run(n.who, { color: C.ink2, size: 17 })], { after: 20 }));
-            out.push(...verbatims(n.verbatims, 1));
+            out.push(...verbatims(n.verbatims, 5));
           });
         }
         return out;
@@ -227,7 +227,7 @@ export async function buildDocx(docx: any, sections: SectionOutput[]): Promise<B
           if (br.strengths.length) out.push(para([run('Strengths: ', { bold: true, color: C.teal700, size: 16 }), run(br.strengths.join(', '), { color: C.ink2, size: 16 })], { after: 8 }));
           if (br.weaknesses.length) out.push(para([run('Watch-outs: ', { bold: true, color: C.roseDk, size: 16 }), run(br.weaknesses.join(', '), { color: C.ink2, size: 16 })], { after: 16 }));
           if (br.attributes.length) out.push(para([run(br.attributes.map((a) => `${a.attribute} ${a.score}/5`).join('  ·  '), { color: C.ink3, size: 15 })], { after: 16 }));
-          out.push(...verbatims(br.verbatims, 1));
+          out.push(...verbatims(br.verbatims, 5));
         });
         return out;
       }
@@ -240,7 +240,7 @@ export async function buildDocx(docx: any, sections: SectionOutput[]): Promise<B
           rows.push(new TableRow({ children: [
             cell([para([run(`${s.from} → ${s.to}`, { bold: true, color: C.blue, size: 18 })], { after: 10 }), para([run(s.into ? 'WIN' : 'LEAK', { bold: true, color: s.into ? C.teal700 : C.roseDk, size: 14 })])], { w: w[0], fill }),
             cell([para([run(s.trigger, { color: C.ink2, size: 17 })])], { w: w[1], fill }),
-            cell(verbatims(s.verbatims, 1), { w: w[2], fill }),
+            cell(verbatims(s.verbatims, 3), { w: w[2], fill }),
           ] }));
         });
         return [subhead(b.title), table(rows, w)];
@@ -253,7 +253,7 @@ export async function buildDocx(docx: any, sections: SectionOutput[]): Promise<B
           if (s.challenge) ps.push(para([run('Challenge: ', { bold: true, color: C.roseDk, size: 17 }), run(s.challenge, { color: C.ink2, size: 17 })], { after: 8 }));
           if (s.switchTriggers.length) ps.push(para([run('Switch: ', { bold: true, color: C.ink, size: 16 }), run(s.switchTriggers.join(' · '), { color: C.ink2, size: 16 })], { after: 8 }));
           s.notes.forEach((n) => ps.push(bullet(n)));
-          ps.push(...verbatims(s.verbatims, 1));
+          ps.push(...verbatims(s.verbatims, 5));
           return ps;
         })];
 
@@ -265,7 +265,7 @@ export async function buildDocx(docx: any, sections: SectionOutput[]): Promise<B
           if (p.occasion) ps.push(para([run('Occasion: ', { bold: true, size: 15 }), run(p.occasion, { color: C.ink2, size: 15 })], { after: 4 }));
           if (p.channel) ps.push(para([run('Channel: ', { bold: true, size: 15 }), run(p.channel, { color: C.ink2, size: 15 })], { after: 4 }));
           if (p.role) ps.push(para([run(p.role, { italics: true, color: C.orange700, size: 15 })], { after: 8 }));
-          ps.push(...verbatims(p.verbatims, 1));
+          ps.push(...verbatims(p.verbatims, 5));
           return ps;
         });
         const out: any[] = [subhead(b.title), table([
@@ -339,7 +339,7 @@ export async function buildDocx(docx: any, sections: SectionOutput[]): Promise<B
           const ps = [para([run(s.segment, { bold: true, color: C.blue, size: 21 })], { before: 100, after: 10 })];
           if (s.definition) ps.push(para([run(s.definition, { color: C.ink2, size: 18 })], { after: 10 }));
           s.behaviours.forEach((x) => ps.push(bullet(x)));
-          ps.push(...verbatims(s.verbatims, 1));
+          ps.push(...verbatims(s.verbatims, 3));
           return ps;
         })];
 
@@ -350,7 +350,7 @@ export async function buildDocx(docx: any, sections: SectionOutput[]): Promise<B
           cell([para([run(n.node, { bold: true, color: C.blue, size: 18 })])], { w: w[0] }),
           typeof n.share === 'number' ? barCell(n.share, C.orange, w[1]) : cell([para([run('—', { color: C.ink4 })])], { w: w[1] }),
           cell([para([run(n.mapsToPack, { bold: true, color: C.orange700, size: 16 })])], { w: w[2] }),
-          cell([para([run(n.note, { color: C.ink2, size: 16 })]), ...verbatims(n.verbatims, 1)], { w: w[3] }),
+          cell([para([run(n.note, { color: C.ink2, size: 16 })]), ...verbatims(n.verbatims, 3)], { w: w[3] }),
         ] })));
         const out: any[] = [subhead(b.title), table(rows, w)];
         if (b.flowNotes.length) out.push(...b.flowNotes.map(bullet));
@@ -363,7 +363,7 @@ export async function buildDocx(docx: any, sections: SectionOutput[]): Promise<B
         b.regions.forEach((r) => rows.push(new TableRow({ children: [
           cell([para([run(r.name, { bold: true, color: C.blue, size: 18 })])], { w: w[0] }),
           typeof r.intensity === 'number' ? barCell(r.intensity, C.orange, w[1]) : cell([para([run('—', { color: C.ink4 })])], { w: w[1] }),
-          cell([para([run(r.note, { color: C.ink2, size: 16 })]), ...verbatims(r.verbatims, 1)], { w: w[2] }),
+          cell([para([run(r.note, { color: C.ink2, size: 16 })]), ...verbatims(r.verbatims, 3)], { w: w[2] }),
         ] })));
         const out: any[] = [subhead(b.title), table(rows, w)];
         if (b.summary.length) out.push(...b.summary.map(bullet));

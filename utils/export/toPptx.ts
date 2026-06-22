@@ -114,7 +114,7 @@ export async function buildPptx(PptxGenJS: any, sections: SectionOutput[]): Prom
         const rows = b.lanes.map((l: JourneyLaneX) => [
           c0([TXT(l.ageBand, { bold: true, color: C.blue, fontSize: 11 }), TXT(l.headline, { color: C.ink2, fontSize: 9 }), ...(l.sizeSignal ? [TXT(l.sizeSignal, { italic: true, color: C.ink4, fontSize: 8 })] : [])], { fill: C.blue50 }),
           c0([...l.needs.map((n) => TXT(`• ${n}`, { color: C.ink2, fontSize: 9 })), ...(l.mindset ? [TXT(`Mindset · ${l.mindset}`, { italic: true, color: C.ink3, fontSize: 8 })] : [])]),
-          c0([...l.switchTriggers.map((t) => TXT(`• ${t}`, { color: C.ink2, fontSize: 9 })), ...vbLines(l.verbatims, 2)]),
+          c0([...l.switchTriggers.map((t) => TXT(`• ${t}`, { color: C.ink2, fontSize: 9 })), ...vbLines(l.verbatims, 5)]),
         ]);
         tableSlide(eyebrow, b.title, ['Lifestage', 'Needs & mindset', 'Switch triggers & evidence'], rows, w, C.blue, 4);
         if (b.spineSummary.length) {
@@ -145,12 +145,12 @@ export async function buildPptx(PptxGenJS: any, sections: SectionOutput[]): Prom
         const detailLines = (g?: GapGroupX) => (g ? g.bullets.flatMap((x) => [
           TXT(`${x.claim}  [${x.severity}${typeof x.weight === 'number' ? ` · ${x.weight} pts` : ''}]`, { bold: true, color: sevColor(x.severity), fontSize: 10 }),
           ...(x.explanation ? [TXT(x.explanation, { color: C.ink2, fontSize: 9 })] : []),
-          ...vbLines(x.verbatims, 1),
+          ...vbLines(x.verbatims, 4),
         ]) : [TXT('—', { color: C.ink4 })]);
         if (b.current) tableSlide(eyebrow, `${b.title} — ${b.current.heading || 'Current challenges'}`, ['Challenge, severity & evidence'], b.current.bullets.map((x) => [c0([
           TXT(`${x.claim}  [${x.severity}${typeof x.weight === 'number' ? ` · ${x.weight} pts` : ''}]`, { bold: true, color: sevColor(x.severity), fontSize: 11 }),
           ...(x.explanation ? [TXT(x.explanation, { color: C.ink2, fontSize: 9.5 })] : []),
-          ...vbLines(x.verbatims, 1),
+          ...vbLines(x.verbatims, 4),
         ])]), [CW], C.blue, 4);
         if (b.resolved || b.unresolved) {
           const w = [CW / 2, CW / 2];
@@ -162,7 +162,7 @@ export async function buildPptx(PptxGenJS: any, sections: SectionOutput[]): Prom
             c0([TXT(n.need, { bold: true, color: C.blue })]),
             c0([TXT(n.priority, { bold: true, color: C.orange700 })]),
             c0([...(n.whyNow ? [TXT(`Why now: ${n.whyNow}`, { color: C.ink2, fontSize: 9 })] : []), ...(n.who ? [TXT(`Who: ${n.who}`, { color: C.ink3, fontSize: 9 })] : [])]),
-            c0(vbLines(n.verbatims, 1)),
+            c0(vbLines(n.verbatims, 4)),
           ]);
           tableSlide(eyebrow, `${b.needGap.heading || 'Need gaps'}`, ['Need', 'Priority', 'Rationale', 'In their words'], rows, w, C.blue, 5);
         }
@@ -181,7 +181,7 @@ export async function buildPptx(PptxGenJS: any, sections: SectionOutput[]): Prom
           c0([TXT(`${br.sov}%`, { bold: true, color: C.ink2 })]),
           c0([TXT(br.positioning, { color: C.ink2, fontSize: 9 }), ...(br.attributes.length ? [TXT(br.attributes.map((a) => `${a.attribute} ${a.score}/5`).join('  ·  '), { color: C.ink4, fontSize: 8 })] : [])]),
           c0([...(br.strengths.length ? [TXT(`+ ${br.strengths.join(', ')}`, { color: C.teal700, fontSize: 8.5 })] : []), ...(br.weaknesses.length ? [TXT(`− ${br.weaknesses.join(', ')}`, { color: C.roseDk, fontSize: 8.5 })] : [])]),
-          c0(vbLines(br.verbatims, 1)),
+          c0(vbLines(br.verbatims, 5)),
         ]);
         tableSlide(eyebrow, `${b.title} — detail`, ['Brand', 'SOV', 'Positioning & attributes', 'Strengths / watch-outs', 'In their words'], rows, w, C.blue, 4);
         break;
@@ -193,7 +193,7 @@ export async function buildPptx(PptxGenJS: any, sections: SectionOutput[]): Prom
           return [
             c0([TXT(`${s.from} → ${s.to}`, { bold: true, color: C.blue }), TXT(s.into ? 'WIN' : 'LEAK', { bold: true, color: s.into ? C.teal700 : C.roseDk, fontSize: 8 })], { fill: f }),
             c0([TXT(s.trigger, { color: C.ink2, fontSize: 9.5 })], { fill: f }),
-            c0(vbLines(s.verbatims, 1), { fill: f }),
+            c0(vbLines(s.verbatims, 3), { fill: f }),
           ];
         });
         tableSlide(eyebrow, b.title, ['Switch', 'Trigger', 'In their words'], rows, [2.8, CW - 8.6, 5.8], C.blue, 6);
@@ -205,7 +205,7 @@ export async function buildPptx(PptxGenJS: any, sections: SectionOutput[]): Prom
           c0([TXT(s.style, { bold: true, color: C.blue, fontSize: 11 }), ...(s.lifestageSkew ? [TXT(s.lifestageSkew, { color: C.ink4, fontSize: 8 })] : [])], { fill: C.blue50 }),
           c0([...(s.owns ? [TXT(`Owns: ${s.owns}`, { color: C.ink2, fontSize: 9 })] : []), ...(s.challenge ? [TXT(`Challenge: ${s.challenge}`, { color: C.roseDk, fontSize: 9 })] : []), ...(s.switchTriggers.length ? [TXT(`Switch: ${s.switchTriggers.join(' · ')}`, { color: C.ink3, fontSize: 8.5 })] : [])]),
           c0(s.notes.map((n) => TXT(`• ${n}`, { color: C.ink2, fontSize: 8.5 }))),
-          c0(vbLines(s.verbatims, 1)),
+          c0(vbLines(s.verbatims, 4)),
         ]);
         tableSlide(eyebrow, b.title, ['Style', 'Role & switch', 'Notes', 'In their words'], rows, w, C.blue, 5);
         break;
@@ -218,7 +218,7 @@ export async function buildPptx(PptxGenJS: any, sections: SectionOutput[]): Prom
           if (p.occasion) a.push(TXT(`Occasion: ${p.occasion}`, { color: C.ink2, fontSize: 8.5 }));
           if (p.channel) a.push(TXT(`Channel: ${p.channel}`, { color: C.ink2, fontSize: 8.5 }));
           if (p.role) a.push(TXT(p.role, { italic: true, color: C.orange700, fontSize: 8.5 }));
-          a.push(...vbLines(p.verbatims, 1));
+          a.push(...vbLines(p.verbatims, 4));
           return a;
         });
         tableSlide(eyebrow, b.title, ['Laddi · single / twin', 'Non-Laddi · planned packs'], [[c0(packLines(b.laddi), { fill: C.blue50 }), c0(packLines(b.nonLaddi), { fill: C.orange50 })]], w);
@@ -286,7 +286,7 @@ export async function buildPptx(PptxGenJS: any, sections: SectionOutput[]): Prom
         const rows = b.segments.map((s) => [
           c0([TXT(s.segment, { bold: true, color: C.blue, fontSize: 12 })], { fill: C.blue50 }),
           c0([...(s.definition ? [TXT(s.definition, { color: C.ink2, fontSize: 9.5 })] : []), ...s.behaviours.map((x) => TXT(`• ${x}`, { color: C.ink2, fontSize: 9 }))]),
-          c0(s.verbatims.length ? vbLines(s.verbatims, 1) : [TXT('—', { color: C.ink4 })]),
+          c0(s.verbatims.length ? vbLines(s.verbatims, 3) : [TXT('—', { color: C.ink4 })]),
         ]);
         tableSlide(eyebrow, b.title, ['Segment', 'Definition & behaviours', 'In their words'], rows, w, C.blue, 4);
         break;
@@ -297,7 +297,7 @@ export async function buildPptx(PptxGenJS: any, sections: SectionOutput[]): Prom
           c0([TXT(n.node, { bold: true, color: C.blue, fontSize: 12 })], { fill: C.blue50 }),
           c0([TXT(typeof n.share === 'number' ? `${n.share}%` : '—', { bold: true, color: C.orange700, fontSize: 12 })]),
           c0([TXT(n.mapsToPack, { bold: true, color: C.orange700, fontSize: 10 })]),
-          c0([TXT(n.note, { color: C.ink2, fontSize: 9.5 }), ...vbLines(n.verbatims, 1)]),
+          c0([TXT(n.note, { color: C.ink2, fontSize: 9.5 }), ...vbLines(n.verbatims, 3)]),
         ]);
         tableSlide(eyebrow, b.title, ['Channel', 'Share', 'Pack', 'Role & evidence'], rows, w, C.blue, 5);
         if (b.flowNotes.length) { const s = titleSlide(eyebrow, `${b.title} — notes`); s.addText(b.flowNotes.map((t) => ({ text: t, options: { bullet: { code: '2022' }, color: C.ink2, fontSize: 12, breakLine: true, paraSpaceAfter: 8 } })), { x: MX, y: 1.5, w: CW, h: 5 }); }
@@ -308,7 +308,7 @@ export async function buildPptx(PptxGenJS: any, sections: SectionOutput[]): Prom
         const rows = b.regions.map((r) => [
           c0([TXT(r.name, { bold: true, color: C.blue, fontSize: 12 })]),
           c0([TXT(typeof r.intensity === 'number' ? `${r.intensity}` : '—', { bold: true, color: C.orange700, fontSize: 12 })]),
-          c0([TXT(r.note, { color: C.ink2, fontSize: 9.5 }), ...vbLines(r.verbatims, 1)]),
+          c0([TXT(r.note, { color: C.ink2, fontSize: 9.5 }), ...vbLines(r.verbatims, 3)]),
         ]);
         tableSlide(eyebrow, b.title, ['Region', 'Intensity', 'Pattern & evidence'], rows, w, C.blue, 5);
         if (b.summary.length) { const s = titleSlide(eyebrow, `${b.title} — summary`); s.addText(b.summary.map((t) => ({ text: t, options: { bullet: { code: '2022' }, color: C.ink2, fontSize: 12, breakLine: true, paraSpaceAfter: 8 } })), { x: MX, y: 1.5, w: CW, h: 5 }); }
