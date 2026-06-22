@@ -419,3 +419,244 @@ export const LovingleMethodology: React.FC<Props> = ({ data, section }) => {
     </LovingleSectionShell>
   );
 };
+
+// ═══════════════════════════════════════════════════════════════════════════
+// STREAM C — NEW SECTIONS (Consumer Personas, Style Switch Journey, Decision
+// Journey by Lifestage, Diaper Avoidance, Consumer Language)
+// ═══════════════════════════════════════════════════════════════════════════
+
+// ── ✦ Consumer Personas ──────────────────────────────────────────────────────
+
+const PersonaCard: React.FC<{ p: any }> = ({ p }) => {
+  const tierColor: Record<string, string> = {
+    premium: 'var(--o-700)', mid_premium: 'var(--o-600)', mass: 'var(--ink-3)',
+  };
+  return (
+    <div className="lv-card" style={{ borderTop: `4px solid ${tierColor[p?.segment] || 'var(--ink-3)'}` }}>
+      <div className="lv-card-title" style={{ fontSize: '1.05em' }}>{p?.name || ''}</div>
+      {p?.demographic && <div className="lv-card-sig" style={{ fontStyle: 'italic', color: 'var(--ink-2)' }}>{p.demographic}</div>}
+      <div className="lv-card-sig" style={{ display: 'flex', flexWrap: 'wrap', gap: 6, margin: '6px 0' }}>
+        {p?.lifestage && <span style={{ background: 'var(--bg-2)', padding: '2px 8px', borderRadius: 999, fontSize: '0.75em' }}>{String(p.lifestage).replace(/_/g, ' ')}</span>}
+        {p?.family_structure && <span style={{ background: 'var(--bg-2)', padding: '2px 8px', borderRadius: 999, fontSize: '0.75em' }}>{p.family_structure}</span>}
+        {p?.mother_type && <span style={{ background: 'var(--bg-2)', padding: '2px 8px', borderRadius: 999, fontSize: '0.75em' }}>{String(p.mother_type).replace(/_/g, ' ')}</span>}
+        {p?.segment && <span style={{ background: 'var(--bg-2)', padding: '2px 8px', borderRadius: 999, fontSize: '0.75em' }}>{String(p.segment).replace(/_/g, ' ')}</span>}
+      </div>
+      {p?.channel_posture && <div className="lv-card-sig"><b>Channel:</b> {p.channel_posture}</div>}
+      {p?.price_posture && <div className="lv-card-sig"><b>Price posture:</b> {p.price_posture}</div>}
+      {p?.style_preference && <div className="lv-card-sig"><b>Style:</b> {String(p.style_preference).replace(/_/g, ' ')}</div>}
+      {arr<string>(p?.triggers).length > 0 && (
+        <div style={{ marginTop: 6 }}>
+          <div style={{ fontSize: '0.78em', fontWeight: 700, color: 'var(--o-700)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Triggers</div>
+          <ul className="lv-notes" style={{ marginTop: 2 }}>{arr<string>(p.triggers).map((t, i) => <li key={i}>{t}</li>)}</ul>
+        </div>
+      )}
+      {arr<string>(p?.pain_points).length > 0 && (
+        <div style={{ marginTop: 6 }}>
+          <div style={{ fontSize: '0.78em', fontWeight: 700, color: 'var(--rose-dk)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Pain points</div>
+          <ul className="lv-notes" style={{ marginTop: 2 }}>{arr<string>(p.pain_points).map((t, i) => <li key={i}>{t}</li>)}</ul>
+        </div>
+      )}
+      {arr<string>(p?.unmet_needs).length > 0 && (
+        <div style={{ marginTop: 6 }}>
+          <div style={{ fontSize: '0.78em', fontWeight: 700, color: 'var(--teal-700)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Unmet needs</div>
+          <ul className="lv-notes" style={{ marginTop: 2 }}>{arr<string>(p.unmet_needs).map((t, i) => <li key={i}>{t}</li>)}</ul>
+        </div>
+      )}
+      {p?.barrier_to_lovingle && (
+        <div style={{ marginTop: 8, padding: '8px 10px', background: 'rgba(242, 111, 33, 0.08)', borderLeft: '3px solid var(--o-700)', borderRadius: 4 }}>
+          <div style={{ fontSize: '0.72em', fontWeight: 700, color: 'var(--o-700)', textTransform: 'uppercase' }}>Barrier to Lovingle</div>
+          <div style={{ fontSize: '0.88em', color: 'var(--ink)' }}>{p.barrier_to_lovingle}</div>
+        </div>
+      )}
+      <VerbatimChipList items={p?.verbatims} max={5} />
+      {typeof p?.data_points === 'number' && (
+        <div style={{ marginTop: 6, fontSize: '0.72em', color: 'var(--ink-3)' }}>n = {p.data_points} evidence points</div>
+      )}
+    </div>
+  );
+};
+
+export const LovinglePersonas: React.FC<Props> = ({ data, section }) => (
+  <LovingleSectionShell section={section} data={data}
+    eyebrow="Lovingle · Consumer Personas"
+    standfirst={<>Seven to eight <b>living portraits</b> of who Lovingle is for — spanning the baby's journey, family structure, and first-vs-second-time motherhood.</>}>
+    <Zone span={12} title="Persona Set" sub="Each persona is a Kantar-grade consumer deep-dive — read these as the audience anchor for everything that follows" delay=".08s">
+      <div className="lv-cardgrid">{arr<any>(data?.personas).map((p, i) => <PersonaCard key={i} p={p} />)}</div>
+    </Zone>
+  </LovingleSectionShell>
+);
+
+// ── ✦ Style Switch Journey ───────────────────────────────────────────────────
+
+const StyleSwitchCard: React.FC<{ s: any }> = ({ s }) => (
+  <div className="lv-card">
+    <div className="lv-card-title" style={{ fontSize: '0.95em' }}>
+      <span style={{ textTransform: 'capitalize' }}>{String(s?.from_style || '').replace(/_/g, ' ')}</span>
+      <span style={{ color: 'var(--o-700)', margin: '0 8px' }}>→</span>
+      <span style={{ textTransform: 'capitalize' }}>{String(s?.to_style || '').replace(/_/g, ' ')}</span>
+    </div>
+    {s?.lifestage && <div className="lv-card-sig" style={{ fontStyle: 'italic', color: 'var(--ink-3)' }}>{String(s.lifestage).replace(/_/g, ' ')}</div>}
+    {s?.trigger && (
+      <div style={{ marginTop: 6, padding: '6px 10px', background: 'rgba(242, 111, 33, 0.06)', borderLeft: '3px solid var(--o-600)', borderRadius: 4 }}>
+        <div style={{ fontSize: '0.72em', fontWeight: 700, color: 'var(--o-700)', textTransform: 'uppercase' }}>Trigger</div>
+        <div style={{ fontSize: '0.9em' }}>{s.trigger}</div>
+      </div>
+    )}
+    {arr<string>(s?.friction).length > 0 && (
+      <div style={{ marginTop: 6 }}>
+        <div style={{ fontSize: '0.72em', fontWeight: 700, color: 'var(--rose-dk)', textTransform: 'uppercase' }}>Friction</div>
+        <ul className="lv-notes">{arr<string>(s.friction).map((f, i) => <li key={i}>{f}</li>)}</ul>
+      </div>
+    )}
+    {arr<string>(s?.enabler).length > 0 && (
+      <div style={{ marginTop: 6 }}>
+        <div style={{ fontSize: '0.72em', fontWeight: 700, color: 'var(--teal-700)', textTransform: 'uppercase' }}>Enabler</div>
+        <ul className="lv-notes">{arr<string>(s.enabler).map((f, i) => <li key={i}>{f}</li>)}</ul>
+      </div>
+    )}
+    <VerbatimChipList items={s?.verbatims} max={5} />
+    {typeof s?.data_points === 'number' && (
+      <div style={{ marginTop: 6, fontSize: '0.72em', color: 'var(--ink-3)' }}>n = {s.data_points} evidence points</div>
+    )}
+  </div>
+);
+
+export const LovingleStyleSwitchJourney: React.FC<Props> = ({ data, section }) => (
+  <LovingleSectionShell section={section} data={data}
+    eyebrow="Lovingle · Style Switch Journey"
+    standfirst={<>How parents move across <b>cloth, tape, pant and reusable</b> as the baby grows — proposal §9.1 deep-dive.</>}>
+    <Zone span={12} title="The Switch Arcs" sub="What triggers each style transition; what makes it hard; what eases it" delay=".08s">
+      <div className="lv-cardgrid">{arr<any>(data?.switches).map((s, i) => <StyleSwitchCard key={i} s={s} />)}</div>
+    </Zone>
+    {arr<string>(data?.interaction_notes).length > 0 && (
+      <Zone span={12} title="Cross-Switch Patterns" delay=".16s">
+        <NoteBox items={data.interaction_notes} />
+      </Zone>
+    )}
+  </LovingleSectionShell>
+);
+
+// ── ✦ Decision Journey by Lifestage ──────────────────────────────────────────
+
+const DecisionStageCard: React.FC<{ s: any }> = ({ s }) => (
+  <div className="lv-card">
+    <div className="lv-card-title" style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
+      <span style={{ textTransform: 'capitalize' }}>{String(s?.lifestage || '').replace(/_/g, ' ')}</span>
+      {s?.age_band && <span style={{ fontSize: '0.78em', color: 'var(--ink-3)', fontWeight: 400 }}>· {s.age_band}</span>}
+    </div>
+    {s?.who_buys && <div className="lv-card-sig"><b>Who buys:</b> {s.who_buys}</div>}
+    {s?.who_decides && <div className="lv-card-sig"><b>Who decides:</b> {s.who_decides}</div>}
+    {s?.support_system_role && <div className="lv-card-sig"><b>Support system:</b> {s.support_system_role}</div>}
+    {s?.top_influencer && <div className="lv-card-sig" style={{ color: 'var(--o-700)' }}><b>Top influencer:</b> {s.top_influencer}</div>}
+    {arr<string>(s?.trust_hierarchy).length > 0 && (
+      <div style={{ marginTop: 8 }}>
+        <div style={{ fontSize: '0.72em', fontWeight: 700, color: 'var(--ink-2)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Trust hierarchy (high → low)</div>
+        <ol style={{ marginTop: 4, paddingLeft: 18, fontSize: '0.85em', color: 'var(--ink)' }}>
+          {arr<string>(s.trust_hierarchy).map((t, i) => <li key={i} style={{ marginBottom: 2 }}>{t}</li>)}
+        </ol>
+      </div>
+    )}
+    <VerbatimChipList items={s?.verbatims} max={5} />
+    {typeof s?.data_points === 'number' && (
+      <div style={{ marginTop: 6, fontSize: '0.72em', color: 'var(--ink-3)' }}>n = {s.data_points} evidence points</div>
+    )}
+  </div>
+);
+
+export const LovingleDecisionJourney: React.FC<Props> = ({ data, section }) => (
+  <LovingleSectionShell section={section} data={data}
+    eyebrow="Lovingle · Decision Journey by Lifestage"
+    standfirst={<>Who buys, who decides, and who influences <b>at each lifestage</b> — the brief's explicit demand for stage-by-stage decision modelling.</>}>
+    <Zone span={12} title="Stage-by-Stage Decision Map" sub="The buyer ≠ the decider; the influencer shifts at every milestone" delay=".08s">
+      <div className="lv-cardgrid">{arr<any>(data?.stages).map((s, i) => <DecisionStageCard key={i} s={s} />)}</div>
+    </Zone>
+    {arr<string>(data?.cross_stage_notes).length > 0 && (
+      <Zone span={12} title="Cross-Stage Patterns" delay=".16s">
+        <NoteBox items={data.cross_stage_notes} />
+      </Zone>
+    )}
+  </LovingleSectionShell>
+);
+
+// ── ✦ Diaper Avoidance ───────────────────────────────────────────────────────
+
+const AvoidanceCard: React.FC<{ a: any }> = ({ a }) => (
+  <div className="lv-card">
+    <div className="lv-card-title" style={{ fontSize: '0.95em' }}>{a?.moment || ''}</div>
+    {a?.alternative_chosen && (
+      <div style={{ marginTop: 4, padding: '4px 10px', background: 'rgba(86, 194, 214, 0.1)', borderLeft: '3px solid var(--teal-600)', borderRadius: 4, fontSize: '0.85em' }}>
+        <b style={{ color: 'var(--teal-700)' }}>Instead:</b> {a.alternative_chosen}
+      </div>
+    )}
+    {a?.why_avoided && <div className="lv-card-sig" style={{ marginTop: 6 }}><b>Why:</b> {a.why_avoided}</div>}
+    {a?.lifestage && <div className="lv-card-sig" style={{ color: 'var(--ink-3)', fontStyle: 'italic' }}>{String(a.lifestage).replace(/_/g, ' ')}</div>}
+    {a?.typical_segment && <div className="lv-card-sig" style={{ color: 'var(--ink-3)' }}>Strongest in: {a.typical_segment}</div>}
+    <VerbatimChipList items={a?.verbatims} max={3} />
+    {typeof a?.data_points === 'number' && (
+      <div style={{ marginTop: 6, fontSize: '0.72em', color: 'var(--ink-3)' }}>n = {a.data_points} evidence points</div>
+    )}
+  </div>
+);
+
+export const LovingleDiaperAvoidance: React.FC<Props> = ({ data, section }) => (
+  <LovingleSectionShell section={section} data={data}
+    eyebrow="Lovingle · When Diapers Are Avoided"
+    standfirst={<>The moments parents choose <b>cloth, bare-bottom or nothing</b> instead of a disposable — and what those moments reveal about category boundaries and opportunity.</>}>
+    <Zone span={12} title="Avoidance Moments" sub="Not rejection — contextual non-use, often within the same household that buys disposables" delay=".08s">
+      <div className="lv-cardgrid">{arr<any>(data?.moments).map((a, i) => <AvoidanceCard key={i} a={a} />)}</div>
+    </Zone>
+    {arr<string>(data?.summary).length > 0 && (
+      <Zone span={12} title="What Avoidance Reveals" delay=".16s">
+        <NoteBox items={data.summary} />
+      </Zone>
+    )}
+  </LovingleSectionShell>
+);
+
+// ── ✦ Consumer Language ──────────────────────────────────────────────────────
+
+const LanguageCard: React.FC<{ t: any }> = ({ t }) => (
+  <div className="lv-card">
+    <div className="lv-card-title" style={{ fontSize: '1.0em', color: 'var(--ink)' }}>{t?.term || ''}</div>
+    {arr<string>(t?.vernacular_variants).length > 0 && (
+      <div style={{ marginTop: 4, fontSize: '0.82em', color: 'var(--ink-2)', fontStyle: 'italic' }}>
+        {arr<string>(t.vernacular_variants).join(' · ')}
+      </div>
+    )}
+    {t?.emotional_meaning && (
+      <div style={{ marginTop: 8 }}>
+        <div style={{ fontSize: '0.72em', fontWeight: 700, color: 'var(--rose-dk)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Emotional meaning</div>
+        <div style={{ fontSize: '0.88em', color: 'var(--ink)' }}>{t.emotional_meaning}</div>
+      </div>
+    )}
+    {t?.functional_meaning && (
+      <div style={{ marginTop: 6 }}>
+        <div style={{ fontSize: '0.72em', fontWeight: 700, color: 'var(--teal-700)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Functional meaning</div>
+        <div style={{ fontSize: '0.88em', color: 'var(--ink)' }}>{t.functional_meaning}</div>
+      </div>
+    )}
+    {t?.pack_implication && (
+      <div style={{ marginTop: 6, padding: '6px 10px', background: 'rgba(242, 111, 33, 0.06)', borderLeft: '3px solid var(--o-600)', borderRadius: 4 }}>
+        <div style={{ fontSize: '0.72em', fontWeight: 700, color: 'var(--o-700)', textTransform: 'uppercase' }}>Pack implication</div>
+        <div style={{ fontSize: '0.85em' }}>{t.pack_implication}</div>
+      </div>
+    )}
+    {t?.comms_implication && (
+      <div style={{ marginTop: 6, padding: '6px 10px', background: 'rgba(28, 60, 142, 0.06)', borderLeft: '3px solid var(--ink)', borderRadius: 4 }}>
+        <div style={{ fontSize: '0.72em', fontWeight: 700, color: 'var(--ink)', textTransform: 'uppercase' }}>Comms implication</div>
+        <div style={{ fontSize: '0.85em' }}>{t.comms_implication}</div>
+      </div>
+    )}
+    <VerbatimChipList items={t?.verbatims} max={4} />
+  </div>
+);
+
+export const LovingleConsumerLanguage: React.FC<Props> = ({ data, section }) => (
+  <LovingleSectionShell section={section} data={data}
+    eyebrow="Lovingle · Consumer Language"
+    standfirst={<>The exact words parents use — in English, Hindi and Hinglish — for <b>soft, dry, rash-free, leak-proof, overnight, value</b>. The wording that should appear on pack and in communications.</>}>
+    <Zone span={12} title="The Words That Matter" sub="Each term — its emotional weight, functional meaning, and pack/comms implication" delay=".08s">
+      <div className="lv-cardgrid">{arr<any>(data?.terms).map((t, i) => <LanguageCard key={i} t={t} />)}</div>
+    </Zone>
+  </LovingleSectionShell>
+);

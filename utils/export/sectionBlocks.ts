@@ -274,6 +274,88 @@ const sectionToBlocks = (sectionId: string, d: any): { eyebrow: string; standfir
           { type: 'cards', title: 'Coverage', cards: arr(d.coverage).map((c: any) => ({ headline: c?.label || '', signal: c?.detail || '', verbatims: [] as VerbatimX[] })) },
         ] };
 
+    // ✦ Stream C — new sections (rendered as cards in DOCX/PPTX exports)
+    case 'consumer_personas':
+      return { eyebrow: EY('Consumer Personas'), standfirst: '7-8 living portraits of who Lovingle is for — spanning the journey, family structure and first-vs-second-time motherhood.',
+        blocks: [{
+          type: 'cards', title: 'Persona Set',
+          cards: arr(d.personas).map((p: any) => ({
+            headline: p?.name || '',
+            signal: [p?.demographic, p?.channel_posture && `Channel: ${p.channel_posture}`, p?.price_posture && `Price: ${p.price_posture}`, p?.style_preference && `Style: ${String(p.style_preference).replace(/_/g, ' ')}`].filter(Boolean).join(' · '),
+            explanation: [
+              arr<string>(p?.triggers).length ? `TRIGGERS: ${arr<string>(p.triggers).join('; ')}` : '',
+              arr<string>(p?.pain_points).length ? `PAINS: ${arr<string>(p.pain_points).join('; ')}` : '',
+              arr<string>(p?.unmet_needs).length ? `UNMET NEEDS: ${arr<string>(p.unmet_needs).join('; ')}` : '',
+              p?.barrier_to_lovingle ? `BARRIER TO LOVINGLE: ${p.barrier_to_lovingle}` : '',
+            ].filter(Boolean).join('  •  '),
+            data_points: typeof p?.data_points === 'number' ? p.data_points : undefined,
+            verbatims: arr(p?.verbatims).map(verbX),
+          })),
+        }] };
+
+    case 'style_switch_journey':
+      return { eyebrow: EY('Style Switch Journey'), standfirst: 'How parents move across cloth, tape, pant and reusable as the baby grows — proposal §9.1 dedicated deep-dive.',
+        blocks: [
+          { type: 'cards', title: 'The Switch Arcs',
+            cards: arr(d.switches).map((s: any) => ({
+              headline: `${String(s?.from_style || '').replace(/_/g, ' ')} → ${String(s?.to_style || '').replace(/_/g, ' ')}`,
+              signal: `${s?.lifestage ? String(s.lifestage).replace(/_/g, ' ') + ' · ' : ''}TRIGGER: ${s?.trigger || ''}`,
+              explanation: [
+                arr<string>(s?.friction).length ? `FRICTION: ${arr<string>(s.friction).join('; ')}` : '',
+                arr<string>(s?.enabler).length ? `ENABLER: ${arr<string>(s.enabler).join('; ')}` : '',
+              ].filter(Boolean).join('  •  '),
+              data_points: typeof s?.data_points === 'number' ? s.data_points : undefined,
+              verbatims: arr(s?.verbatims).map(verbX),
+            })),
+          },
+          ...(arr<string>(d.interaction_notes).length ? [{ type: 'notes' as const, title: 'Cross-Switch Patterns', items: arr<string>(d.interaction_notes) }] : []),
+        ] };
+
+    case 'decision_journey_stages':
+      return { eyebrow: EY('Decision Journey by Lifestage'), standfirst: 'Who buys, who decides, who influences — at each baby-age lifestage. The brief\'s explicit stage-by-stage decision modelling.',
+        blocks: [
+          { type: 'cards', title: 'Stage-by-Stage Decision Map',
+            cards: arr(d.stages).map((s: any) => ({
+              headline: `${String(s?.lifestage || '').replace(/_/g, ' ')}${s?.age_band ? ' · ' + s.age_band : ''}`,
+              signal: [s?.who_buys && `BUYS: ${s.who_buys}`, s?.who_decides && `DECIDES: ${s.who_decides}`, s?.top_influencer && `INFLUENCER: ${s.top_influencer}`].filter(Boolean).join('  •  '),
+              explanation: [
+                s?.support_system_role ? `SUPPORT SYSTEM: ${s.support_system_role}` : '',
+                arr<string>(s?.trust_hierarchy).length ? `TRUST: ${arr<string>(s.trust_hierarchy).join(' > ')}` : '',
+              ].filter(Boolean).join('  •  '),
+              data_points: typeof s?.data_points === 'number' ? s.data_points : undefined,
+              verbatims: arr(s?.verbatims).map(verbX),
+            })),
+          },
+          ...(arr<string>(d.cross_stage_notes).length ? [{ type: 'notes' as const, title: 'Cross-Stage Patterns', items: arr<string>(d.cross_stage_notes) }] : []),
+        ] };
+
+    case 'diaper_avoidance':
+      return { eyebrow: EY('When Diapers Are Avoided'), standfirst: 'The moments parents choose cloth, bare-bottom or nothing instead of a disposable — and what those moments reveal about category boundaries.',
+        blocks: [
+          { type: 'cards', title: 'Avoidance Moments',
+            cards: arr(d.moments).map((m: any) => ({
+              headline: m?.moment || '',
+              signal: [m?.alternative_chosen && `INSTEAD: ${m.alternative_chosen}`, m?.lifestage && `Lifestage: ${String(m.lifestage).replace(/_/g, ' ')}`].filter(Boolean).join(' · '),
+              explanation: [m?.why_avoided && `WHY: ${m.why_avoided}`, m?.typical_segment && `STRONGEST IN: ${m.typical_segment}`].filter(Boolean).join('  •  '),
+              data_points: typeof m?.data_points === 'number' ? m.data_points : undefined,
+              verbatims: arr(m?.verbatims).map(verbX),
+            })),
+          },
+          ...(arr<string>(d.summary).length ? [{ type: 'notes' as const, title: 'What Avoidance Reveals', items: arr<string>(d.summary) }] : []),
+        ] };
+
+    case 'consumer_language':
+      return { eyebrow: EY('Consumer Language'), standfirst: 'The exact words parents use — in English, Hindi and Hinglish — for soft, dry, rash-free, leak-proof, overnight, value. The wording that should appear on pack and in comms.',
+        blocks: [{
+          type: 'cards', title: 'The Words That Matter',
+          cards: arr(d.terms).map((t: any) => ({
+            headline: `${t?.term || ''}${arr<string>(t?.vernacular_variants).length ? '  ·  ' + arr<string>(t.vernacular_variants).join(' · ') : ''}`,
+            signal: [t?.emotional_meaning && `EMOTIONAL: ${t.emotional_meaning}`, t?.functional_meaning && `FUNCTIONAL: ${t.functional_meaning}`].filter(Boolean).join('  •  '),
+            explanation: [t?.pack_implication && `PACK: ${t.pack_implication}`, t?.comms_implication && `COMMS: ${t.comms_implication}`].filter(Boolean).join('  •  '),
+            verbatims: arr(t?.verbatims).map(verbX),
+          })),
+        }] };
+
     default:
       return { eyebrow: EY('Section'), standfirst: '', blocks: [] };
   }

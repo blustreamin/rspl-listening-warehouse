@@ -20,6 +20,9 @@ import {
     LovinglePricePackSection, LovingleGap, LovingleDiagnostic, LovingleBrand,
     LovingleExecSummary, LovingleSeasonality, LovingleTargetGroup, LovingleChannel,
     LovingleGeography, LovingleInfluencer, LovingleWhitespace, LovingleMethodology,
+    // ✦ Stream C — new sections
+    LovinglePersonas, LovingleStyleSwitchJourney, LovingleDecisionJourney,
+    LovingleDiaperAvoidance, LovingleConsumerLanguage,
 } from './LovingleSections';
 import { 
     MenstruationContextRenderer, 
@@ -2884,6 +2887,12 @@ export const ModernSectionRenderer: React.FC<Props> = ({ data, projectId }) => {
             case 'gap_analysis':         Component = LovingleGap; break;
             case 'lovingle_diagnostic':  Component = LovingleDiagnostic; break;
             case 'brand_landscape':      Component = LovingleBrand; break;
+            // ✦ Stream C — new sections
+            case 'consumer_personas':       Component = LovinglePersonas; break;
+            case 'style_switch_journey':    Component = LovingleStyleSwitchJourney; break;
+            case 'decision_journey_stages': Component = LovingleDecisionJourney; break;
+            case 'diaper_avoidance':        Component = LovingleDiaperAvoidance; break;
+            case 'consumer_language':       Component = LovingleConsumerLanguage; break;
             default:                     Component = LovingleCategoryContext; break;
         }
     }
