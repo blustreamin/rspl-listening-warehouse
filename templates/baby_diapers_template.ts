@@ -117,7 +117,7 @@ GLOBAL NON-NEGOTIABLES:
     joint family with grandparents, SEC B, TC1 Lucknow, North India"). At least 60% of verbatims across
     the full report must carry at least 4 of these cut dimensions.
 13. EVIDENCE/IMPLICATION INLINE FORMAT (consultant register):
-    For every InsightCard's `what_it_means`, write it as a single dense paragraph with embedded labels:
+    For every InsightCard's "what_it_means" field, write it as a single dense paragraph with embedded labels:
     "SIGNAL SUMMARY: [what we observed in one sentence]. EVIDENCE: [the quantitative + qualitative shape,
     inline cut by lifestage/segment/geo where relevant]. STRATEGIC IMPLICATION: [what RSPL/Lovingle should
     do about it, laddered to price-pack/comms/portfolio]."
