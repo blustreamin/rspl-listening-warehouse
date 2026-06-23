@@ -20,15 +20,25 @@ export const anthropicProvider: LLMProvider = {
     const model = args.model || DEFAULT_MODEL;
     const jsonMode = args.jsonMode !== false;
 
-    // Anthropic has no strict json flag — prefill the assistant turn with "{"
-    // so the model is forced to continue valid JSON, then re-prepend it.
-    const messages: Anthropic.MessageParam[] = [{ role: "user", content: args.prompt }];
-    if (jsonMode) messages.push({ role: "assistant", content: "{" });
+    // Claude 4.x models reject assistant-prefill ("conversation must end with
+    // a user message"). Instead, enforce JSON output via the system prompt and
+    // a trailing instruction in the user turn.
+    const jsonSuffix = jsonMode
+      ? "\n\nIMPORTANT: Respond with ONLY valid JSON. No markdown fences, no preamble, no commentary — just the raw JSON object starting with {."
+      : "";
+
+    const systemText = args.system
+      ? (jsonMode ? args.system + "\nYou MUST respond with pure JSON only." : args.system)
+      : (jsonMode ? "You MUST respond with pure JSON only." : undefined);
+
+    const messages: Anthropic.MessageParam[] = [
+      { role: "user", content: args.prompt + jsonSuffix },
+    ];
 
     const msg = await client.messages.create({
       model,
       max_tokens: args.maxTokens || DEFAULT_MAX_TOKENS,
-      system: args.system || undefined,
+      system: systemText,
       messages,
     });
 
@@ -37,7 +47,11 @@ export const anthropicProvider: LLMProvider = {
       .join("")
       .trim();
 
-    const text = jsonMode ? "{" + body : body;
+    // Strip any markdown fences the model might still wrap around JSON.
+    let text = body;
+    if (jsonMode) {
+      text = text.replace(/^```(?:json)?\s*\n?/, "").replace(/\n?```\s*$/, "").trim();
+    }
     return { text, provider: "anthropic", model };
   },
 };
