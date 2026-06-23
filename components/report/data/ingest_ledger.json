@@ -1,0 +1,266 @@
+{
+  "title": "Data Ingestion Analysis",
+  "badge": "EVIDENCE BASE",
+  "sub": "How the Lovingle baby-diaper evidence base was assembled — every figure traces to a deduplicated, text-bearing record in this corpus.",
+  "period": "Reviews span 2012–2026; social listening exported Jun 2026. A timestamp is present on 38.2% of records; depth varies by source.",
+  "defs": [
+    {
+      "icon": "doc",
+      "term": "Total Data Points:",
+      "body": " Unique records ingested across all sources (e-commerce reviews + social listening) after cross-file and cross-alert deduplication."
+    },
+    {
+      "icon": "quote",
+      "term": "Usable Verbatims:",
+      "body": " Records carrying meaningful consumer text (≥10 characters) usable as evidence quotes. Excludes empty / non-textual rows."
+    }
+  ],
+  "kpis": [
+    {
+      "icon": "bars",
+      "tone": "orange",
+      "value": "91,635",
+      "label": "TOTAL DATA POINTS"
+    },
+    {
+      "icon": "chat",
+      "tone": "teal",
+      "value": "89,544",
+      "label": "USABLE VERBATIMS"
+    },
+    {
+      "icon": "link",
+      "tone": "blue",
+      "value": "9",
+      "label": "PLATFORMS"
+    },
+    {
+      "icon": "star",
+      "tone": "cream",
+      "value": "3.7",
+      "label": "AVG RATING (45,161)"
+    }
+  ],
+  "platforms": [
+    {
+      "name": "Flipkart",
+      "count": "22,972",
+      "pct": 25.1
+    },
+    {
+      "name": "Amazon",
+      "count": "22,189",
+      "pct": 24.2
+    },
+    {
+      "name": "Web",
+      "count": "18,025",
+      "pct": 19.7
+    },
+    {
+      "name": "News & Blogs",
+      "count": "15,670",
+      "pct": 17.1
+    },
+    {
+      "name": "YouTube",
+      "count": "10,319",
+      "pct": 11.2
+    },
+    {
+      "name": "Instagram",
+      "count": "1,072",
+      "pct": 1.2
+    },
+    {
+      "name": "Facebook",
+      "count": "763",
+      "pct": 0.8
+    },
+    {
+      "name": "Vimeo",
+      "count": "624",
+      "pct": 0.7
+    },
+    {
+      "name": "X / Twitter",
+      "count": "1",
+      "pct": 0.0
+    }
+  ],
+  "types": [
+    {
+      "name": "Product Reviews",
+      "count": "45,161",
+      "pct": 49.3,
+      "tone": "orange"
+    },
+    {
+      "name": "Social Mentions",
+      "count": "46,474",
+      "pct": 50.7,
+      "tone": "teal"
+    }
+  ],
+  "sources": [
+    {
+      "name": "Web",
+      "value": "18,025"
+    },
+    {
+      "name": "News & Blogs",
+      "value": "15,670"
+    },
+    {
+      "name": "YouTube",
+      "value": "10,319"
+    },
+    {
+      "name": "Instagram",
+      "value": "1,072"
+    },
+    {
+      "name": "Facebook",
+      "value": "763"
+    },
+    {
+      "name": "Vimeo",
+      "value": "624"
+    },
+    {
+      "name": "X / Twitter",
+      "value": "1"
+    }
+  ],
+  "brands": [
+    {
+      "name": "Huggies",
+      "count": 13896,
+      "pct": 30.8,
+      "rating": 3.68
+    },
+    {
+      "name": "Mamypoko",
+      "count": 13284,
+      "pct": 29.4,
+      "rating": 3.6
+    },
+    {
+      "name": "Pampers",
+      "count": 12708,
+      "pct": 28.1,
+      "rating": 3.75
+    },
+    {
+      "name": "Little Angels",
+      "count": 5056,
+      "pct": 11.2,
+      "rating": 4.02
+    },
+    {
+      "name": "Lovingle",
+      "count": 217,
+      "pct": 0.5,
+      "rating": 4.18
+    }
+  ],
+  "sentiment": [
+    {
+      "name": "Neutral",
+      "count": 25381,
+      "pct": 56.9
+    },
+    {
+      "name": "Positive",
+      "count": 15615,
+      "pct": 35.0
+    },
+    {
+      "name": "Negative",
+      "count": 3643,
+      "pct": 8.2
+    }
+  ],
+  "geo": [
+    {
+      "name": "Maharashtra",
+      "count": 295,
+      "pct": 30.6
+    },
+    {
+      "name": "Karnataka",
+      "count": 167,
+      "pct": 17.3
+    },
+    {
+      "name": "Delhi",
+      "count": 104,
+      "pct": 10.8
+    },
+    {
+      "name": "Tamil Nadu",
+      "count": 77,
+      "pct": 8.0
+    },
+    {
+      "name": "Uttar Pradesh",
+      "count": 59,
+      "pct": 6.1
+    },
+    {
+      "name": "Gujarat",
+      "count": 55,
+      "pct": 5.7
+    },
+    {
+      "name": "West Bengal",
+      "count": 27,
+      "pct": 2.8
+    },
+    {
+      "name": "Haryana",
+      "count": 25,
+      "pct": 2.6
+    },
+    {
+      "name": "Telangana",
+      "count": 22,
+      "pct": 2.3
+    },
+    {
+      "name": "Kerala",
+      "count": 21,
+      "pct": 2.2
+    },
+    {
+      "name": "Goa",
+      "count": 18,
+      "pct": 1.9
+    },
+    {
+      "name": "Madhya Pradesh",
+      "count": 16,
+      "pct": 1.7
+    }
+  ],
+  "footnote": "Computed from the live Lovingle baby-diaper corpus (Amazon + Flipkart reviews, Awario social listening, Instagram, Facebook). Social listening reflects global brand/category chatter; the India consumer voice is carried by the e-commerce reviews and Lovingle's owned social. Geographic coverage is approximate — blended from author-location tags, post locations and place references in text, rolled up to state level over the geo-identifiable subset.",
+  "_diagnostics": {
+    "review_total": 45161,
+    "social_total": 46474,
+    "awario_unique": 44639,
+    "instagram": 1072,
+    "facebook": 763,
+    "awario_per_alert": {
+      "Huggies": 12527,
+      "Little Angels": 635,
+      "Lovingle": 109,
+      "Category (unbranded)": 28349,
+      "MamyPoko": 721,
+      "Pampers": 5588
+    },
+    "dated_records": 34962,
+    "date_min": "2007-10-05",
+    "date_max": "2026-06-23",
+    "geo_identifiable_docs": 940
+  }
+}
