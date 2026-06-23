@@ -9,6 +9,7 @@
 import React from 'react';
 import { SectionOutput } from '../../types';
 import { LovingleSectionShell } from './LovingleSectionShell';
+import DataIngestionAnalysis from './DataIngestionAnalysis';
 import {
   ZoneHead, SubHead, NoteBox, InsightCardGrid, LabeledCardGroups, CrossTab,
   PriceLadder, TriggerRail, JourneySpine, RankedBars, GapColumns, SovBars, SwitchStories,
@@ -392,33 +393,13 @@ export const LovingleWhitespace: React.FC<Props> = ({ data, section }) => (
 );
 
 // ── 20 · Methodology & Evidence Base ─────────────────────────────────────────
+// Re-rendered as the self-chrome "Data Ingestion Analysis" evidence-ledger panel
+// (indicative baby-diaper corpus). The seed + live-swap point live in one place:
+// INGEST_LEDGER inside ./DataIngestionAnalysis. The section DTO (`data`/`section`)
+// is intentionally not forwarded — the panel is currently an indicative sample;
+// when the live harvest lands, pass it via the panel's optional `data` prop.
 
-export const LovingleMethodology: React.FC<Props> = ({ data, section }) => {
-  const sources = arr<string>(data?.sources);
-  const excluded = arr<string>(data?.excluded);
-  const coverage = arr<any>(data?.coverage).map((c) => ({ headline: c?.label || '', signal: c?.detail || '', verbatims: [] }));
-  return (
-    <LovingleSectionShell section={section} data={data} indicative
-      eyebrow="Lovingle · Methodology"
-      standfirst={<>The credibility appendix — source layers, a <b>36-month+</b> listening window, what's excluded, and the coverage behind every cut.</>}>
-      <Zone span={7} title="Evidence Source Layers" sub="Triangulated" delay=".08s">
-        <div className="lv-srcs">
-          {sources.map((s, i) => <span key={i} className="lv-src-chip">{s}</span>)}
-          {excluded.map((s, i) => <span key={`x${i}`} className="lv-src-chip lv-excl">{s}</span>)}
-        </div>
-        {data?.window && <div className="lv-excluded" style={{ marginTop: 14 }}><span className="lv-excluded-tag">Window</span><span>{data.window}</span></div>}
-      </Zone>
-      <Zone span={5} title="Confidence" sub="Calibration" delay=".14s">
-        <NoteBox items={[data?.confidence, data?.disclaimer].filter(Boolean)} />
-      </Zone>
-      {coverage.length > 0 && (
-        <Zone span={12} title="Coverage" sub="Geography · lifestage · channels · hygiene" delay=".2s">
-          <InsightCardGrid items={coverage} />
-        </Zone>
-      )}
-    </LovingleSectionShell>
-  );
-};
+export const LovingleMethodology: React.FC<Props> = () => <DataIngestionAnalysis />;
 
 // ═══════════════════════════════════════════════════════════════════════════
 // STREAM C — NEW SECTIONS (Consumer Personas, Style Switch Journey, Decision
