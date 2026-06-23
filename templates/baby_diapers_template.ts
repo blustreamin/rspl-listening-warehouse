@@ -285,9 +285,23 @@ Output: {
   "consideration_barriers": [InsightCard] (MIN 6),
   "aware_non_trier": [InsightCard] (MIN 5),
   "trier_working": [InsightCard] (MIN 5),
-  "switch_stories": Array<{ direction:"to_lovingle"|"from_lovingle", from_brand, to_brand, trigger, verbatims:[{quote,source,consumer}] (MIN 3) }> (MIN 6)
+  "switch_stories": Array<{
+    direction: "to_lovingle" | "from_lovingle",
+    from_brand: string,
+    to_brand: string,
+    trigger: string,
+    motivational_cluster: "price_value" | "rash_skin_safety" | "availability_access" | "size_fit" | "recommendation" | "brand_image" | "absorbency_leak" | "comfort_softness",
+    baby_age_context: string,
+    channel: string,
+    signal_strength: "strong" | "moderate" | "emerging",
+    net_outcome: string,
+    strategic_implication: string,
+    verbatims: [{quote,source,consumer}] (MIN 5)
+  }> (MIN 8, at least 4 to_lovingle, at least 3 from_lovingle),
+  "switch_corridor_summary": string
 } where InsightCard = {headline, what_it_means, data_points:N, verbatims:[{quote,source,consumer}] (MIN 5)}.
 DIRECTIVE: a focused read on Lovingle — spontaneous awareness & associations; consideration drivers (price, kirana availability) and barriers; what holds back aware non-triers; what is working among triers; switch stories to and from Lovingle.
+SWITCH STORIES DEPTH MANDATE (CRITICAL): Each switch story is a case study, not a card. 'trigger' = the headline reason (one sentence). 'motivational_cluster' = the strategic category from the enum. 'baby_age_context' = what stage the baby was at when the switch happened (e.g. "6-month-old starting solids, increased stool frequency"). 'channel' = where the parent was shopping or discovered the alternative. 'signal_strength' = strong (multiple corroborating voices), moderate (2-3 voices), emerging (single but vivid). 'net_outcome' = how the parent feels AFTER switching (satisfied/regretful/mixed + why). 'strategic_implication' = one sentence on what RSPL should do about this specific corridor. 'switch_corridor_summary' = a 3-4 sentence synthesis of the dominant corridors: which brand pairs see the most traffic, what clusters dominate, where Lovingle is winning vs leaking, and the single biggest intervention point. Ensure mix across all 4 major competitors (Pampers, MamyPoko, Huggies, Little Angels). Every verbatim must cite a real consumer with baby-age-anchored demographic.
 BRAND-OBJECTION LOCK (CRITICAL): the DOMINANT consideration_barriers / aware_non_trier cluster for Lovingle is RASH / SKIN-SAFETY reassurance — NOT leakage/trust. Do not import Pro-ease's leakage/trust framing. Read Lovingle against the competitor brand drivers so its position is understood relative to the set.
 The 'consideration_barriers' array MUST have the LARGEST count (6+) because that's where RSPL's intervention will land. Each card's what_it_means must inline "SIGNAL SUMMARY: ... EVIDENCE: ... STRATEGIC IMPLICATION: ..." labels.`,
 

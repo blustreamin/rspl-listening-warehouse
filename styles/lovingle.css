@@ -640,3 +640,17 @@
 @media(prefers-reduced-motion:no-preference){
   .lvig-pfill,.lvig-dfill,.lvig-bfill{transition:width .6s cubic-bezier(.4,0,.2,1);}
 }
+
+/* ===== SwitchStories v2 — richer layout ===== */
+.lv-switches-v2{display:flex; flex-direction:column; gap:14px}
+.lv-corridor-summary{font-size:12.5px; line-height:1.55; color:var(--ink-2); padding:12px 16px; background:var(--b-50,#EEF1F8); border-left:3px solid var(--b-400,#5A7BC4); border-radius:6px; margin-bottom:4px}
+.lv-switch-cols{display:grid; grid-template-columns:1fr 1fr; gap:16px}
+@media(max-width:760px){.lv-switch-cols{grid-template-columns:1fr}}
+.lv-switch-col-head{font-size:13px; font-weight:700; color:var(--ink-1); text-transform:uppercase; letter-spacing:.5px; margin-bottom:10px; padding-bottom:6px; border-bottom:2px solid var(--line)}
+.lv-switch-col-cnt{font-size:11px; font-weight:600; color:var(--ink-3); background:var(--paper-warm); padding:1px 7px; border-radius:10px; margin-left:6px}
+.lv-switch-meta{display:flex; flex-wrap:wrap; gap:6px; margin:6px 0}
+.lv-switch-tag{font-size:10px; font-weight:600; background:var(--b-100,#D6DCF0); color:var(--b-700,#1C3C8E); padding:2px 8px; border-radius:10px; text-transform:uppercase; letter-spacing:.3px}
+.lv-switch-signal{font-size:10px; color:var(--ink-3); display:flex; align-items:center; text-transform:capitalize}
+.lv-switch-age{font-size:10px; color:var(--ink-3); font-style:italic}
+.lv-switch-outcome{font-size:11px; line-height:1.45; color:var(--ink-2); margin:6px 0 4px; padding:6px 10px; background:rgba(0,0,0,.025); border-radius:6px}
+.lv-switch-strat{font-size:10.5px; line-height:1.4; color:var(--o-700,#B84D12); margin-bottom:6px; padding:4px 10px; border-left:2px solid var(--o-400,#F26F21); background:rgba(242,111,33,.04); border-radius:0 4px 4px 0}

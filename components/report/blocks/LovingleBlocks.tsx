@@ -742,28 +742,69 @@ export const SovBars: React.FC<{ marketStructure?: string[]; brands: BrandConten
 
 // ── SwitchStories (Lovingle diagnostic) ──────────────────────────────────────
 
-export interface SwitchStory { direction?: string; from_brand?: string; to_brand?: string; trigger?: string; verbatims?: VerbatimContent[]; }
+export interface SwitchStory {
+  direction?: string; from_brand?: string; to_brand?: string; trigger?: string;
+  motivational_cluster?: string; baby_age_context?: string; channel?: string;
+  signal_strength?: string; net_outcome?: string; strategic_implication?: string;
+  verbatims?: VerbatimContent[];
+}
 
-export const SwitchStories: React.FC<{ stories: SwitchStory[] }> = ({ stories }) => {
+const CLUSTER_LABELS: Record<string, string> = {
+  price_value: 'Price / Value', rash_skin_safety: 'Rash / Skin Safety',
+  availability_access: 'Availability', size_fit: 'Size / Fit',
+  recommendation: 'Recommendation', brand_image: 'Brand Image',
+  absorbency_leak: 'Absorbency / Leak', comfort_softness: 'Comfort / Softness',
+};
+
+const STRENGTH_DOT: Record<string, string> = { strong: '#22c55e', moderate: '#f59e0b', emerging: '#94a3b8' };
+
+export const SwitchStories: React.FC<{ stories: SwitchStory[]; corridorSummary?: string }> = ({ stories, corridorSummary }) => {
   const list = asArray<SwitchStory>(stories);
   if (!list.length) return null;
+  const wins = list.filter(s => s.direction === 'to_lovingle');
+  const leaks = list.filter(s => s.direction !== 'to_lovingle');
   return (
-    <div className="lv-switches">
-      {list.map((s, i) => {
-        const into = s.direction === 'to_lovingle';
-        return (
-          <div key={i} className={`lv-switch ${into ? 'lv-win' : 'lv-leak'}`}>
-            <div className="lv-switch-head">
-              <span>{s.from_brand}</span>
-              <span className="lv-switch-arrow">→</span>
-              <span>{s.to_brand}</span>
-              <span className="lv-switch-flag">{into ? 'Win' : 'Leak'}</span>
-            </div>
-            {s.trigger && <div className="lv-switch-trigger">{s.trigger}</div>}
-            <VerbatimChipList items={s.verbatims} max={3} />
+    <div className="lv-switches-v2">
+      {corridorSummary && (
+        <div className="lv-corridor-summary">{corridorSummary}</div>
+      )}
+      <div className="lv-switch-cols">
+        {[{ label: 'Wins', items: wins, cls: 'lv-win' }, { label: 'Leaks', items: leaks, cls: 'lv-leak' }].map(col => (
+          <div key={col.label} className="lv-switch-col">
+            <div className="lv-switch-col-head">{col.label} <span className="lv-switch-col-cnt">{col.items.length}</span></div>
+            {col.items.map((s, i) => {
+              const into = s.direction === 'to_lovingle';
+              const dot = STRENGTH_DOT[s.signal_strength || ''] || STRENGTH_DOT.emerging;
+              return (
+                <div key={i} className={`lv-switch ${col.cls}`}>
+                  <div className="lv-switch-head">
+                    <span>{s.from_brand}</span>
+                    <span className="lv-switch-arrow">→</span>
+                    <span>{s.to_brand}</span>
+                    <span className="lv-switch-flag">{into ? 'Win' : 'Leak'}</span>
+                  </div>
+                  {s.trigger && <div className="lv-switch-trigger">{s.trigger}</div>}
+                  <div className="lv-switch-meta">
+                    {s.motivational_cluster && (
+                      <span className="lv-switch-tag">{CLUSTER_LABELS[s.motivational_cluster] || s.motivational_cluster}</span>
+                    )}
+                    {s.signal_strength && (
+                      <span className="lv-switch-signal">
+                        <span style={{ display: 'inline-block', width: 8, height: 8, borderRadius: '50%', background: dot, marginRight: 4 }} />
+                        {s.signal_strength}
+                      </span>
+                    )}
+                    {s.baby_age_context && <span className="lv-switch-age">{s.baby_age_context}</span>}
+                  </div>
+                  {s.net_outcome && <div className="lv-switch-outcome"><strong>Outcome:</strong> {s.net_outcome}</div>}
+                  {s.strategic_implication && <div className="lv-switch-strat"><strong>→ RSPL action:</strong> {s.strategic_implication}</div>}
+                  <VerbatimChipList items={s.verbatims} max={5} />
+                </div>
+              );
+            })}
           </div>
-        );
-      })}
+        ))}
+      </div>
     </div>
   );
 };

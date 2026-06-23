@@ -274,7 +274,7 @@ export const LovingleDiagnostic: React.FC<Props> = ({ data, section }) => (
     </Zone>
     {arr(data?.switch_stories).length > 0 && (
       <Zone span={12} title="Switch Stories · to & from Lovingle" sub="Wins and leaks" delay=".18s">
-        <SwitchStories stories={arr(data?.switch_stories)} />
+        <SwitchStories stories={arr(data?.switch_stories)} corridorSummary={data?.switch_corridor_summary} />
       </Zone>
     )}
   </LovingleSectionShell>
