@@ -2,6 +2,12 @@ import type { VercelRequest, VercelResponse } from "@vercel/node";
 import { synthesizeWith } from "./_lib/providers/index.js";
 import { handlePreflight, readBody } from "./_lib/supabaseAdmin.js";
 
+// A full section synthesis (esp. Anthropic with grounding + large thinking
+// budget) can run long; give the function ample headroom so it isn't killed
+// mid-generation and turned into a 502. Each call is its own short-lived
+// invocation — the client drives the loop one awaited section at a time.
+export const maxDuration = 300;
+
 // POST /api/llm
 // The single egress point for all LLM calls. API keys live in server env and
 // never reach the browser. Body:
@@ -52,7 +58,28 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       model: result.model,
     });
   } catch (err: any) {
-    console.error("[/api/llm] provider error:", err?.message || err);
-    res.status(502).json({ ok: false, available: true, reason: "provider_error", detail: String(err?.message || err) });
+    // Surface the REAL provider failure so the next 502 is diagnosable instead
+    // of an opaque "provider error". Provider SDK errors (e.g. Anthropic APIError)
+    // carry an HTTP `status` and a structured `error` body.
+    const requested = body.provider || "default";
+    const status: number | null = err?.status ?? err?.statusCode ?? null;
+    const detail: string =
+      err?.error?.error?.message || err?.error?.message || err?.message || String(err);
+    let providerBody: string | null = null;
+    try {
+      providerBody = JSON.stringify(err?.error ?? err?.response?.data ?? null);
+    } catch { providerBody = null; }
+
+    console.error(
+      `[/api/llm] provider error: requested=${requested} status=${status ?? "n/a"} detail=${detail} body=${providerBody ?? "n/a"}`
+    );
+    res.status(502).json({
+      ok: false,
+      available: true,
+      reason: "provider_error",
+      provider: requested,
+      status,
+      detail,
+    });
   }
 }
