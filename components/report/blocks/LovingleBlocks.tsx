@@ -29,6 +29,34 @@ export interface VerbatimContent {
 
 const asArray = <T,>(v: any): T[] => (Array.isArray(v) ? v : v ? [v] : []);
 
+// ── L1.4 · snake_case → Title Case (table headers, attribute/field labels) ───
+export const toTitleCase = (s?: string): string => {
+  if (!s) return '';
+  // Leave already-spaced / human strings mostly intact; only transform tokens
+  // that look like db field names (contain underscores or are all-lower words).
+  if (!/[_]/.test(s) && /\s/.test(s)) return s;
+  return String(s)
+    .split('_')
+    .map((w) => (w ? w.charAt(0).toUpperCase() + w.slice(1) : w))
+    .join(' ');
+};
+
+// ── L1.5 · UTF-8 / mojibake repair applied to every rendered verbatim ────────
+export const cleanVerbatimText = (text?: string): string => {
+  if (!text) return '';
+  return String(text)
+    .replace(/ÃÂ®/g, '®').replace(/Ã‚Â®/g, '®').replace(/Ã®/g, '®')
+    .replace(/ÃÂ©/g, 'é').replace(/Ã©/g, 'é')
+    .replace(/Ã¢â‚¬â„¢/g, '’').replace(/â€™/g, '’')
+    .replace(/Ã¢â‚¬Å“/g, '“').replace(/â€œ/g, '“')
+    .replace(/Ã¢â‚¬/g, '”').replace(/â€/g, '”')
+    .replace(/Ã¢â‚¬â€œ/g, '–').replace(/â€“/g, '–')
+    .replace(/Ã¢â‚¬â€/g, '—').replace(/â€”/g, '—')
+    .replace(/Ã‚Â/g, '').replace(/Â/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+};
+
 const confClass = (c?: ConfidenceLevel): string =>
   c === 'HIGH' ? 'lv-conf-high' : c === 'MED' ? 'lv-conf-med' : 'lv-conf-low';
 
@@ -79,23 +107,37 @@ export const LovingleGiraffe: React.FC = () => (
 
 // ── Block 2 · VerbatimChip ───────────────────────────────────────────────────
 
+// L1.2 + L1.5 — quotes are mojibake-cleaned, trimmed to ~120 chars with an
+// inline "show full quote" toggle (hidden in print). Provenance flag preserved.
+const VB_LIMIT = 120;
+
 export const VerbatimChip: React.FC<{ v: VerbatimContent }> = ({ v }) => {
-  const quote = v?.quote;
+  const quote = cleanVerbatimText(v?.quote);
+  const [open, setOpen] = React.useState(false);
   if (!quote) return null;
   // Only fabricated quotes are surfaced. Corpus-verified and curated render
   // identically (curated is intentionally silent).
   const unverified = v.prov === 'unverified';
+  const long = quote.length > VB_LIMIT;
+  const shown = long && !open ? quote.slice(0, VB_LIMIT).trimEnd() + '…' : quote;
+  const source = cleanVerbatimText(v.source);
+  const consumer = cleanVerbatimText(v.consumer);
   return (
     <p className={`lv-vb${unverified ? ' lv-vb-unverified' : ''}`}>
-      “{quote}”
+      “{shown}”
+      {long && (
+        <button type="button" className="lv-vb-toggle lv-no-print" onClick={() => setOpen((o) => !o)}>
+          {open ? 'show less' : 'show full quote'}
+        </button>
+      )}
       {unverified && (
         <span className="lv-vb-flag" title="This quote could not be matched to an ingested record. Treat as illustrative.">unverified</span>
       )}
-      {(v.source || v.consumer) && (
+      {(source || consumer) && (
         <span className="lv-src">
-          {v.source && <b>{v.source}</b>}
-          {v.source && v.consumer && ' · '}
-          {v.consumer}
+          {source && <b>{source}</b>}
+          {source && consumer && ' · '}
+          {consumer}
         </span>
       )}
     </p>
@@ -103,11 +145,21 @@ export const VerbatimChip: React.FC<{ v: VerbatimContent }> = ({ v }) => {
 };
 
 export const VerbatimChipList: React.FC<{ items: any; max?: number }> = ({ items, max = 3 }) => {
-  const list = asArray<VerbatimContent>(items).slice(0, max);
+  const list = asArray<VerbatimContent>(items).filter((v) => v?.quote).slice(0, max);
+  const [showAll, setShowAll] = React.useState(false);
   if (!list.length) return null;
+  // L1.2 — show the first verbatim only; the rest collapse behind "+N more"
+  // (omitted entirely in print, which renders just the first quote).
+  const visible = showAll ? list : list.slice(0, 1);
+  const hidden = list.length - 1;
   return (
     <div className="lv-quotes">
-      {list.map((v, i) => <VerbatimChip key={i} v={v} />)}
+      {visible.map((v, i) => <VerbatimChip key={i} v={v} />)}
+      {!showAll && hidden > 0 && (
+        <button type="button" className="lv-quotes-more lv-no-print" onClick={() => setShowAll(true)}>
+          +{hidden} more quote{hidden === 1 ? '' : 's'}
+        </button>
+      )}
     </div>
   );
 };
@@ -186,30 +238,59 @@ export interface InsightCardContent {
   verbatims?: VerbatimContent[];
   confidence?: ConfidenceLevel;
   evidenceWeight?: number;         // data_points
+  metStatus?: string;              // L3.4 — MET / UNMET / PARTIALLY_MET (Section 6)
 }
 
-export const InsightCard: React.FC<{ c: InsightCardContent }> = ({ c }) => (
-  <div className="lv-card">
-    <div className="lv-card-head">
-      <div className="lv-card-title">{c.headline}</div>
-      <div style={{ display: 'flex', gap: 6, flex: 'none', alignItems: 'center' }}>
-        {c.confidence && <span className={`lv-conf-chip ${confClass(c.confidence)}`}>{confLabel(c.confidence)}</span>}
-        {typeof c.evidenceWeight === 'number' && (
-          <span className="lv-card-pts">{c.evidenceWeight.toLocaleString()} pts</span>
-        )}
+// L3.4 — need-status pill (renders only when the data carries met_status; a
+// graceful no-op for pre-regeneration content).
+const MET_META: Record<string, { label: string; cls: string }> = {
+  MET: { label: 'MET', cls: 'lv-met-met' },
+  UNMET: { label: 'UNMET', cls: 'lv-met-unmet' },
+  PARTIALLY_MET: { label: 'PARTIALLY MET', cls: 'lv-met-partial' },
+  PARTIAL: { label: 'PARTIALLY MET', cls: 'lv-met-partial' },
+  PARTIALLY: { label: 'PARTIALLY MET', cls: 'lv-met-partial' },
+};
+
+// L1.1 hero variant + L1.3 standardised evidence badge ("n = 620 · High").
+export const InsightCard: React.FC<{ c: InsightCardContent; hero?: boolean }> = ({ c, hero }) => {
+  const conf = c.confidence ? confLabel(c.confidence) : '';
+  const n = typeof c.evidenceWeight === 'number' ? c.evidenceWeight.toLocaleString() : '';
+  const met = c.metStatus ? MET_META[String(c.metStatus).toUpperCase().replace(/[\s-]/g, '_')] : undefined;
+  return (
+    <div className={`lv-card${hero ? ' lv-hero' : ''}`}>
+      <div className="lv-card-head">
+        <div className="lv-card-title">{c.headline}</div>
+        <div className="lv-card-badges">
+          {met && <span className={`lv-met ${met.cls}`}>{met.label}</span>}
+          {(n || conf) && (
+            <span className={`lv-evbadge ${c.confidence ? confClass(c.confidence) : ''}`}
+                  title="Evidence weight — number of corpus records supporting this finding">
+              {n && <>n&nbsp;=&nbsp;{n}</>}
+              {n && conf && <span className="lv-evbadge-sep"> · </span>}
+              {conf}
+            </span>
+          )}
+        </div>
       </div>
+      {c.signal && <div className="lv-card-sig">{c.signal}</div>}
+      <VerbatimChipList items={c.verbatims} max={6} />
     </div>
-    {c.signal && <div className="lv-card-sig">{c.signal}</div>}
-    <VerbatimChipList items={c.verbatims} max={6} />
-  </div>
-);
+  );
+};
 
 export const InsightCardGrid: React.FC<{ items: InsightCardContent[] }> = ({ items }) => {
   const list = asArray<InsightCardContent>(items);
   if (!list.length) return null;
+  // L1.1 — the single highest-evidence card in the group gets hero treatment.
+  let heroIdx = -1, heroMax = -1;
+  list.forEach((c, i) => {
+    const w = typeof c.evidenceWeight === 'number' ? c.evidenceWeight : -1;
+    if (w > heroMax) { heroMax = w; heroIdx = i; }
+  });
+  const heroOn = list.length > 1 && heroMax > 0;
   return (
     <div className="lv-cardgrid">
-      {list.map((c, i) => <InsightCard key={i} c={c} />)}
+      {list.map((c, i) => <InsightCard key={i} c={c} hero={heroOn && i === heroIdx} />)}
     </div>
   );
 };
@@ -471,6 +552,7 @@ export const toInsightCards = (items: any): InsightCardContent[] =>
     verbatims: asArray(c?.verbatims),
     confidence: conf3(c?.confidence),
     evidenceWeight: typeof c?.data_points === 'number' ? c.data_points : undefined,
+    metStatus: c?.met_status || c?.metStatus,
   }));
 
 type Tone = 'orange' | 'blue' | 'teal' | 'rose';
@@ -497,6 +579,20 @@ export const NoteBox: React.FC<{ title?: string; tone?: Tone; items: any }> = ({
   );
 };
 
+// ── L1.7 · SynthesisBlock — the section's conclusion, visually distinct from
+// the insight cards (deep-blue left accent, Fraunces sub-header, full width). ──
+export const SynthesisBlock: React.FC<{ title?: string; items?: any; children?: React.ReactNode }> = ({ title, items, children }) => {
+  const list = asArray<string>(items).filter(Boolean);
+  if (!list.length && !children) return null;
+  return (
+    <div className="lv-synthesis">
+      {title && <div className="lv-synthesis-title">{title}</div>}
+      {list.length > 0 && <ul className="lv-synthesis-list">{list.map((n, i) => <li key={i}>{n}</li>)}</ul>}
+      {children}
+    </div>
+  );
+};
+
 // ── LabeledCardGroups (needs / decision / awareness lanes) ───────────────────
 
 export interface CardGroup { label: string; tone?: Tone; cards: InsightCardContent[]; }
@@ -504,7 +600,7 @@ export interface CardGroup { label: string; tone?: Tone; cards: InsightCardConte
 export const LabeledCardGroups: React.FC<{ groups: CardGroup[] }> = ({ groups }) => (
   <>
     {asArray<CardGroup>(groups).filter((g) => g.cards && g.cards.length).map((g, i) => (
-      <div key={i} className="lv-subzone">
+      <div key={i} className={`lv-subzone lv-sublayer-${(i % 4) + 1}`}>
         <SubHead label={g.label} tone={g.tone} />
         <InsightCardGrid items={g.cards} />
       </div>
@@ -524,12 +620,12 @@ export const CrossTab: React.FC<{ matrix?: CrossTabContent }> = ({ matrix }) => 
     <div className="lv-xtab">
       <table>
         <thead>
-          <tr><th /> {cols.map((c, i) => <th key={i}>{c}</th>)}</tr>
+          <tr><th /> {cols.map((c, i) => <th key={i}>{toTitleCase(c)}</th>)}</tr>
         </thead>
         <tbody>
           {rows.map((r, ri) => (
             <tr key={ri}>
-              <td>{r?.label}</td>
+              <td>{toTitleCase(r?.label)}</td>
               {asArray<string>(r?.cells).map((cell, ci) => <td key={ci}>{cell}</td>)}
             </tr>
           ))}
@@ -567,20 +663,21 @@ export const JourneySpine: React.FC<{ lanes: JourneyLane[]; spineSummary?: strin
             <span className="lv-lane-age">{l.age_band}</span>
             {l.size_signal && <span className="lv-lane-sig">{l.size_signal}</span>}
           </div>
-          <div className="lv-lane-grid">
+          {/* L3.3 — mindset promoted to the top as a strategic annotation. */}
+          {l.mindset && <div className="lv-strat-note">Mindset · {l.mindset}</div>}
+          <div className="lv-lane-grid2">
             <div>
               <div className="lv-lane-lab">Needs</div>
               <NotesList items={l.needs} />
-              {l.mindset && <div className="lv-mindset">Mindset · {l.mindset}</div>}
             </div>
             <div>
               <div className="lv-lane-lab">Switch triggers</div>
               <NotesList items={l.switch_triggers} />
             </div>
-            <div>
-              <div className="lv-lane-lab">Evidence</div>
-              <VerbatimChipList items={l.verbatims} max={5} />
-            </div>
+          </div>
+          <div className="lv-lane-evidence">
+            <div className="lv-lane-lab">Evidence</div>
+            <VerbatimChipList items={l.verbatims} max={5} />
           </div>
         </div>
       ))}
@@ -650,7 +747,7 @@ const GapRows: React.FC<{ bullets: GapBullet[] }> = ({ bullets }) => (
           <span className="lv-gap-claim">{b.claim}</span>
           <span style={{ display: 'flex', gap: 6, alignItems: 'center', flex: 'none' }}>
             {b.severity && <span className="lv-sev">{b.severity}</span>}
-            {typeof b.data_points === 'number' && <span className="lv-card-pts">{b.data_points.toLocaleString()} pts</span>}
+            {typeof b.data_points === 'number' && <span className="lv-evbadge">n&nbsp;=&nbsp;{b.data_points.toLocaleString()}</span>}
           </span>
         </div>
         {b.explanation && <div className="lv-gap-exp">{b.explanation}</div>}
@@ -689,7 +786,7 @@ export const GapColumns: React.FC<GapColumnsContent> = ({ current, resolved, unr
           <div key={i} className="lv-need">
             <div className="lv-need-head">
               <span className="lv-need-title">{n.need}</span>
-              <span className={`lv-prio lv-${(n.priority || 'P1').toLowerCase()}`}>{n.priority || 'P1'}</span>
+              <span className={`lv-prio lv-${(n.priority || 'P1').toLowerCase()}`}>{({ P0: 'IMMEDIATE', P1: 'NEXT PHASE', P2: 'STRATEGIC' } as Record<string, string>)[(n.priority || 'P1').toUpperCase()] || (n.priority || 'P1')}</span>
             </div>
             {n.why_now && <div className="lv-need-meta"><b>Why now:</b> {n.why_now}</div>}
             {n.who && <div className="lv-need-meta"><b>Who:</b> {n.who}</div>}
@@ -745,7 +842,7 @@ export const SovBars: React.FC<{ marketStructure?: string[]; brands: BrandConten
               <div>
                 {asArray<any>(b.attribute_scale).map((a, j) => (
                   <div key={j} className="lv-attr">
-                    <span className="lv-attr-name">{a.attribute}</span>
+                    <span className="lv-attr-name">{toTitleCase(a.attribute)}</span>
                     <span className="lv-attr-track"><span style={{ width: `${Math.min(100, (a.score_0_5 / 5) * 100)}%` }} /></span>
                     <span className="lv-attr-score">{a.score_0_5}</span>
                   </div>
@@ -758,6 +855,53 @@ export const SovBars: React.FC<{ marketStructure?: string[]; brands: BrandConten
     </div>
   </div>
 );
+
+// ── L3.11 · CrossBrandBars — all brands on the same attribute axes ───────────
+
+const BRAND_COLORS: Record<string, string> = {
+  pampers: '#3B82F6', huggies: '#10B981', mamypoko: '#8B5CF6',
+  'little angels': '#6B7280', lovingle: '#F26F21',
+};
+const brandColor = (name?: string): string => BRAND_COLORS[(name || '').toLowerCase().trim()] || 'var(--ink-3)';
+
+export const CrossBrandBars: React.FC<{ brands: BrandContent[] }> = ({ brands }) => {
+  const list = asArray<BrandContent>(brands).filter((b) => asArray(b.attribute_scale).length);
+  if (list.length < 2) return null;
+  const attrs: string[] = [];
+  list.forEach((b) => asArray<any>(b.attribute_scale).forEach((a) => {
+    if (a?.attribute && !attrs.includes(a.attribute)) attrs.push(a.attribute);
+  }));
+  if (!attrs.length) return null;
+  const scoreOf = (b: BrandContent, attr: string): number | null => {
+    const a = asArray<any>(b.attribute_scale).find((x) => x.attribute === attr);
+    return typeof a?.score_0_5 === 'number' ? a.score_0_5 : null;
+  };
+  return (
+    <div className="lv-xbrand">
+      <div className="lv-xbrand-legend">
+        {list.map((b, i) => (
+          <span key={i} className="lv-xbrand-leg"><span className="lv-xbrand-sw" style={{ background: brandColor(b.brand) }} />{b.brand}</span>
+        ))}
+      </div>
+      {attrs.map((attr, ai) => (
+        <div key={ai} className="lv-xbrand-row">
+          <div className="lv-xbrand-attr">{toTitleCase(attr)}</div>
+          <div className="lv-xbrand-bars">
+            {list.map((b, i) => {
+              const s = scoreOf(b, attr);
+              if (s == null) return null;
+              return (
+                <div key={i} className="lv-xbrand-bar" title={`${b.brand}: ${s}/5`}>
+                  <span style={{ width: `${(s / 5) * 100}%`, background: brandColor(b.brand) }} />
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+};
 
 // ── SwitchStories (Lovingle diagnostic) ──────────────────────────────────────
 
@@ -784,12 +928,16 @@ export const SwitchStories: React.FC<{ stories: SwitchStory[]; corridorSummary?:
   const leaks = list.filter(s => s.direction !== 'to_lovingle');
   return (
     <div className="lv-switches-v2">
+      {/* L3.12 — win:leak ratio as a headline finding. */}
+      <div className="lv-switch-headline">
+        <b>{wins.length} Wins : {leaks.length} Leaks</b> — Lovingle gains from value brands, loses to premium brands
+      </div>
       {corridorSummary && (
         <div className="lv-corridor-summary">{corridorSummary}</div>
       )}
       <div className="lv-switch-cols">
         {[{ label: 'Wins', items: wins, cls: 'lv-win' }, { label: 'Leaks', items: leaks, cls: 'lv-leak' }].map(col => (
-          <div key={col.label} className="lv-switch-col">
+          <div key={col.label} className={`lv-switch-col lv-switch-col-${col.label.toLowerCase()}`}>
             <div className="lv-switch-col-head">{col.label} <span className="lv-switch-col-cnt">{col.items.length}</span></div>
             {col.items.map((s, i) => {
               const into = s.direction === 'to_lovingle';
@@ -887,6 +1035,20 @@ export const WaveChart: React.FC<{ monthly: number[]; spikes?: WaveSpike[] }> = 
               <stop offset="100%" stopColor="#F58C39" stopOpacity="0.02" />
             </linearGradient>
           </defs>
+          {/* L3.2 — seasonal spike windows behind the curve. */}
+          {[
+            { from: 3, to: 5, fill: 'rgba(242,179,33,0.08)', label: 'SUMMER' },
+            { from: 5, to: 7, fill: 'rgba(86,194,214,0.08)', label: 'MONSOON' },
+            { from: 9, to: 10, fill: 'rgba(242,111,33,0.08)', label: 'FESTIVE' },
+          ].map((b, i) => {
+            const x1 = pad + b.from * stepX, x2 = pad + b.to * stepX;
+            return (
+              <g key={`band${i}`}>
+                <rect x={x1} y={pad} width={x2 - x1} height={H - pad * 2} fill={b.fill} />
+                <text x={(x1 + x2) / 2} y={pad + 11} textAnchor="middle" className="lv-wave-band">{b.label}</text>
+              </g>
+            );
+          })}
           <path d={area} fill="url(#lvWaveFill)" />
           <path d={line} fill="none" stroke="#DC5E14" strokeWidth="2.5" strokeLinejoin="round" strokeLinecap="round" />
           {pts.map((p, i) => <circle key={i} cx={p[0]} cy={p[1]} r="3" fill="#DC5E14" />)}
@@ -934,28 +1096,42 @@ export const SegmentCards: React.FC<{ segments: SegmentItem[] }> = ({ segments }
 // ── ChannelFlow (GT → MT → Online) ───────────────────────────────────────────
 
 export interface ChannelNode { node: string; share?: number; maps_to_pack?: string; note?: string; verbatims?: VerbatimContent[]; }
+const ChannelNodeCard: React.FC<{ n: ChannelNode }> = ({ n }) => (
+  <div className="lv-flow-node">
+    <div className="lv-flow-head">
+      <span className="lv-flow-name">{n.node}</span>
+      {typeof n.share === 'number' && <span className="lv-flow-share">{n.share}%</span>}
+    </div>
+    {typeof n.share === 'number' && <div className="lv-flow-bar"><span style={{ width: `${clamp(n.share)}%` }} /></div>}
+    {n.maps_to_pack && <div className="lv-flow-pack">{n.maps_to_pack}</div>}
+    {n.note && <div className="lv-flow-note">{n.note}</div>}
+    <VerbatimChipList items={n.verbatims} max={1} />
+  </div>
+);
+
+// L3.10 — 2-row layout (physical vs digital) fixes the funnel's viewport clipping.
+const isDigitalChannel = (name?: string): boolean =>
+  /amazon|flipkart|online|q.?commerce|quick.?comm|blinkit|zepto|instamart|d2c|firstcry|e-?com/i.test(name || '');
+
 export const ChannelFlow: React.FC<{ nodes: ChannelNode[]; flowNotes?: string[] }> = ({ nodes, flowNotes }) => {
   const list = asArray<ChannelNode>(nodes);
   if (!list.length) return null;
+  const digital = list.filter((n) => isDigitalChannel(n.node));
+  const physical = list.filter((n) => !isDigitalChannel(n.node));
   return (
     <div>
-      <div className="lv-flow">
-        {list.map((n, i) => (
-          <React.Fragment key={i}>
-            <div className="lv-flow-node">
-              <div className="lv-flow-head">
-                <span className="lv-flow-name">{n.node}</span>
-                {typeof n.share === 'number' && <span className="lv-flow-share">{n.share}%</span>}
-              </div>
-              {typeof n.share === 'number' && <div className="lv-flow-bar"><span style={{ width: `${clamp(n.share)}%` }} /></div>}
-              {n.maps_to_pack && <div className="lv-flow-pack">{n.maps_to_pack}</div>}
-              {n.note && <div className="lv-flow-note">{n.note}</div>}
-              <VerbatimChipList items={n.verbatims} max={3} />
-            </div>
-            {i < list.length - 1 && <div className="lv-flow-arrow" aria-hidden="true">→</div>}
-          </React.Fragment>
-        ))}
-      </div>
+      {physical.length > 0 && (
+        <div className="lv-flow-row">
+          <div className="lv-flow-rowlab">Physical channels</div>
+          <div className="lv-flow-2row">{physical.map((n, i) => <ChannelNodeCard key={i} n={n} />)}</div>
+        </div>
+      )}
+      {digital.length > 0 && (
+        <div className="lv-flow-row">
+          <div className="lv-flow-rowlab">Digital channels</div>
+          <div className="lv-flow-2row">{digital.map((n, i) => <ChannelNodeCard key={i} n={n} />)}</div>
+        </div>
+      )}
       <NoteBox title="Premiumisation flows rightward" items={flowNotes} />
     </div>
   );
@@ -1047,6 +1223,14 @@ export const MatrixQuadrant: React.FC<{ xAxis?: { low?: string; high?: string };
   const S = 360, pad = 30, span = S - pad * 2;
   const px = (x: number) => pad + (clamp(x) / 100) * span;
   const py = (y: number) => S - pad - (clamp(y) / 100) * span;
+  // L3.14 — colour dots by quadrant.
+  const quadColor = (q?: string): string => {
+    const u = (q || '').toLowerCase();
+    if (u.includes('big') || u.includes('bet')) return '#F26F21';
+    if (u.includes('quick') || u.includes('win')) return '#1F9D6B';
+    if (u.includes('maintain')) return '#6B7280';
+    return '#F26F21';
+  };
   return (
     <div className="lv-quadwrap">
       <div className="lv-quad">
@@ -1056,8 +1240,8 @@ export const MatrixQuadrant: React.FC<{ xAxis?: { low?: string; high?: string };
           <line x1={pad} y1={pad + span / 2} x2={S - pad} y2={pad + span / 2} stroke="#E0D6C4" strokeDasharray="4 4" />
           {list.map((p, i) => (
             <g key={i}>
-              <circle cx={px(p.x ?? 50)} cy={py(p.y ?? 50)} r="7" fill="#F26F21" fillOpacity="0.85" stroke="#fff" strokeWidth="1.5" />
-              <text x={px(p.x ?? 50)} y={py(p.y ?? 50) - 11} textAnchor="middle" className="lv-quad-plab">{i + 1}</text>
+              <circle cx={px(p.x ?? 50)} cy={py(p.y ?? 50)} r="10" fill={quadColor(p.quadrant)} fillOpacity="0.9" stroke="#fff" strokeWidth="2" />
+              <text x={px(p.x ?? 50)} y={py(p.y ?? 50) + 3.5} textAnchor="middle" className="lv-quad-plab" fill="#fff" style={{ fontSize: '11px', fontWeight: 700 }}>{i + 1}</text>
             </g>
           ))}
           <text x={S / 2} y={S - 8} textAnchor="middle" className="lv-quad-axis">{xAxis?.low || 'Low'} → {xAxis?.high || 'High'} effort</text>

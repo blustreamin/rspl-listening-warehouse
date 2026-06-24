@@ -12,7 +12,7 @@ import { LovingleSectionShell } from './LovingleSectionShell';
 import DataIngestionAnalysis from './DataIngestionAnalysis';
 import {
   ZoneHead, SubHead, NoteBox, InsightCardGrid, LabeledCardGroups, CrossTab,
-  PriceLadder, TriggerRail, JourneySpine, RankedBars, GapColumns, SovBars, SwitchStories,
+  PriceLadder, TriggerRail, JourneySpine, RankedBars, GapColumns, SovBars, SwitchStories, CrossBrandBars,
   VerbatimChipList, toInsightCards,
   HeadlineStatBand, WaveChart, SegmentCards, ChannelFlow, RegionMap, NetworkDiagram,
   MatrixQuadrant, SynthesisMoves,
@@ -119,16 +119,35 @@ export const LovingleStyles: React.FC<Props> = ({ data, section }) => (
 // ── 4 · Pack Architecture ────────────────────────────────────────────────────
 
 const packLabel = (p: string): string => String(p || '').replace(/_/g, ' ').replace('non laddi ', '₹');
-const PackCard: React.FC<{ p: any }> = ({ p }) => (
+
+// L3.8 — Lovingle portfolio status per price tier (confirmed Jun 2026).
+const packStatus = (pack?: string): { label: string; cls: string; note?: string } | null => {
+  const p = String(pack || '').toLowerCase();
+  if (p.includes('jumbo') || p.includes('1499')) return { label: 'GAP', cls: 'gap', note: 'No dedicated jumbo / super-value product' };
+  if (p.includes('999')) return { label: 'WEAK', cls: 'weak', note: 'Bulk packs exist but no distinct overnight / premium SKU' };
+  if (p.includes('399')) return { label: 'IN RANGE', cls: 'inrange' };
+  if (p.includes('99')) return { label: 'IN RANGE', cls: 'inrange' };
+  if (p.includes('laddi')) return { label: 'IN RANGE (OFFLINE)', cls: 'inrange', note: 'Kirana-only — not available online' };
+  return null;
+};
+
+const PackCard: React.FC<{ p: any }> = ({ p }) => {
+  const st = packStatus(p?.pack);
+  return (
   <div className="lv-card">
-    <div className="lv-card-title" style={{ textTransform: 'capitalize' }}>{packLabel(p?.pack)}</div>
+    <div className="lv-card-head">
+      <div className="lv-card-title" style={{ textTransform: 'capitalize' }}>{packLabel(p?.pack)}</div>
+      {st && <span className={`lv-packstatus ${st.cls}`} title={st.note || ''}>{st.label}</span>}
+    </div>
     {p?.who_buys && <div className="lv-card-sig"><b>Who:</b> {p.who_buys}</div>}
     {p?.occasion && <div className="lv-card-sig"><b>Occasion:</b> {p.occasion}</div>}
     {p?.channel_context && <div className="lv-card-sig"><b>Channel:</b> {p.channel_context}</div>}
-    {p?.role_in_portfolio && <div className="lv-card-sig" style={{ color: 'var(--o-700)', fontStyle: 'italic' }}>{p.role_in_portfolio}</div>}
+    {p?.role_in_portfolio && <div className="lv-strat-note">{p.role_in_portfolio}</div>}
+    {st?.note && <div className="lv-packstatus-note">{st.note}</div>}
     <VerbatimChipList items={p?.verbatims} max={1} />
   </div>
-);
+  );
+};
 
 export const LovinglePack: React.FC<Props> = ({ data, section }) => (
   <LovingleSectionShell section={section} data={data}
@@ -142,6 +161,9 @@ export const LovinglePack: React.FC<Props> = ({ data, section }) => (
     </Zone>
     <Zone span={12} title="Value-Ladder Dynamics" delay=".2s">
       <NoteBox items={data?.ladder_dynamics} />
+      <div className="lv-strat-note" style={{ marginTop: 10 }}>
+        No XL size (12–17 kg) exists online — a product-range gap for the 1–2 year toddler segment, which is the pant-style core demand window.
+      </div>
     </Zone>
   </LovingleSectionShell>
 );
@@ -286,7 +308,19 @@ export const LovingleBrand: React.FC<Props> = ({ data, section }) => (
   <LovingleSectionShell section={section} data={data}
     eyebrow="Lovingle · Competitive Landscape"
     standfirst={<>Where the brands sit on share of voice, attributes and sentiment — and the <b>credible position</b> open to Lovingle.</>}>
-    <Zone span={12} title="Brand Landscape" sub="Share of voice · attributes · sentiment" delay=".08s">
+    <Zone span={12} title="Where Lovingle Stands" sub="The headline the whole brand thesis rests on" delay=".06s">
+      <div className="lv-sovcallout">
+        <span className="lv-sovcallout-big">0.5%</span>
+        <span className="lv-sovcallout-body">Lovingle's share of voice is effectively <b>0.5%</b> — <b>50× lower than Huggies</b>. The brand is invisible in the online conversation despite holding the <b>highest star rating (★4.18)</b> in the corpus.</span>
+      </div>
+      {arr(data?.brands).length >= 2 && (
+        <div style={{ marginTop: 14 }}>
+          <div className="lv-subhead"><span className="lv-sdot" />Cross-Brand Attribute Comparison</div>
+          <CrossBrandBars brands={arr(data?.brands)} />
+        </div>
+      )}
+    </Zone>
+    <Zone span={12} title="Brand Landscape" sub="Share of voice · attributes · sentiment" delay=".14s">
       <SovBars marketStructure={arr(data?.market_structure)} brands={arr(data?.brands)} />
     </Zone>
   </LovingleSectionShell>
@@ -308,7 +342,7 @@ export const LovingleExecSummary: React.FC<Props> = ({ data, section }) => (
     <Zone span={12} title="What the Report Found" sub="Cross-cutting insights, each laddering to a move" delay=".16s">
       <InsightCardGrid items={toInsightCards(data?.insights)} />
     </Zone>
-    <Zone span={12} title="North-Star Moves" sub="Decision-ready" delay=".22s">
+    <Zone span={12} title="Priority Moves" sub="Decision-ready" delay=".22s">
       <SynthesisMoves moves={arr(data?.moves)} />
     </Zone>
   </LovingleSectionShell>
@@ -320,8 +354,9 @@ export const LovingleSeasonality: React.FC<Props> = ({ data, section }) => (
   <LovingleSectionShell section={section} data={data} indicative
     eyebrow="Lovingle · Seasonality"
     standfirst={<>The category breathes on a <b>12-month rhythm</b> — monsoon rash-anxiety, summer heat and festive-&-travel stock-up each peak different packs and triggers.</>}>
-    <Zone span={12} title="Demand Rhythm · 12 months" sub="Relative demand index · three spikes" delay=".08s">
-      <WaveChart monthly={arr(data?.monthly)} spikes={arr(data?.spikes)} />
+    <Zone span={12} title="Demand Rhythm · 12 months" sub="Relative demand index · summer, monsoon & festive windows shaded on the curve" delay=".08s">
+      {/* L3.2 — spike cards removed; the shaded windows on the chart + the Seasonal Occasions cards carry the detail (no duplication). */}
+      <WaveChart monthly={arr(data?.monthly)} />
     </Zone>
     <Zone span={12} title="Seasonal Occasions" sub="What peaks when — and which pack benefits" delay=".16s">
       <InsightCardGrid items={toInsightCards(data?.occasions)} />
@@ -428,19 +463,19 @@ const PersonaCard: React.FC<{ p: any }> = ({ p }) => {
       {arr<string>(p?.triggers).length > 0 && (
         <div style={{ marginTop: 6 }}>
           <div style={{ fontSize: '0.78em', fontWeight: 700, color: 'var(--o-700)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Triggers</div>
-          <ul className="lv-notes" style={{ marginTop: 2 }}>{arr<string>(p.triggers).map((t, i) => <li key={i}>{t}</li>)}</ul>
+          <ul className="lv-notes" style={{ marginTop: 2 }}>{arr<string>(p.triggers).slice(0, 2).map((t, i) => <li key={i}>{t}</li>)}</ul>
         </div>
       )}
       {arr<string>(p?.pain_points).length > 0 && (
         <div style={{ marginTop: 6 }}>
           <div style={{ fontSize: '0.78em', fontWeight: 700, color: 'var(--rose-dk)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Pain points</div>
-          <ul className="lv-notes" style={{ marginTop: 2 }}>{arr<string>(p.pain_points).map((t, i) => <li key={i}>{t}</li>)}</ul>
+          <ul className="lv-notes" style={{ marginTop: 2 }}>{arr<string>(p.pain_points).slice(0, 2).map((t, i) => <li key={i}>{t}</li>)}</ul>
         </div>
       )}
       {arr<string>(p?.unmet_needs).length > 0 && (
         <div style={{ marginTop: 6 }}>
           <div style={{ fontSize: '0.78em', fontWeight: 700, color: 'var(--teal-700)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Unmet needs</div>
-          <ul className="lv-notes" style={{ marginTop: 2 }}>{arr<string>(p.unmet_needs).map((t, i) => <li key={i}>{t}</li>)}</ul>
+          <ul className="lv-notes" style={{ marginTop: 2 }}>{arr<string>(p.unmet_needs).slice(0, 2).map((t, i) => <li key={i}>{t}</li>)}</ul>
         </div>
       )}
       {p?.barrier_to_lovingle && (
@@ -464,6 +499,36 @@ export const LovinglePersonas: React.FC<Props> = ({ data, section }) => (
     <Zone span={12} title="Persona Set" sub="Each persona is a Kantar-grade consumer deep-dive — read these as the audience anchor for everything that follows" delay=".08s">
       <div className="lv-cardgrid">{arr<any>(data?.personas).map((p, i) => <PersonaCard key={i} p={p} />)}</div>
     </Zone>
+    {(() => {
+      // L3.9 — barrier extraction table; priority ranked by evidence weight.
+      const personas = arr<any>(data?.personas).filter((p) => p?.barrier_to_lovingle);
+      if (!personas.length) return null;
+      const ranked = [...personas].sort((a, b) => (b?.data_points || 0) - (a?.data_points || 0));
+      const total = ranked.length;
+      const prio = (idx: number) =>
+        idx < Math.ceil(total / 3) ? { label: 'PRIMARY', cls: 'p0' }
+          : idx < Math.ceil((2 * total) / 3) ? { label: 'SECONDARY', cls: 'p1' }
+            : { label: 'ASPIRATIONAL', cls: 'p2' };
+      return (
+        <Zone span={12} title="Barrier Map" sub="Each persona's barrier to Lovingle, ranked by evidence weight" delay=".16s">
+          <table className="lv-flat-table">
+            <thead><tr><th>Persona</th><th>Barrier to Lovingle</th><th>Priority</th></tr></thead>
+            <tbody>
+              {personas.map((p, i) => {
+                const pr = prio(ranked.indexOf(p));
+                return (
+                  <tr key={i}>
+                    <td><b>{p.name || p.persona_name || ''}</b></td>
+                    <td>{p.barrier_to_lovingle}</td>
+                    <td><span className={`lv-prio lv-${pr.cls}`}>{pr.label}</span></td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </Zone>
+      );
+    })()}
   </LovingleSectionShell>
 );
 
@@ -505,7 +570,7 @@ const StyleSwitchCard: React.FC<{ s: any }> = ({ s }) => (
 export const LovingleStyleSwitchJourney: React.FC<Props> = ({ data, section }) => (
   <LovingleSectionShell section={section} data={data}
     eyebrow="Lovingle · Style Switch Journey"
-    standfirst={<>How parents move across <b>cloth, tape, pant and reusable</b> as the baby grows — proposal §9.1 deep-dive.</>}>
+    standfirst={<>How parents move across <b>cloth, tape, pant and reusable</b> as the baby grows.</>}>
     <Zone span={12} title="The Switch Arcs" sub="What triggers each style transition; what makes it hard; what eases it" delay=".08s">
       <div className="lv-cardgrid">{arr<any>(data?.switches).map((s, i) => <StyleSwitchCard key={i} s={s} />)}</div>
     </Zone>
@@ -600,8 +665,8 @@ const LanguageCard: React.FC<{ t: any }> = ({ t }) => (
   <div className="lv-card">
     <div className="lv-card-title" style={{ fontSize: '1.0em', color: 'var(--ink)' }}>{t?.term || ''}</div>
     {arr<string>(t?.vernacular_variants).length > 0 && (
-      <div style={{ marginTop: 4, fontSize: '0.82em', color: 'var(--ink-2)', fontStyle: 'italic' }}>
-        {arr<string>(t.vernacular_variants).join(' · ')}
+      <div className="lv-langpills">
+        {arr<string>(t.vernacular_variants).map((v, i) => <span key={i} className="lv-langpill">{v}</span>)}
       </div>
     )}
     {t?.emotional_meaning && (
@@ -636,6 +701,25 @@ export const LovingleConsumerLanguage: React.FC<Props> = ({ data, section }) => 
   <LovingleSectionShell section={section} data={data}
     eyebrow="Lovingle · Consumer Language"
     standfirst={<>The exact words parents use — in English, Hindi and Hinglish — for <b>soft, dry, rash-free, leak-proof, overnight, value</b>. The wording that should appear on pack and in communications.</>}>
+    {arr<any>(data?.terms).length > 0 && (
+      <Zone span={12} title="Language Map" sub="Each term's emotional weight and pack/comms implication, at a glance — the extraction artefact" delay=".06s">
+        <div className="lv-xtab">
+          <table className="lv-flat-table">
+            <thead><tr><th>Term</th><th>Emotional meaning</th><th>Pack implication</th><th>Comms implication</th></tr></thead>
+            <tbody>
+              {arr<any>(data.terms).map((t, i) => (
+                <tr key={i}>
+                  <td><b>{t?.term}</b></td>
+                  <td>{t?.emotional_meaning}</td>
+                  <td>{t?.pack_implication}</td>
+                  <td>{t?.comms_implication}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </Zone>
+    )}
     <Zone span={12} title="The Words That Matter" sub="Each term — its emotional weight, functional meaning, and pack/comms implication" delay=".08s">
       <div className="lv-cardgrid">{arr<any>(data?.terms).map((t, i) => <LanguageCard key={i} t={t} />)}</div>
     </Zone>

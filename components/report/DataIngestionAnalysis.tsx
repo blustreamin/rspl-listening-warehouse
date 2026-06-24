@@ -61,6 +61,10 @@ const Icon = ({ k }: { k: IconKey }) => <>{ICONS[k]}</>;
 
 export default function DataIngestionAnalysis({ data = realLedger as unknown as IngestLedger }: { data?: IngestLedger }) {
   const maxBrand = Math.max(...data.brands.map(b => b.count));
+  // L3.15 — the report's commercial thesis: highest rated, least reviewed.
+  const rated = data.brands.filter(b => typeof b.rating === 'number');
+  const topRated = rated.slice().sort((a, b) => (b.rating! - a.rating!))[0];
+  const topReviewed = data.brands.slice().sort((a, b) => b.count - a.count)[0];
   return (
     <section className="lvig-panel" aria-label="Data ingestion analysis">
       <div className="lvig-motif" aria-hidden="true"><Icon k="glass" /></div>
@@ -133,6 +137,15 @@ export default function DataIngestionAnalysis({ data = realLedger as unknown as 
       <div className="lvig-cols">
         <div className="lvig-box">
           <div className="lvig-box-h"><span className="lvig-tab" />BRAND MENTIONS — CATEGORY</div>
+          {topRated && topReviewed && topRated.name !== topReviewed.name && typeof topReviewed.rating === 'number' && (
+            <div className="lvig-brandcallout">
+              <span className="lvig-bc-kicker">HIGHEST RATED, LEAST REVIEWED</span>
+              <span className="lvig-bc-body">
+                {topRated.name} <b>★{topRated.rating!.toFixed(2)}</b> on <b>{topRated.count.toLocaleString()}</b> reviews
+                {' '}vs {topReviewed.name} ★{topReviewed.rating.toFixed(2)} on {topReviewed.count.toLocaleString()}
+              </span>
+            </div>
+          )}
           {data.brands.map((b, i) => (
             <div className="lvig-brow" key={i}>
               <div className="lvig-bname">{b.name}</div>

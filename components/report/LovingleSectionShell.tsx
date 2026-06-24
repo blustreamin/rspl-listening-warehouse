@@ -58,6 +58,23 @@ export const LovingleSectionShell: React.FC<ShellProps> = ({
   const sourceLayers = summary.sourceMix.map((s) => s.source).filter((s) => s && s !== 'Unattributed');
   const confidence = confidenceBand(totalDataPoints);
 
+  // L1.10 — source-footer language: pluralise correctly, never claim
+  // "triangulation" with a single source, and never show a contradictory
+  // "0 data points" when the section actually renders verbatims.
+  const nLayers = sourceLayers.length;
+  const layerWord = nLayers === 1 ? 'source layer' : 'source layers';
+  const dp = totalDataPoints.toLocaleString();
+  const footerWindow =
+    totalDataPoints === 0 && verbatims.length > 0
+      ? 'Evidence drawn from section corpus'
+      : totalDataPoints === 0
+        ? 'Analyst-derived framework · validated against corpus evidence'
+        : `${nLayers <= 1 ? 'Based on' : 'Triangulated across'} ${nLayers || 'multiple'} ${layerWord} · ${dp} data points`;
+  const headerWindow =
+    totalDataPoints === 0
+      ? (verbatims.length > 0 ? 'Evidence drawn from section corpus' : 'Analyst-derived framework')
+      : `${dp} data points · ${nLayers || 'multi'} ${layerWord}`;
+
   // Verbatim provenance, attached by the synthesis layer (real runs only).
   const audit = (content as any)?._verbatim_audit;
   const provenance = audit && typeof audit.total === 'number'
@@ -78,7 +95,7 @@ export const LovingleSectionShell: React.FC<ShellProps> = ({
           indicative={indicative}
           evidenceN={verbatims.length}
           confidence={confidence}
-          window={`${totalDataPoints.toLocaleString()} data points · ${sourceLayers.length || 'multi'} source layers`}
+          window={headerWindow}
           provenance={provenance}
           metaSlot={<span className="lv-no-print"><EvidenceTrigger content={content} sectionTitle={title} /></span>}
         />
@@ -87,7 +104,7 @@ export const LovingleSectionShell: React.FC<ShellProps> = ({
 
         <MethodFooter
           sources={sourceLayers.length ? sourceLayers : ['Social platforms', 'E-commerce reviews', 'Content communities']}
-          window={`Triangulated across ${sourceLayers.length || 'multiple'} source layers · ${totalDataPoints.toLocaleString()} data points`}
+          window={footerWindow}
           confidence={confidence}
           disclaimer="Warm-premium format pass — verbatims and evidence weights render directly from the section corpus; the real Lovingle logo composites into the header slot in production."
         />

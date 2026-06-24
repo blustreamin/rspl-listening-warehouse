@@ -94,10 +94,12 @@
 .lv-grid{display:grid; grid-template-columns:repeat(12,1fr); gap:18px}
 .lv-zone{background:var(--paper); border:1px solid var(--line);
   border-radius:var(--r-card); box-shadow:var(--sh-card); padding:clamp(16px,1.7vw,22px)}
-.lv-zone-head{display:flex; align-items:baseline; justify-content:space-between;
-  gap:12px; margin-bottom:14px}
+/* L1.9 — editorial annotation moves below the title, left-aligned + italic
+   (was right-aligned grey, where most readers never saw it). */
+.lv-zone-head{display:flex; flex-direction:column; align-items:flex-start;
+  gap:3px; margin-bottom:14px}
 .lv-zone-head h2{font-size:clamp(16px,1.7vw,19px)}
-.lv-zone-head .lv-sub{font-size:12px; color:var(--ink-3); font-weight:500}
+.lv-zone-head .lv-sub{font-size:12.5px; color:var(--t-700); font-weight:500; font-style:italic}
 .lv-col-7{grid-column:span 7} .lv-col-5{grid-column:span 5}
 .lv-col-6{grid-column:span 6} .lv-col-12{grid-column:span 12}
 
@@ -219,10 +221,10 @@
 .lv-moves{display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-top:4px}
 .lv-move{display:grid; grid-template-columns:auto 1fr; gap:12px; align-items:start;
   background:var(--paper); border:1px solid var(--o-100); border-radius:12px; padding:13px 14px}
-.lv-move .lv-n{width:26px;height:26px;border-radius:8px; background:var(--o-500); color:#fff;
-  font-family:var(--display); font-weight:600; font-size:15px; display:grid; place-items:center; flex:none}
-.lv-move .lv-mt{display:block; font-weight:600; font-size:13.5px; color:var(--b-700); line-height:1.35; margin-bottom:3px}
-.lv-move .lv-mr{display:block; font-size:12px; color:var(--ink-2); line-height:1.45}
+.lv-move .lv-n{width:48px;height:48px;border-radius:50%; background:var(--o-500); color:#fff;
+  font-family:var(--display); font-weight:600; font-size:22px; display:grid; place-items:center; flex:none}
+.lv-move .lv-mt{display:block; font-weight:600; font-size:18px; color:var(--b-700); line-height:1.3; margin-bottom:4px}
+.lv-move .lv-mr{display:block; font-size:12.5px; color:var(--ink-2); line-height:1.5}
 
 /* ============ MethodFooter ============ */
 .lv-method{margin-top:22px; padding-top:18px; border-top:1px solid var(--line);
@@ -506,10 +508,10 @@
 .lv-excluded-tag{flex:none; font-size:9px; font-weight:700; text-transform:uppercase; letter-spacing:.05em; color:#fff; background:#B4231C; padding:2px 8px; border-radius:5px}
 
 /* MatrixQuadrant */
-.lv-quadwrap{display:grid; grid-template-columns:380px 1fr; gap:18px; align-items:start}
-@media(max-width:760px){.lv-quadwrap{grid-template-columns:1fr}}
+.lv-quadwrap{display:grid; grid-template-columns:500px 1fr; gap:22px; align-items:start}
+@media(max-width:980px){.lv-quadwrap{grid-template-columns:1fr}}
 .lv-quad{width:100%}
-.lv-quad-svg{width:100%; max-width:380px; height:auto; display:block}
+.lv-quad-svg{width:100%; max-width:500px; height:auto; display:block}
 .lv-quad-plab{font-family:var(--sans); font-size:11px; font-weight:700; fill:var(--b-700)}
 .lv-quad-axis{font-family:var(--sans); font-size:10px; fill:var(--ink-3); letter-spacing:.04em}
 .lv-quad-legend{list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:9px}
@@ -664,3 +666,129 @@
   .lv-pill-flagged{-webkit-print-color-adjust:exact; print-color-adjust:exact}
   .lv-vb-flag{-webkit-print-color-adjust:exact; print-color-adjust:exact}
 }
+
+/* ============================================================================
+   REPORT UX OVERHAUL — Phase 1 (Layer 1 component foundations)
+   ============================================================================ */
+
+/* L1.1 — hero card: the highest-evidence card in a group, given weight. */
+.lv-card.lv-hero{grid-column:span 2; background:linear-gradient(180deg,#FFF8F0,var(--paper-warm));
+  border-left:4px solid var(--o-500); padding-left:calc(clamp(14px,1.5vw,18px) - 0px)}
+.lv-card.lv-hero .lv-card-title{font-size:1.18em; line-height:1.25}
+@media(max-width:760px){.lv-card.lv-hero{grid-column:1 / -1}}
+
+/* L1.3 — standardised evidence badge: "n = 620 · High" in one pill. */
+.lv-evbadge{flex:none; display:inline-flex; align-items:center; gap:2px; white-space:nowrap;
+  font-size:10px; font-weight:600; color:var(--ink-2); background:var(--bg-2,#F4ECDF);
+  border:1px solid var(--line); padding:2px 8px; border-radius:var(--r-chip); font-variant-numeric:tabular-nums}
+.lv-evbadge.lv-conf-high{color:var(--t-700); background:var(--t-50); border-color:var(--t-100)}
+.lv-evbadge.lv-conf-med{color:var(--o-700); background:var(--o-50); border-color:var(--o-100)}
+.lv-evbadge.lv-conf-low{color:var(--ink-3)}
+.lv-evbadge-sep{opacity:.5}
+
+/* L1.2 — verbatim density controls (web-only toggles). */
+.lv-vb-toggle,.lv-quotes-more{display:inline; background:none; border:0; padding:0; margin-left:7px;
+  font:inherit; font-size:11px; font-weight:600; color:var(--o-600); cursor:pointer; text-decoration:underline;
+  text-underline-offset:2px}
+.lv-quotes-more{display:inline-block; margin:6px 0 0; text-decoration:none}
+.lv-quotes-more:hover,.lv-vb-toggle:hover{color:var(--o-700)}
+
+/* L1.7 — SynthesisBlock: the section's conclusion, distinct from cards. */
+.lv-synthesis{grid-column:1 / -1; background:rgba(28,60,142,.05); border-left:4px solid var(--b-700);
+  border-radius:0 var(--r-card) var(--r-card) 0; padding:18px clamp(16px,1.7vw,22px) 20px; margin-top:6px}
+.lv-synthesis-title{font-family:var(--display); font-weight:600; font-size:clamp(15px,1.6vw,18px);
+  color:var(--b-700); margin-bottom:8px}
+.lv-synthesis-list{list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:7px}
+.lv-synthesis-list li{position:relative; padding-left:16px; font-size:13.5px; line-height:1.5; color:var(--ink-2)}
+.lv-synthesis-list li::before{content:"›"; position:absolute; left:2px; color:var(--o-500); font-weight:700}
+
+/* L1.8 — sub-layer background tints so the reader knows which layer they're in. */
+.lv-sublayer-2{background:rgba(86,194,214,.03); border-radius:var(--r-card); padding:12px; margin-left:-12px; margin-right:-12px}
+.lv-sublayer-3{background:rgba(242,111,33,.03); border-radius:var(--r-card); padding:12px; margin-left:-12px; margin-right:-12px}
+.lv-sublayer-4{background:rgba(28,60,142,.03); border-radius:var(--r-card); padding:12px; margin-left:-12px; margin-right:-12px}
+
+/* L1.11 — strategic annotation: promoted from de-emphasised italic to a takeaway strip. */
+.lv-strat-note{display:block; background:rgba(242,111,33,.08); border-left:3px solid var(--o-500);
+  padding:8px 12px; border-radius:0 4px 4px 0; font-weight:500; font-style:normal; color:var(--o-700);
+  font-size:12.5px; line-height:1.45; margin:6px 0}
+
+/* L1.6 — strip internal QA chrome from the print/PDF export. */
+@media print{
+  .lv-indicative,.lv-pill-flagged,.lv-vb-flag,.lv-vb-toggle,.lv-quotes-more,
+  .lv-no-print,[data-export-exclude="true"]{display:none !important}
+}
+
+/* ============================================================================
+   REPORT UX OVERHAUL — Phase 1 (Layer 3 section-specific)
+   ============================================================================ */
+
+/* L3.12 — switch-story win:leak headline + column tints. */
+.lv-switch-headline{font-size:13.5px; line-height:1.5; color:var(--ink-2); margin-bottom:12px;
+  padding:9px 13px; background:var(--paper-warm); border:1px solid var(--line); border-radius:10px}
+.lv-switch-headline b{color:var(--b-700)}
+.lv-switch-col-wins{background:rgba(31,157,107,.04); border-radius:var(--r-card); padding:10px}
+.lv-switch-col-leaks{background:rgba(210,75,75,.04); border-radius:var(--r-card); padding:10px}
+
+/* L3.15 — Data Ingestion brand callout (the ★4.18 commercial thesis). */
+.lvig-brandcallout{display:flex; flex-direction:column; gap:3px; background:#FFF8F0;
+  border-left:4px solid #F26F21; border-radius:0 10px 10px 0; padding:11px 14px; margin-bottom:14px}
+.lvig-bc-kicker{font-size:9.5px; font-weight:700; letter-spacing:.09em; color:#9A6B16}
+.lvig-bc-body{font-size:12.5px; color:#2A2A33; line-height:1.5}
+.lvig-bc-body b{font-family:'Fraunces',Georgia,serif; font-weight:600; color:#1C3C8E}
+
+/* L1.3/L3.4 — card head badge cluster + need-status pills. */
+.lv-card-badges{display:flex; gap:6px; flex:none; align-items:center; flex-wrap:wrap; justify-content:flex-end}
+.lv-met{font-size:9px; font-weight:700; text-transform:uppercase; letter-spacing:.04em; color:#fff;
+  padding:2px 8px; border-radius:10px; white-space:nowrap}
+.lv-met-met{background:#1F9D6B} .lv-met-unmet{background:var(--o-500)} .lv-met-partial{background:#D4A017}
+
+/* L3.8 — pack tier status pills. */
+.lv-packstatus{font-size:10px; font-weight:600; text-transform:uppercase; letter-spacing:.03em; color:#fff;
+  padding:2px 8px; border-radius:10px; white-space:nowrap; flex:none}
+.lv-packstatus.inrange{background:#1F9D6B} .lv-packstatus.weak{background:#D4A017} .lv-packstatus.gap{background:#D24B4B}
+.lv-packstatus-note{font-size:10.5px; color:var(--ink-3); font-style:italic; margin-top:4px}
+
+/* L3.5/L3.9 — flat data table (language map, persona barrier map). */
+.lv-flat-table{width:100%; border-collapse:collapse; font-size:12.5px}
+.lv-flat-table thead th{background:var(--b-700); color:#fff; text-align:left; font-weight:600;
+  font-size:10.5px; letter-spacing:.05em; text-transform:uppercase; padding:8px 11px}
+.lv-flat-table tbody td{padding:8px 11px; border-bottom:1px solid var(--line); color:var(--ink-2); vertical-align:top; line-height:1.45}
+.lv-flat-table tbody tr:nth-child(even){background:var(--paper-warm)}
+.lv-flat-table tbody td b{color:var(--b-700)}
+
+/* L3.5 — vernacular variant pills. */
+.lv-langpills{display:flex; flex-wrap:wrap; gap:5px; margin-top:5px}
+.lv-langpill{border:1px solid var(--line-2); border-radius:12px; padding:2px 9px; font-size:11.5px;
+  color:var(--ink-2); background:var(--paper)}
+
+/* L3.11 — cross-brand attribute comparison + SOV callout. */
+.lv-xbrand{margin-top:6px}
+.lv-xbrand-legend{display:flex; flex-wrap:wrap; gap:12px; margin-bottom:10px}
+.lv-xbrand-leg{display:inline-flex; align-items:center; gap:6px; font-size:11.5px; color:var(--ink-2)}
+.lv-xbrand-sw{width:11px; height:11px; border-radius:3px; flex:none}
+.lv-xbrand-row{display:grid; grid-template-columns:140px 1fr; gap:12px; align-items:center; margin-bottom:7px}
+.lv-xbrand-attr{font-size:12px; color:var(--ink-2); font-weight:500; text-align:right}
+.lv-xbrand-bars{display:flex; flex-direction:column; gap:3px}
+.lv-xbrand-bar{height:7px; background:var(--track,#F4ECE3); border-radius:4px; overflow:hidden}
+.lv-xbrand-bar > span{display:block; height:100%; border-radius:4px}
+@media(max-width:760px){.lv-xbrand-row{grid-template-columns:96px 1fr}}
+.lv-sovcallout{display:flex; align-items:center; gap:16px; background:var(--b-700); color:#fff;
+  border-radius:var(--r-card); padding:16px 20px}
+.lv-sovcallout-big{font-family:var(--display); font-weight:600; font-size:clamp(30px,5vw,46px); color:#fff; line-height:1; flex:none}
+.lv-sovcallout-body{font-size:13.5px; line-height:1.5}
+.lv-sovcallout-body b{font-family:var(--display); font-weight:600; color:#fff}
+@media(max-width:560px){.lv-sovcallout{flex-direction:column; align-items:flex-start; gap:8px}}
+
+/* L3.2 — seasonal window labels on the demand chart. */
+.lv-wave-band{font-family:var(--sans); font-size:9px; font-weight:700; letter-spacing:.08em; fill:var(--ink-4)}
+
+/* L3.10 — channel 2-row (physical / digital) layout. */
+.lv-flow-row{margin-bottom:16px}
+.lv-flow-rowlab{font-size:10.5px; font-weight:700; letter-spacing:.08em; text-transform:uppercase;
+  color:var(--b-700); margin-bottom:8px}
+.lv-flow-2row{display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:12px}
+
+/* L3.3 — journey lane: needs|triggers two-up, then full-width evidence. */
+.lv-lane-grid2{display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-top:4px}
+.lv-lane-evidence{margin-top:12px; padding-top:12px; border-top:1px dashed var(--line)}
+@media(max-width:760px){.lv-lane-grid2{grid-template-columns:1fr}}

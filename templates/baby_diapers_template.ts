@@ -123,6 +123,34 @@ GLOBAL NON-NEGOTIABLES:
     it sharpens the point), and what RSPL should do. NO "SIGNAL SUMMARY:/EVIDENCE:/STRATEGIC IMPLICATION:"
     labels, no bullet-stuffing inside a field, no repetition. If a field exceeds ~55 words, cut it down.
 
+CARD BODY TEXT RULES (Layer 2.1):
+- Every insight card body follows: (1) ONE BOLD lead sentence stating the "so what" — the single most important takeaway; (2) two to three supporting sentences of evidence/context; (3) NO geographic or demographic specificity unless this IS the Geography section; (4) NO channel-specific detail unless this IS the Channel section; (5) total card body ≤ 5 sentences.
+- Every headline follows [Subject] [verb] [consequence]. GOOD: "Monsoon rash-anxiety triggers the year's sharpest brand-switching window". BAD: "Monsoon Rash Anxiety Spikes Seasonal Brand Switching Across Lifestages".
+
+"FOR LOVINGLE" RECOMMENDATION RULES (Layer 2.2):
+- Card body text DESCRIBES the phenomenon; it does NOT prescribe Lovingle's response.
+- ALL "For Lovingle…" recommendations appear ONLY in (a) the section's closing synthesis block, or (b) the Gap Analysis and White Space & Recommendations sections.
+- Everywhere else, end the card body on the IMPLICATION, not the ACTION. GOOD: "This makes the 7-11 month window the highest-churn moment in the category". BAD: "Lovingle must deploy trial packs at GT-Chemist targeting this window".
+
+CLOSING SYNTHESIS — MANDATORY FOR EVERY SECTION (Layer 2.3):
+- Every section MUST end with a synthesis block of 3-5 sentences, contextually titled (e.g. "What the Need Stack Means", "The Channel Implication", "What Avoidance Reveals").
+- It MUST answer "What does this section's evidence mean for Lovingle's next move?", MUST NOT restate the cards, and MUST add analytical value beyond them.
+- Structure: 1 sentence summarising the core finding → 1 sentence on the commercial consequence → 1 sentence connecting to another section ("This connects to the Consumer Personas finding that…").
+
+VERBATIM SELECTION RULES (Layer 2.4):
+- Maximum 1 verbatim per card unless the section format specifically requires more.
+- Trim each verbatim to the 1-2 punchiest sentences — not the full review.
+- The verbatim MUST illustrate THIS card's specific point, not be a generic product review.
+- Prefer Amazon/Flipkart consumer reviews for product/channel/usage sections; prefer YouTube for discovery/influence/awareness sections.
+- NEVER use a YouTube content-creator introduction ("Hi everyone, in today's video…") as a verbatim — those are not consumer voices.
+- If no corpus verbatim matches the card's specific point, OMIT the verbatim rather than forcing a tangential one.
+
+CROSS-SECTION REFERENCES (Layer 2.5 — not optional; this turns standalone sections into one integrated strategy document):
+- Reference a consumer segment by its Consumer Personas name (e.g. "The Anxious Newborn Researcher").
+- Reference a lifestage by its Journey Spine stage name (e.g. "the tape-to-pant transition window at 7-11 months").
+- Reference a geography by its regional profile (e.g. "in UP's kirana-dominant, joint-family market").
+- Reference a channel by its funnel position in the Channel & Retail section.
+
 OUTPUT: strict JSON, no markdown wrappers. Dense INSIGHT, concise PROSE — not length for its own sake.
 `;
 
@@ -232,11 +260,13 @@ DIRECTIVE: map usage by occasion — overnight/sleep, daytime at home, travel, d
 
       needs_triggers_pains: `
 SECTION: NEEDS, TRIGGERS & PAIN POINTS (three need layers)
-Output: { "functional": [InsightCard], "emotional": [InsightCard], "social": [InsightCard] } where InsightCard = {headline, what_it_means, data_points:N, verbatims:[{quote,source,consumer}]}. Min 3 per layer.
+Output: { "functional": [InsightCard], "emotional": [InsightCard], "social": [InsightCard] } where InsightCard = {headline, what_it_means, met_status:"MET"|"UNMET"|"PARTIALLY_MET", data_points:N, verbatims:[{quote,source,consumer}]}. Min 3 per layer.
 FUNCTIONAL: leakage protection by time of day, skin health/rash, fit across sizes, overnight absorbency, wetness indicators, ease of use, topsheet.
 EMOTIONAL: peace of mind on baby safety, parental guilt (rashes, plastic waste), pride in "choosing the best", overwhelm at brand choice, need for expert validation.
 SOCIAL: peer validation in mom groups, brand as social signal (premium vs value), influencer/doctor recommendation as social currency.
-Decode the exact words parents use for benefits ("soft", "dry", "rash-free", "leak-proof", "overnight") and what they mean emotionally + functionally — the wording that should appear on pack and in comms.`,
+Decode the exact words parents use for benefits ("soft", "dry", "rash-free", "leak-proof", "overnight") and what they mean emotionally + functionally — the wording that should appear on pack and in comms.
+MET-STATUS (Layer 2.7): classify EACH need card by how well existing brands serve it — output "met_status" on every card as "MET", "UNMET", or "PARTIALLY_MET".
+EMOTIONAL NEEDS VOICE (Layer 2.6): in the "emotional" layer, write each emotion as a first-person parent statement in quotes. GOOD: "'If my baby wakes up with rashes, I've failed.' That's the emotional payload of rash-safety." BAD: "Guilt avoidance + good-mother validation". The emotional layer must SOUND different from the functional layer — feelings, not features.`,
 
       decision_influencers: `
 SECTION: DECISION-MAKING, BUYER-vs-DECIDER & INFLUENCER ROLES (brief §3 + proposal §8.6)
@@ -303,7 +333,8 @@ Output: {
 DIRECTIVE: a focused read on Lovingle — spontaneous awareness & associations; consideration drivers (price, kirana availability) and barriers; what holds back aware non-triers; what is working among triers; switch stories to and from Lovingle.
 SWITCH STORIES DEPTH MANDATE (CRITICAL): Each switch story is a case study, not a card. 'trigger' = the headline reason (one sentence). 'motivational_cluster' = the strategic category from the enum. 'baby_age_context' = what stage the baby was at when the switch happened (e.g. "6-month-old starting solids, increased stool frequency"). 'channel' = where the parent was shopping or discovered the alternative. 'signal_strength' = strong (multiple corroborating voices), moderate (2-3 voices), emerging (single but vivid). 'net_outcome' = how the parent feels AFTER switching (satisfied/regretful/mixed + why). 'strategic_implication' = one sentence on what RSPL should do about this specific corridor. 'switch_corridor_summary' = a 3-4 sentence synthesis of the dominant corridors: which brand pairs see the most traffic, what clusters dominate, where Lovingle is winning vs leaking, and the single biggest intervention point. Ensure mix across all 4 major competitors (Pampers, MamyPoko, Huggies, Little Angels). Every verbatim must cite a real consumer with baby-age-anchored demographic.
 BRAND-OBJECTION LOCK (CRITICAL): the DOMINANT consideration_barriers / aware_non_trier cluster for Lovingle is RASH / SKIN-SAFETY reassurance — NOT leakage/trust. Do not import Pro-ease's leakage/trust framing. Read Lovingle against the competitor brand drivers so its position is understood relative to the set.
-The 'consideration_barriers' array MUST have the LARGEST count (6+) because that's where RSPL's intervention will land. Each card's what_it_means states the signal, cites the proof, and names the implication as plain dense prose (no inline labels).`,
+The 'consideration_barriers' array MUST have the LARGEST count (6+) because that's where RSPL's intervention will land. Each card's what_it_means states the signal, cites the proof, and names the implication as plain dense prose (no inline labels).
+WIN:LEAK HEADLINE (Layer 2.7): state the win:leak ratio as a headline finding in 'switch_corridor_summary' and characterise the pattern — "Lovingle wins FROM value brands, loses TO premium brands — it is a stepping stone, not a destination."`,
 
       brand_landscape: `
 SECTION: COMPETITIVE BRAND LANDSCAPE (BABY DIAPERS, INDIA) — brief §2 explicit
@@ -404,7 +435,7 @@ DIRECTIVE: produce 7-8 personas that span the journey lens × family structure �
 6. THE BUDGET-CONSCIOUS PRO-EASE-ADJACENT MOTHER — already buys RSPL value lines, candidate for Lovingle trial
 7. THE PREMIUM ASPIRANT — TC1 mother, NCCS B, climbing the ladder from MamyPoko Standard to Extra Absorb
 8. THE FATHER AS CO-DECIDER (newer archetype) — purchase initiator role rising
-Each persona reads like a Kantar consumer deep-dive: not a label, a living portrait. Verbatims per persona (MIN 2) MUST come from real corpus evidence matching that persona's profile.`,
+Each persona reads like a Kantar consumer deep-dive: not a label, a living portrait. Include EXACTLY 1 verbatim per persona (Layer 2.7) — a real-corpus quote that captures that persona's VOICE and ATTITUDE, not a generic product review: the Anxious Researcher's quote should sound anxious; the Budget-Conscious Mother's should sound value-driven.`,
 
       style_switch_journey: `
 SECTION: STYLE SWITCH JOURNEY (proposal §9.1 dedicated deep-dive)
@@ -465,7 +496,8 @@ DIRECTIVE: this is a brief-mandated dimension that the listening data clearly sh
 - Eco-conscious metro households deliberately mixing cloth + reusable
 - Summer/monsoon humid-day avoidance ("too hot to keep diaper on")
 - Sleep training / potty training transition (2-3y) — deliberate withdrawal
-Each moment carries WHO + WHEN + WHY + the alternative chosen. 5 real verbatims.`,
+Each moment carries WHO + WHEN + WHY + the alternative chosen. Verbatims (MIN 2) real-corpus.
+QUANTIFY (Layer 2.7): estimate the avoidance pool as an approximate share of total diaper occasions — even a rough figure ("~20% of potential diaper occasions") grounds the section commercially. Output it as a "pool_estimate" field and reference it in the closing synthesis.`,
 
       consumer_language: `
 SECTION: CONSUMER LANGUAGE — WORDS PARENTS ACTUALLY USE (brief §4 + proposal §7 "decode language & meaning")
@@ -486,7 +518,8 @@ DIRECTIVE: produce a tagged glossary of the EXACT words and phrases Indian paren
 - Cultural shorthand: "raat bhar" (whole night), "din-bhar" (daytime), "ghar mein" (at home)
 - Time-of-day: "overnight" vs "raat ka" vs "long-time"
 - The exact wording RECOMMENDED to appear on Lovingle pack, point-of-sale, and creative.
-This section directly feeds RSPL's comms + pack design.`,
+This section directly feeds RSPL's comms + pack design.
+FREQUENCY (Layer 2.7): include corpus frequency per term — how many times each word appears across the ~91K-record corpus — as a "corpus_frequency" integer field, and RANK terms by frequency (most-used first).`,
     },
   },
   validators: {
