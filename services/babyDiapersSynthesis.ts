@@ -28,11 +28,47 @@ const prepareTargetedEvidence = (graph: EvidenceGraph, sectionId: string) => {
   const events = graph.events || [];
   const kws = SECTION_KEYWORDS[sectionId] || [];
 
-  // Only real, substantive text is quotable. One-word ratings ("Good", "Nice")
-  // can't carry a verbatim, so require a floor of length and word count.
+  // ── QUOTE-QUALITY FILTER ───────────────────────────────────────────────
+  // The corpus contains a lot of NON-opinion text: product-listing titles,
+  // affiliate URLs, YouTube SEO/hashtag blurbs, SKU enumerations, mojibake.
+  // These are real records but they are NOT consumer voice, and must never be
+  // offered to the model as quotable evidence. This filter keeps only text that
+  // reads like a human talking about their experience.
+  const looksLikeListingOrSpam = (raw: string): boolean => {
+    const t = raw.trim();
+    // URLs / affiliate links / share blobs
+    if (/https?:\/\/|www\.|amzn\.to|\?&?tag=|\/dp\/|dl\.flipkart|bit\.ly/i.test(t)) return true;
+    // Hashtag / handle SEO spam (YouTube/IG marketing)
+    if ((t.match(/#/g) || []).length >= 2) return true;
+    if (/subscribe|follow for more|please support|link in bio|use code|coupon/i.test(t)) return true;
+    // Product-listing titles: pipe-delimited specs, "Buy ...", count/size tokens
+    if (/\|/.test(t) && /\b(size|count|pcs|pack|pants|diaper)\b/i.test(t)) return true;
+    if (/^buy\s/i.test(t)) return true;
+    if (/\b\d+\s?(count|pcs|pieces)\b/i.test(t) && /\b(size|pack|xs|xl|xxl|medium|large)\b/i.test(t)) return true;
+    // SKU enumerations: "1. Brand ... 2. Brand ... 3. Brand"
+    if (/\b1\.\s.*\b2\.\s.*\b3\.\s/i.test(t)) return true;
+    // Brand-list dumps (≥3 known brands strung together with no sentence)
+    const brandHits = (t.match(/\b(huggies|pampers|mamypoko|mamy poko|little angel|wowper|panda|cuddle|supples)\b/gi) || []).length;
+    if (brandHits >= 3 && !/\b(i|we|my|me|because|but|after|when|switched|tried|love|hate|rash)\b/i.test(t)) return true;
+    // Mojibake / heavy non-Latin (corrupted encodings): too few ASCII letters
+    const ascii = (t.match(/[a-z]/gi) || []).length;
+    if (ascii < t.length * 0.45) return true;
+    return false;
+  };
+
+  const isHumanVoice = (raw: string): boolean => {
+    const t = raw.trim();
+    // First/second-person or experiential markers — the signature of an opinion.
+    return /\b(i|we|my|me|our|you|she|he|her|his|baby|son|daughter|mom|mother|husband|wife|tried|bought|switched|use|using|love|hate|rash|leak|comfort|smell|skin|night|recommend|worst|best|happy|disappointed)\b/i.test(t);
+  };
+
+  // Only real, substantive, human-voice text is quotable.
   const isQuotable = (e: any): boolean => {
     const t = (e.content?.text || '').trim();
-    return t.length >= 40 && t.split(/\s+/).length >= 8;
+    if (t.length < 40 || t.split(/\s+/).length < 8) return false;
+    if (looksLikeListingOrSpam(t)) return false;
+    if (!isHumanVoice(t)) return false;
+    return true;
   };
 
   // De-dup on normalized text so the same review scraped twice (or near-dupes)

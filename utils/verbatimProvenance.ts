@@ -66,6 +66,25 @@ export function buildCorpusMatcher(texts: string[]) {
   };
 }
 
+// Reject text that is real-but-not-voice (product titles, URLs, SEO/hashtag
+// spam, SKU lists, mojibake). Such text can match the corpus yet is NOT a
+// consumer quote, so it must never pass as 'corpus'.
+function isNotConsumerVoice(raw: string): boolean {
+  const t = (raw || '').trim();
+  if (!t) return true;
+  if (/https?:\/\/|www\.|amzn\.to|\?&?tag=|\/dp\/|dl\.flipkart|bit\.ly/i.test(t)) return true;
+  if ((t.match(/#/g) || []).length >= 2) return true;
+  if (/subscribe|follow for more|please support|link in bio|use code/i.test(t)) return true;
+  if (/\|/.test(t) && /\b(size|count|pcs|pack|pants|diaper)\b/i.test(t)) return true;
+  if (/^buy\s/i.test(t)) return true;
+  if (/\b1\.\s.*\b2\.\s.*\b3\.\s/i.test(t)) return true;
+  const ascii = (t.match(/[a-z]/gi) || []).length;
+  if (ascii < t.length * 0.45) return true;
+  // Must contain at least one experiential / first-person marker.
+  if (!/\b(i|we|my|me|our|you|she|he|her|baby|son|daughter|mom|mother|husband|wife|tried|bought|switched|use|using|love|hate|rash|leak|comfort|smell|skin|night|recommend|worst|best|happy|disappointed)\b/i.test(t)) return true;
+  return false;
+}
+
 /**
  * Classify one quote against the real corpus and the curated bank.
  */
@@ -75,6 +94,9 @@ export function classifyQuote(
   inCurated: (q: string) => boolean
 ): Provenance {
   if (!quote || norm(quote).length < 8) return 'unverified';
+  // Real-but-not-voice text (titles/URLs/spam) is treated as unverified so it
+  // gets pruned — grounding alone is not enough, it must be a human opinion.
+  if (isNotConsumerVoice(quote)) return 'unverified';
   if (inCorpus(quote)) return 'corpus';
   if (inCurated(quote)) return 'curated';
   return 'unverified';
