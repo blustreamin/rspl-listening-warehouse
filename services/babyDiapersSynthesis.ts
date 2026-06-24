@@ -23,92 +23,94 @@ const SECTION_KEYWORDS: Record<string, string[]> = {
   brand_landscape: ["pampers", "mamypoko", "huggies", "little angels", "lovingle", "leak", "soft", "overnight", "value", "best", "review"],
 };
 
-// ── CURATED SOCIAL EVIDENCE BANK (Baby Diapers, India) ──────────────────────
-// Compensates for limited Instagram/closed-group scraping. Representative
-// verbatims modelled on real Indian parent discussion patterns. Baby-age
-// anchored. Replaced by real evidence whenever ingest signal is sufficient.
-const SOCIAL_MEDIA_EVIDENCE_BANK: Array<{ text: string; platform: string; geo: string; brand?: string; tags: string[] }> = [
-  { text: "Once my baby started crawling at 8 months the tape diapers became a nightmare to put on. Switched to pant style and life got so much easier.", platform: "Instagram", geo: "Mumbai, India", brand: "MamyPoko", tags: ["crawl", "tape", "pant", "switch", "month"] },
-  { text: "Monsoon in Kerala and my 6-month-old keeps getting rashes no matter the brand. Constantly switching looking for something more breathable.", platform: "BabyChakra", geo: "Kochi, India", tags: ["monsoon", "rash", "breathable", "skin", "switch"] },
-  { text: "Night time is the only time I'll spend extra — bought the premium overnight pack. One leak and the whole family is awake.", platform: "Instagram", geo: "Pune, India", brand: "Pampers", tags: ["night", "overnight", "leak", "premium", "price"] },
-  { text: "First-time mom here, so confused between tape and pant for a newborn. My paediatrician said start with tape for the snug fit.", platform: "Reddit", geo: "Chennai, India", tags: ["first time", "tape", "pant", "newborn", "doctor"] },
-  { text: "I calculate cost per diaper every time. The ₹999 jumbo box on Amazon subscription works out cheapest by far.", platform: "Reddit", geo: "Delhi, India", brand: "Pampers", tags: ["price", "per piece", "999", "subscription", "value"] },
-  { text: "My mother-in-law keeps insisting cloth is better for the baby. Constant negotiation in a joint family.", platform: "BabyChakra", geo: "Kanpur, India", tags: ["cloth", "grandmother", "joint", "decide"] },
-  { text: "Our nanny prefers pant style, says it's quicker to change, so that's what we buy now.", platform: "Reddit", geo: "Bangalore, India", tags: ["nanny", "pant", "convenience", "decide"] },
-  { text: "Whatever brand the hospital gave in the discharge kit, we just continued for the first month out of fear of switching.", platform: "Reddit", geo: "Hyderabad, India", tags: ["hospital", "first", "newborn", "trust"] },
-  { text: "Lovingle is good value for daytime use and always available at my local kirana. I just want a bit more reassurance about rashes.", platform: "Amazon.in · Lovingle", geo: "Lucknow, India", brand: "Lovingle", tags: ["lovingle", "value", "kirana", "rash", "daytime"] },
-  { text: "Not sure if a budget brand is gentle enough for my newborn's delicate skin, so I'm sticking to the brand I trust for now.", platform: "BabyChakra", geo: "Pune, India", tags: ["lovingle", "budget", "skin", "safe", "newborn", "trust"] },
-  { text: "Sizing up is always a week of leaks — too tight leaks, too loose leaks. Wish there was clearer guidance.", platform: "Reddit", geo: "Mumbai, India", tags: ["size", "leak", "fit", "grow"] },
-  { text: "Daycare insists on pant style only, faster for the staff to change a room full of toddlers.", platform: "BabyChakra", geo: "Bangalore, India", tags: ["daycare", "pant", "toddler", "convenience"] },
-  { text: "Before any train journey I stock up on pant-style diapers — quick changes anywhere without lying the baby down.", platform: "Instagram", geo: "Jaipur, India", brand: "MamyPoko", tags: ["travel", "train", "pant", "stock"] },
-  { text: "Day time we are potty training my 2.5 year old, but night time still needs a diaper for accidents.", platform: "BabyChakra", geo: "Hyderabad, India", tags: ["potty", "training", "night", "toddler", "day"] },
-  { text: "My husband manages the Amazon subscription now, I just approve which brand to order.", platform: "Instagram", geo: "Mumbai, India", tags: ["father", "subscription", "decide", "buy"] },
-  { text: "Switched off Lovingle to MamyPoko after a rash scare — just wanted to play it safe with my baby's skin.", platform: "BabyChakra", geo: "Chennai, India", brand: "MamyPoko", tags: ["lovingle", "switch", "rash", "skin", "safe"] },
-  { text: "Huggies is lovely and soft but it leaked overnight for us more than once.", platform: "Amazon.in · Huggies", geo: "Pune, India", brand: "Huggies", tags: ["huggies", "soft", "leak", "overnight"] },
-  { text: "I grab a single piece from the kirana whenever I run out at night — emergency top-up.", platform: "Reddit", geo: "Patna, India", tags: ["laddi", "single", "kirana", "night", "top up"] },
-];
-
-const sampleCuratedEvidence = (sectionId: string, count: number) => {
-  const kws = SECTION_KEYWORDS[sectionId] || [];
-  const scored = SOCIAL_MEDIA_EVIDENCE_BANK.map(item => {
-    const hay = (item.text + " " + item.tags.join(" ")).toLowerCase();
-    const score = kws.reduce((s, k) => s + (hay.includes(k.toLowerCase()) ? 1 : 0), 0);
-    return { item, score };
-  }).sort((a, b) => b.score - a.score);
-  return scored.slice(0, count).map(s => s.item);
-};
 
 const prepareTargetedEvidence = (graph: EvidenceGraph, sectionId: string) => {
   const events = graph.events || [];
   const kws = SECTION_KEYWORDS[sectionId] || [];
 
-  // Score ingested events by keyword hits
-  let sample = events
+  // Only real, substantive text is quotable. One-word ratings ("Good", "Nice")
+  // can't carry a verbatim, so require a floor of length and word count.
+  const isQuotable = (e: any): boolean => {
+    const t = (e.content?.text || '').trim();
+    return t.length >= 40 && t.split(/\s+/).length >= 8;
+  };
+
+  // De-dup on normalized text so the same review scraped twice (or near-dupes)
+  // can't recycle into the capsule — a major cause of "same quote everywhere".
+  const seenText = new Set<string>();
+  const dedupe = (list: any[]): any[] => {
+    const out: any[] = [];
+    for (const e of list) {
+      const key = (e.content?.text || '').toLowerCase().replace(/\s+/g, ' ').trim().slice(0, 120);
+      if (!key || seenText.has(key)) continue;
+      seenText.add(key);
+      out.push(e);
+    }
+    return out;
+  };
+
+  const quotable = dedupe(events.filter(isQuotable));
+
+  // Keyword-score the quotable pool for this section.
+  const scored = quotable
     .map(e => {
       const t = (e.content?.text || '').toLowerCase();
       const score = kws.reduce((s, k) => s + (t.includes(k.toLowerCase()) ? 1 : 0), 0);
       return { e, score };
     })
-    .sort((a, b) => b.score - a.score)
-    .filter(x => x.score > 0)
-    .slice(0, 24)
-    .map(x => x.e);
+    .sort((a, b) => b.score - a.score);
 
-  const MIN_EVIDENCE = Math.min(20, events.length);
-  if (sample.length < MIN_EVIDENCE) {
-    const have = new Set(sample.map(e => e.evidenceId));
-    const fill = events
-      .filter(e => !have.has(e.evidenceId))
-      .sort((a, b) => (b.content?.text?.length || 0) - (a.content?.text?.length || 0))
-      .slice(0, MIN_EVIDENCE - sample.length);
-    sample = [...sample, ...fill];
+  // Take a GENEROUS, BRAND-DIVERSE slice so the model has real range to quote
+  // from (small capsules force repetition / invention). Round-robin across
+  // brands among the on-topic hits, then top up with the best remaining.
+  const TARGET = 60;
+  const onTopic = scored.filter(x => x.score > 0).map(x => x.e);
+  const byBrand = new Map<string, any[]>();
+  for (const e of onTopic) {
+    const b = (e.commerce?.brand || e.content?.platform || 'misc').toString();
+    if (!byBrand.has(b)) byBrand.set(b, []);
+    byBrand.get(b)!.push(e);
+  }
+  const picked: any[] = [];
+  const pickedIds = new Set<string>();
+  let added = true;
+  while (added && picked.length < TARGET) {
+    added = false;
+    for (const list of byBrand.values()) {
+      const next = list.shift();
+      if (next && !pickedIds.has(next.evidenceId)) {
+        picked.push(next); pickedIds.add(next.evidenceId); added = true;
+        if (picked.length >= TARGET) break;
+      }
+    }
+  }
+  // Top up from any quotable evidence (even off-topic) so we never run thin.
+  if (picked.length < TARGET) {
+    for (const e of quotable) {
+      if (pickedIds.has(e.evidenceId)) continue;
+      picked.push(e); pickedIds.add(e.evidenceId);
+      if (picked.length >= TARGET) break;
+    }
   }
 
-  const simplified = sample.map(e => ({
+  const simplified = picked.map(e => ({
     text: e.content?.text,
     source: e.sourceTag,
     platform: e.content?.platform || e.sourceTag,
     geo: e.geo?.city ? `${e.geo.city}, ${e.geo.country || 'India'}` : (e.geo?.country || ''),
     brand: e.commerce?.brand,
     rating: e.commerce?.rating,
-    axes: (e.derived?.tokens || []).filter(t => t.startsWith('style:') || t.startsWith('pack:')),
+    axes: (e.derived?.tokens || []).filter((t: string) => t.startsWith('style:') || t.startsWith('pack:')),
     id: e.evidenceId,
   }));
 
-  const curated = sampleCuratedEvidence(sectionId, 6).map((item, i) => ({
-    text: item.text, source: 'social', platform: item.platform, geo: item.geo,
-    brand: item.brand || undefined, rating: undefined, axes: [], id: `CURATED_SOCIAL_${i + 1}`,
-  }));
-
-  const combined = [...simplified, ...curated];
-
   const json = JSON.stringify({
     stats: graph.aggregations,
-    sample_evidence: combined,
-    note: `Targeted evidence for '${sectionId}'. Ingested: ${simplified.length}, curated social: ${curated.length}. Draw every verbatim from sample_evidence; tag source: with the platform shown; the 'axes' field carries detected style:/pack: tags — keep STYLE and PACK as separate axes. Represent 4+ platforms per section.`,
+    sample_evidence: simplified,
+    note: `Targeted REAL evidence for '${sectionId}' — ${simplified.length} distinct ingested records (Amazon / Flipkart / Instagram / Facebook / Awario). Every verbatim MUST be copied from a sample_evidence 'text' field; set source: to that record's platform. The 'axes' field carries detected style:/pack: tags — keep STYLE and PACK as separate axes. Represent 4+ platforms per section. There is no other permitted source of quotes.`,
   });
 
-  return { json, count: combined.length };
+  return { json, count: simplified.length };
 };
 
 const calculateBrandSOV = (graph: EvidenceGraph) => {
@@ -143,27 +145,25 @@ export const synthesizeBabyDiapersSection = async (
   const capsule = prepareTargetedEvidence(evidenceGraph, sectionId);
   const brandSov = calculateBrandSOV(evidenceGraph);
 
-  // ── Provenance corpus: every real ingested quote text + the curated bank ──
-  // Verification runs against the FULL hydrated corpus (not just the capsule),
-  // so a quote counts as 'corpus' if it traces to ANY real record, and only
-  // genuine fabrications fall through to 'unverified'.
+  // ── Provenance corpus: ONLY real ingested quote text. The curated bank has
+  // been removed from the capsule entirely, so no quote should match it; any
+  // quote that does not trace to a real record is a fabrication and is dropped.
   const corpusTexts = (evidenceGraph.events || [])
     .map(e => e.content?.text || '')
     .filter(t => t && t.length > 8);
-  const curatedTexts = SOCIAL_MEDIA_EVIDENCE_BANK.map(b => b.text);
+  const curatedTexts: string[] = []; // intentionally empty — real-data-only policy
 
   // Verify + annotate real synthesis output before it is returned/cached.
   // Seed fallback is never run through this (it is badged INDICATIVE upstream).
   const finalizeReal = (content: any): any => {
     try {
-      const audit: VerbatimAudit = verifyContentVerbatims(content, corpusTexts, curatedTexts);
-      // Ride the audit along in the content so it persists to the DB and the
-      // renderer can show a provenance badge. (Underscore-prefixed → ignored by
-      // every section renderer that whitelists known fields.)
+      // prune=true → fabricated quotes are removed, not just flagged, so the
+      // report shows only verbatims grounded in the real corpus.
+      const audit: VerbatimAudit = verifyContentVerbatims(content, corpusTexts, curatedTexts, true);
       content._verbatim_audit = audit;
       logger?.(
         `[BabyDiapers] provenance S=${sectionId}: ${audit.corpus}/${audit.total} corpus-verified, ` +
-        `${audit.curated} curated, ${audit.unverified} UNVERIFIED`
+        `${audit.unverified} fabricated (dropped)`
       );
     } catch (err: any) {
       logger?.(`[BabyDiapers] provenance check skipped: ${err?.message || err}`);

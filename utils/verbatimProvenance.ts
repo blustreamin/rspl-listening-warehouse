@@ -82,41 +82,66 @@ export function classifyQuote(
 
 /**
  * Walk a normalized section-content tree, classify every {quote,...} object,
- * annotate it in place with `prov`, and return an aggregate audit. Curated
- * quotes are annotated but render silently (the UI only surfaces 'unverified').
+ * annotate it in place with `prov`, and return an aggregate audit.
+ *
+ * When `prune` is true, fabricated quotes (neither corpus nor curated) are
+ * REMOVED from any array they sit in — so the published report shows only
+ * grounded verbatims. The audit still records how many were dropped.
  */
 export function verifyContentVerbatims(
   content: any,
   corpusTexts: string[],
-  curatedTexts: string[]
+  curatedTexts: string[],
+  prune: boolean = false
 ): VerbatimAudit {
   const inCorpus = buildCorpusMatcher(corpusTexts);
-  const inCurated = buildCorpusMatcher(curatedTexts);
+  const inCurated = curatedTexts.length ? buildCorpusMatcher(curatedTexts) : () => false;
 
   const audit: VerbatimAudit = {
     total: 0, corpus: 0, curated: 0, unverified: 0, unverified_samples: [],
   };
 
-  const visit = (node: any): void => {
-    if (Array.isArray(node)) { node.forEach(visit); return; }
-    if (!node || typeof node !== 'object') return;
-
-    if (typeof node.quote === 'string' && node.quote.trim().length > 0) {
-      const prov = classifyQuote(node.quote, inCorpus, inCurated);
-      node.prov = prov;
-      audit.total++;
-      if (prov === 'corpus') audit.corpus++;
-      else if (prov === 'curated') audit.curated++;
-      else {
-        audit.unverified++;
-        if (audit.unverified_samples.length < 20) {
-          audit.unverified_samples.push({
-            quote: node.quote, source: node.source, consumer: node.consumer,
-          });
-        }
+  const classify = (node: any): Provenance | null => {
+    if (typeof node?.quote !== 'string' || node.quote.trim().length === 0) return null;
+    const prov = classifyQuote(node.quote, inCorpus, inCurated);
+    node.prov = prov;
+    audit.total++;
+    if (prov === 'corpus') audit.corpus++;
+    else if (prov === 'curated') audit.curated++;
+    else {
+      audit.unverified++;
+      if (audit.unverified_samples.length < 20) {
+        audit.unverified_samples.push({
+          quote: node.quote, source: node.source, consumer: node.consumer,
+        });
       }
     }
+    return prov;
+  };
 
+  const visit = (node: any): void => {
+    if (Array.isArray(node)) {
+      // Classify children first so we know which to drop.
+      for (const item of node) {
+        if (item && typeof item === 'object') classify(item);
+      }
+      if (prune) {
+        // Remove fabricated verbatims in place. Only prune objects that ARE
+        // verbatims (have a quote); never touch non-verbatim array members.
+        for (let i = node.length - 1; i >= 0; i--) {
+          const item = node[i];
+          if (item && typeof item === 'object' && typeof item.quote === 'string' && item.prov === 'unverified') {
+            node.splice(i, 1);
+          }
+        }
+      }
+      // Recurse into whatever survives.
+      for (const item of node) visit(item);
+      return;
+    }
+    if (!node || typeof node !== 'object') return;
+    // A standalone verbatim object not inside an array (rare) — classify only.
+    if (typeof node.quote === 'string' && typeof node.prov === 'undefined') classify(node);
     for (const v of Object.values(node)) visit(v);
   };
 
