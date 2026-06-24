@@ -8,6 +8,7 @@ import { ModernSectionRenderer } from './report/ModernSectionRenderer';
 import { RunInspector } from './RunInspector';
 import { ExportBar } from './report/ExportBar';
 import { DataIngestionInfographic, CustomDataBadge } from './report/DataIngestionInfographic';
+import { beginRun, endRun } from '../lib/runState';
 
 interface Props {
   projectId: ProjectId;
@@ -51,6 +52,9 @@ export const ReportView: React.FC<Props> = ({ projectId, injectedEvidence }) => 
           console.error(`No template found for project: ${projectId}`);
           return;
       }
+
+      // Freeze the synthesis-engine choice for the whole run (lock the sidebar).
+      beginRun(projectId);
       
       // Reset State Immediately on Mount
       setSections([]);
@@ -67,6 +71,7 @@ export const ReportView: React.FC<Props> = ({ projectId, injectedEvidence }) => 
       const localSections: SectionOutput[] = [];
       
       // Execute Section Jobs Sequentially
+      try {
       for (const sec of template.sections) {
         if (!active) { console.debug(`[ReportView] ABORT ${projectId}`); break; }
 
@@ -128,12 +133,18 @@ export const ReportView: React.FC<Props> = ({ projectId, injectedEvidence }) => 
             }
         }
       }
+      } finally {
+        // Run finished or aborted — release the engine lock so the sidebar
+        // selector re-enables. (Unmount cleanup also calls endRun as a backstop.)
+        endRun();
+      }
     };
 
     loadReport();
     
     return () => {
         active = false; // Cleanup: Cancel the loop
+        endRun(); // Backstop: release engine lock if we unmount mid-run
         console.debug(`[ReportView] UNMOUNTING ${projectId}`);
     };
   }, [projectId, validEvidence]); 

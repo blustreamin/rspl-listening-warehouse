@@ -3,6 +3,7 @@ import { EvidenceGraph, TemplatePack, EvidenceEventV1 } from '../types';
 import { normalizeBabyDiapers } from '../utils/normalizers/normalizeBabyDiapers';
 import { evaluateBabyDiapersQuality } from './babyDiapersQualityGate';
 import { callLLM } from '../lib/llmClient';
+import { verifyContentVerbatims, type VerbatimAudit } from '../utils/verbatimProvenance';
 
 const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
@@ -142,6 +143,34 @@ export const synthesizeBabyDiapersSection = async (
   const capsule = prepareTargetedEvidence(evidenceGraph, sectionId);
   const brandSov = calculateBrandSOV(evidenceGraph);
 
+  // ── Provenance corpus: every real ingested quote text + the curated bank ──
+  // Verification runs against the FULL hydrated corpus (not just the capsule),
+  // so a quote counts as 'corpus' if it traces to ANY real record, and only
+  // genuine fabrications fall through to 'unverified'.
+  const corpusTexts = (evidenceGraph.events || [])
+    .map(e => e.content?.text || '')
+    .filter(t => t && t.length > 8);
+  const curatedTexts = SOCIAL_MEDIA_EVIDENCE_BANK.map(b => b.text);
+
+  // Verify + annotate real synthesis output before it is returned/cached.
+  // Seed fallback is never run through this (it is badged INDICATIVE upstream).
+  const finalizeReal = (content: any): any => {
+    try {
+      const audit: VerbatimAudit = verifyContentVerbatims(content, corpusTexts, curatedTexts);
+      // Ride the audit along in the content so it persists to the DB and the
+      // renderer can show a provenance badge. (Underscore-prefixed → ignored by
+      // every section renderer that whitelists known fields.)
+      content._verbatim_audit = audit;
+      logger?.(
+        `[BabyDiapers] provenance S=${sectionId}: ${audit.corpus}/${audit.total} corpus-verified, ` +
+        `${audit.curated} curated, ${audit.unverified} UNVERIFIED`
+      );
+    } catch (err: any) {
+      logger?.(`[BabyDiapers] provenance check skipped: ${err?.message || err}`);
+    }
+    return content;
+  };
+
   logger?.(`[BabyDiapers] S=${sectionId} evidence=${capsule.count}`);
 
   const buildPrompt = (tier: string, isRepair = false) => `
@@ -161,14 +190,30 @@ OUTPUT JSON RULES:
 2. No empty arrays; no placeholders ("N/A", "Derived", "Inferred").
 3. Every verbatim = {quote, source, consumer}; consumer is baby-age anchored.
 4. INDIA only, INR pricing. No TikTok, no WhatsApp.
+
+VERBATIM SOURCING — NON-NEGOTIABLE (provenance is audited downstream):
+- Every "quote" MUST be copied from a 'text' field inside EVIDENCE_CAPSULE.sample_evidence. Quote it word-for-word; you may trim to the relevant span but you may NOT paraphrase, merge two records, or invent.
+- Set "source" to that record's 'platform' value and "consumer" to a baby-age-anchored descriptor consistent with that record's geo/brand.
+- If the capsule lacks enough on-point material for a sub-point, write fewer verbatims rather than fabricating one. A short, real set beats a padded, invented one.
+- Quotes that cannot be traced back to a real ingested record are flagged "unverified" in the published report and logged for audit — do not manufacture quotes to hit a count.
 `;
+
+  // Output budget: the deep sections (long arrays of cards/stories, each with
+  // 5+ verbatims) can exceed 8k output tokens; truncation → invalid JSON → seed.
+  // Give those headroom; keep the lighter sections lean.
+  const HEAVY_SECTIONS = new Set([
+    'lovingle_diagnostic', 'babys_world_journey', 'pack_architecture',
+    'brand_landscape', 'decision_journey_stages', 'consumer_personas',
+    'needs_triggers_pains', 'gap_analysis',
+  ]);
+  const outputTokens = HEAVY_SECTIONS.has(sectionId) ? 16384 : 8192;
 
   // Returns model text, or null if no provider is configured (-> seed upstream).
   const callModelText = (tier: string, isRepair: boolean, budget: number) =>
     callLLM({
       prompt: buildPrompt(tier, isRepair),
       jsonMode: true,
-      maxTokens: 8192,
+      maxTokens: outputTokens,
       gemini: { grounding: true, thinkingBudget: budget },
     });
 
@@ -197,7 +242,7 @@ OUTPUT JSON RULES:
         logger?.(`[BabyDiapers] repair failed — seed override`);
         return normalizeBabyDiapers(sectionId, {});
       }
-      return normalized;
+      return finalizeReal(normalized);
     } catch (e: any) {
       console.warn(`[BabyDiapers] attempt ${attempts} failed:`, e?.message || e);
       if (attempts >= 2) break;

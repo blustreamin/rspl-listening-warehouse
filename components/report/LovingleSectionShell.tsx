@@ -20,7 +20,9 @@ const sumDataPoints = (node: any, seen: WeakSet<object> = new WeakSet()): number
   seen.add(node);
   let total = 0;
   if (!Array.isArray(node) && typeof node.data_points === 'number') total += node.data_points;
-  const values = Array.isArray(node) ? node : Object.values(node);
+  const values = Array.isArray(node)
+    ? node
+    : Object.entries(node).filter(([k]) => !k.startsWith('_')).map(([, v]) => v);
   for (const v of values) total += sumDataPoints(v, seen);
   return total;
 };
@@ -56,6 +58,12 @@ export const LovingleSectionShell: React.FC<ShellProps> = ({
   const sourceLayers = summary.sourceMix.map((s) => s.source).filter((s) => s && s !== 'Unattributed');
   const confidence = confidenceBand(totalDataPoints);
 
+  // Verbatim provenance, attached by the synthesis layer (real runs only).
+  const audit = (content as any)?._verbatim_audit;
+  const provenance = audit && typeof audit.total === 'number'
+    ? { corpus: audit.corpus || 0, total: audit.total || 0, unverified: audit.unverified || 0 }
+    : undefined;
+
   return (
     <div className="lv-scope">
       <div className="lv-sheet">
@@ -71,6 +79,7 @@ export const LovingleSectionShell: React.FC<ShellProps> = ({
           evidenceN={verbatims.length}
           confidence={confidence}
           window={`${totalDataPoints.toLocaleString()} data points · ${sourceLayers.length || 'multi'} source layers`}
+          provenance={provenance}
           metaSlot={<span className="lv-no-print"><EvidenceTrigger content={content} sectionTitle={title} /></span>}
         />
 

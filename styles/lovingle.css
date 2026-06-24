@@ -654,3 +654,13 @@
 .lv-switch-age{font-size:10px; color:var(--ink-3); font-style:italic}
 .lv-switch-outcome{font-size:11px; line-height:1.45; color:var(--ink-2); margin:6px 0 4px; padding:6px 10px; background:rgba(0,0,0,.025); border-radius:6px}
 .lv-switch-strat{font-size:10.5px; line-height:1.4; color:var(--o-700,#B84D12); margin-bottom:6px; padding:4px 10px; border-left:2px solid var(--o-400,#F26F21); background:rgba(242,111,33,.04); border-radius:0 4px 4px 0}
+
+/* ===== Verbatim provenance — verified / flagged ===== */
+.lv-pill-verified{background:#E8F6EC; color:#1B7A3D; border:1px solid #BCE5C8}
+.lv-pill-flagged{background:#FDF1E3; color:#B45C0C; border:1px solid #F5D9B3}
+.lv-vb-unverified{border-left-color:#E0A23C; background:#FDF8F0}
+.lv-vb-flag{display:inline-block; margin-left:7px; font-size:8.5px; font-weight:700; text-transform:uppercase; letter-spacing:.4px; color:#B45C0C; background:#F8E4C8; padding:1px 6px; border-radius:4px; vertical-align:middle}
+@media print{
+  .lv-pill-flagged{-webkit-print-color-adjust:exact; print-color-adjust:exact}
+  .lv-vb-flag{-webkit-print-color-adjust:exact; print-color-adjust:exact}
+}

@@ -153,6 +153,9 @@ export function extractEvidence(content: any): Verbatim[] {
     const childContext: InheritedContext = { confidence, data_points, label };
 
     for (const key of Object.keys(node)) {
+      // Skip internal bookkeeping (e.g. _verbatim_audit holds copies of flagged
+      // quotes for the provenance badge — they must not be recounted as evidence).
+      if (key.startsWith('_')) continue;
       walk(node[key], childContext);
     }
   };

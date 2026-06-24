@@ -22,6 +22,7 @@ export interface VerbatimContent {
   quote: string;
   source?: string;
   consumer?: string;
+  prov?: 'corpus' | 'curated' | 'unverified';
 }
 
 // ── tiny helpers ─────────────────────────────────────────────────────────────
@@ -81,9 +82,15 @@ export const LovingleGiraffe: React.FC = () => (
 export const VerbatimChip: React.FC<{ v: VerbatimContent }> = ({ v }) => {
   const quote = v?.quote;
   if (!quote) return null;
+  // Only fabricated quotes are surfaced. Corpus-verified and curated render
+  // identically (curated is intentionally silent).
+  const unverified = v.prov === 'unverified';
   return (
-    <p className="lv-vb">
+    <p className={`lv-vb${unverified ? ' lv-vb-unverified' : ''}`}>
       “{quote}”
+      {unverified && (
+        <span className="lv-vb-flag" title="This quote could not be matched to an ingested record. Treat as illustrative.">unverified</span>
+      )}
       {(v.source || v.consumer) && (
         <span className="lv-src">
           {v.source && <b>{v.source}</b>}
@@ -117,6 +124,7 @@ export interface ReportHeaderContent {
   window?: string;
   metaSlot?: React.ReactNode; // e.g. the F2 EvidenceTrigger
   indicative?: boolean;     // flag sample/indicative (not-yet-corpus-wired) content
+  provenance?: { corpus: number; total: number; unverified: number }; // verbatim grounding
 }
 
 const renderAccentTitle = (title: string, accent?: string): React.ReactNode => {
@@ -132,7 +140,7 @@ const renderAccentTitle = (title: string, accent?: string): React.ReactNode => {
 };
 
 export const ReportHeader: React.FC<ReportHeaderContent> = ({
-  eyebrow, title, titleAccent, standfirst, evidenceN, confidence, window, metaSlot, indicative,
+  eyebrow, title, titleAccent, standfirst, evidenceN, confidence, window, metaSlot, indicative, provenance,
 }) => (
   <header className="lv-head lv-reveal" style={{ animationDelay: '.02s' }}>
     <div>
@@ -153,6 +161,17 @@ export const ReportHeader: React.FC<ReportHeaderContent> = ({
         <span className="lv-pill lv-pill-ev"><span className="lv-dot" />Evidence · {evidenceN} verbatim{evidenceN === 1 ? '' : 's'}</span>
       )}
       {confidence && <span className="lv-pill lv-pill-conf">Confidence · {confidence}</span>}
+      {!indicative && provenance && provenance.total > 0 && (
+        provenance.unverified === 0 ? (
+          <span className="lv-pill lv-pill-verified" title="Every quote in this section traces to an ingested record.">
+            ✓ {provenance.corpus}/{provenance.total} corpus-verified
+          </span>
+        ) : (
+          <span className="lv-pill lv-pill-flagged" title={`${provenance.unverified} quote(s) could not be matched to an ingested record and are flagged inline.`}>
+            ⚠ {provenance.unverified} unverified
+          </span>
+        )
+      )}
       {metaSlot}
       {window && <span className="lv-win">{window}</span>}
     </div>
