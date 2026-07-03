@@ -30,7 +30,8 @@ export interface InsightBullet {
 }
 
 export interface SectionOutput {
-  status: 'OK' | 'PARTIAL' | 'SEEDED' | 'FAILED';
+  /** PENDING = awaiting-generation stub (baby-diapers v2 registry — no seeds). */
+  status: 'OK' | 'PARTIAL' | 'SEEDED' | 'FAILED' | 'PENDING';
   title: string;
   content: any; // Flexible schema based on section type
   fallbacksUsed: boolean;
@@ -285,6 +286,9 @@ export interface TemplateSection {
   title: string;
   uiSpec: 'cards' | 'matrix' | 'funnel' | 'text-list' | 'gap-analysis' | 'adult-profile' | 'adult-brand' | 'adult-gap' | 'baby-journey' | 'style-matrix' | 'pack-axis' | 'needs' | 'attributes' | 'price-pack' | 'baby-gap' | 'lovingle' | 'baby-brand';
   schema: any;
+  /** Booklet part grouping for TOC + accent routing (baby-diapers): the doc's
+   *  numbered main headings "1"–"7"; standalone headings carry no part. */
+  part?: string;
 }
 
 export interface TemplatePack {

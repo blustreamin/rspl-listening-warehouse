@@ -4,14 +4,30 @@ import { ReportView } from './components/ReportView';
 import { DataStudio } from './components/DataStudio';
 import { ProviderSelector } from './components/ProviderSelector';
 import { persistEvidence, loadEvidence } from './lib/persistence';
+import { isRunActive, getRunState } from './lib/runState';
 import { ProjectId, EvidenceGraph } from './types';
 
 const App: React.FC = () => {
   const [projectId, setProjectId] = useState<ProjectId>('disposable-period-panties');
   const [view, setView] = useState<'report' | 'data'>('report');
-  
+
   // FIX: Namespace evidence by project to prevent leakage when switching contexts
   const [evidenceByProject, setEvidenceByProject] = useState<Record<string, EvidenceGraph>>({});
+
+  // RUN-STATE LOCK: switching project remounts ReportView (keyed) and kills the
+  // run — confirm first. A confirmed abandon is recorded as partial_failed by
+  // the ReportView unmount cleanup, so the half-run is visible in the runs table.
+  const confirmAbandonIfRunning = (): boolean => {
+    if (!isRunActive()) return true;
+    const { done, total } = getRunState();
+    return window.confirm(`A synthesis run is in progress (${done}/${total}). Leaving abandons it.`);
+  };
+
+  const switchProject = (next: ProjectId) => {
+    if (next !== projectId && !confirmAbandonIfRunning()) return;
+    setProjectId(next);
+    setView('report');
+  };
 
   const handleDataIngested = (data: EvidenceGraph) => {
       // Ensure we store evidence strictly for the target project
@@ -22,12 +38,14 @@ const App: React.FC = () => {
           }));
           // Persist the computed graph so the report survives a refresh.
           void persistEvidence(data);
-          // Auto-switch project context if data implies a different project (optional safety)
+          // Auto-switch project context if data implies a different project —
+          // guarded: it would remount ReportView and abandon a live run.
           if (data.projectId !== projectId) {
+              if (!confirmAbandonIfRunning()) { setView('report'); return; }
               setProjectId(data.projectId as ProjectId);
           }
       }
-      setView('report'); 
+      setView('report');
   };
 
   // On mount / project switch, if we have no in-session evidence for this project,
@@ -91,7 +109,7 @@ const App: React.FC = () => {
               <ul className="space-y-1">
                  <li>
                     <button 
-                        onClick={() => { setProjectId('disposable-period-panties'); setView('report'); }}
+                        onClick={() => switchProject('disposable-period-panties')}
                         className={`w-full text-left px-3 py-2 rounded text-sm transition-colors ${projectId === 'disposable-period-panties' ? 'text-indigo-300 font-medium' : 'hover:bg-slate-800'}`}
                     >
                         Disposable Panties
@@ -99,7 +117,7 @@ const App: React.FC = () => {
                  </li>
                  <li>
                     <button 
-                        onClick={() => { setProjectId('reusable-period-panties'); setView('report'); }}
+                        onClick={() => switchProject('reusable-period-panties')}
                         className={`w-full text-left px-3 py-2 rounded text-sm transition-colors ${projectId === 'reusable-period-panties' ? 'text-indigo-300 font-medium' : 'hover:bg-slate-800'}`}
                     >
                         Reusable Panties
@@ -107,7 +125,7 @@ const App: React.FC = () => {
                  </li>
                  <li>
                     <button 
-                        onClick={() => { setProjectId('sanitary-pads'); setView('report'); }}
+                        onClick={() => switchProject('sanitary-pads')}
                         className={`w-full text-left px-3 py-2 rounded text-sm transition-colors ${projectId === 'sanitary-pads' ? 'text-indigo-300 font-medium' : 'hover:bg-slate-800'}`}
                     >
                         Sanitary Pads
@@ -115,7 +133,7 @@ const App: React.FC = () => {
                  </li>
                  <li>
                     <button 
-                        onClick={() => { setProjectId('adult-diapers'); setView('report'); }}
+                        onClick={() => switchProject('adult-diapers')}
                         className={`w-full text-left px-3 py-2 rounded text-sm transition-colors ${projectId === 'adult-diapers' ? 'text-indigo-300 font-medium' : 'hover:bg-slate-800'}`}
                     >
                         Adult Diapers
@@ -123,10 +141,10 @@ const App: React.FC = () => {
                  </li>
                  <li>
                     <button 
-                        onClick={() => { setProjectId('baby-diapers'); setView('report'); }}
+                        onClick={() => switchProject('baby-diapers')}
                         className={`w-full text-left px-3 py-2 rounded text-sm transition-colors ${projectId === 'baby-diapers' ? 'text-indigo-300 font-medium' : 'hover:bg-slate-800'}`}
                     >
-                        Baby Diapers <span className="text-[10px] text-slate-500">· Lovingle</span>
+                        Baby Diapers
                     </button>
                  </li>
               </ul>
@@ -147,13 +165,17 @@ const App: React.FC = () => {
 
       {/* Main Content Area */}
       <main className="lv-report-scroll flex-1 overflow-y-auto h-full scroll-smooth">
-          {view === 'report' ? (
-             <ReportView 
+          {/* RUN-STATE LOCK: ReportView stays MOUNTED (hidden) while in Data
+              Studio so a live run keeps going — only a project switch (keyed
+              remount) or tab close can abandon it, and both are guarded. */}
+          <div style={{ display: view === 'report' ? undefined : 'none' }}>
+             <ReportView
                 key={projectId} // CRITICAL FIX: Force remount on project change to wipe state
-                projectId={projectId} 
-                injectedEvidence={activeEvidence} 
+                projectId={projectId}
+                injectedEvidence={activeEvidence}
              />
-          ) : (
+          </div>
+          {view === 'data' && (
              <DataStudio projectId={projectId} onDataIngested={handleDataIngested} />
           )}
       </main>

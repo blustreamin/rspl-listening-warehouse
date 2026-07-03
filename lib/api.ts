@@ -3,6 +3,8 @@
 // deployed backend, set VITE_API_BASE to the Vercel URL.
 
 const BASE: string = ((import.meta as any).env?.VITE_API_BASE as string) || "";
+/** Exported for callers that need the raw endpoint (e.g. sendBeacon). */
+export const API_BASE: string = BASE;
 
 async function asJson(res: Response): Promise<any> {
   const txt = await res.text();

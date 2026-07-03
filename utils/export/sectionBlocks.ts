@@ -357,7 +357,9 @@ const sectionToBlocks = (sectionId: string, d: any): { eyebrow: string; standfir
         }] };
 
     default:
-      return { eyebrow: EY('Section'), standfirst: '', blocks: [] };
+      // v2 registry sections reach here (office-export composition for the new
+      // structure is a future task). N8 — no brand name in export chrome.
+      return { eyebrow: 'Baby Diaper · Category & Consumer Understanding', standfirst: '', blocks: [] };
   }
 };
 
@@ -390,7 +392,8 @@ export const reportToBlocks = (sections: SectionOutput[]): ReportExport => {
   });
 
   return {
-    title: 'Lovingle · Baby Diapers',
+    // N8 — no brand name in export chrome.
+    title: 'Baby Diaper — Category and Consumer Understanding',
     subtitle: 'Consumer Listening Report — India',
     dateLabel: new Date().toLocaleDateString('en-IN', { year: 'numeric', month: 'long', day: 'numeric' }),
     totalEvidence, totalDataPoints, confidence: confidenceBand(totalDataPoints),

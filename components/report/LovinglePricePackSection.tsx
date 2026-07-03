@@ -1,3 +1,3 @@
-/* Kept for import stability — the keystone Price–Pack section now lives, with all
-   other Lovingle sections, in ./LovingleSections (F3 warm-premium parity pass). */
-export { LovinglePricePackSection, LovinglePricePackSection as default } from './LovingleSections';
+/* Kept for import stability — the price–pack keystone was superseded by the
+   Pricing section (14) of the v2 registry; all sections live in ./LovingleSections. */
+export { BkPricingDynamics as LovinglePricePackSection, BkPricingDynamics as default } from './LovingleSections';

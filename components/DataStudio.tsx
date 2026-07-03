@@ -5,6 +5,7 @@ import { EvidenceGraph, ProjectId, UploadedFile, FileSourceTag, InputMapping, In
 import { FileStore } from '../services/fileStore';
 import { parseFile } from '../services/fileParsing';
 import { MappingModal } from './MappingModal';
+import { useRunState } from '../lib/runState';
 
 interface Props {
   projectId: ProjectId;
@@ -46,8 +47,9 @@ export const DataStudio: React.FC<Props> = ({ projectId, onDataIngested }) => {
   }, [files]);
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (uploadLocked) return; // RUN-STATE LOCK — no corpus changes under a running synthesis
     if (!e.target.files || e.target.files.length === 0) return;
-    
+
     setIsUploading(true);
     setError(null);
     
@@ -111,6 +113,7 @@ export const DataStudio: React.FC<Props> = ({ projectId, onDataIngested }) => {
   };
 
   const handleIngest = async () => {
+    if (uploadLocked) return; // RUN-STATE LOCK — an ingest mid-run would change the evidence hash under the running synthesis
     if (!manualText.trim() && uniqueFiles.length === 0) {
         setError("No data provided. Please upload files or paste text.");
         return;
@@ -176,6 +179,12 @@ export const DataStudio: React.FC<Props> = ({ projectId, onDataIngested }) => {
 
   const allFilesMapped = uniqueFiles.length > 0 && uniqueFiles.every(f => mappings[f.id]?.status === 'ready');
 
+  // RUN-STATE LOCK: while this project's synthesis is running, uploads are
+  // blocked — an ingest would change the evidence hash UNDER the running run,
+  // splitting one report across two corpora.
+  const run = useRunState();
+  const uploadLocked = run.phase === 'running' && run.projectId === projectId;
+
   return (
     <div className="max-w-5xl mx-auto px-6 py-12">
       <MappingModal 
@@ -206,6 +215,18 @@ export const DataStudio: React.FC<Props> = ({ projectId, onDataIngested }) => {
             </div>
         </div>
       </header>
+
+      {/* RUN-STATE LOCK NOTICE */}
+      {uploadLocked && (
+        <div className="mb-6 p-4 bg-amber-50 text-amber-800 text-sm rounded-lg border border-amber-200 flex items-start gap-3">
+            <svg className="w-5 h-5 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>
+            <div>
+                <span className="font-bold block mb-1">Uploads locked — synthesis in progress ({run.done}/{run.total} sections)</span>
+                Ingesting data now would change this project's evidence hash under the running synthesis,
+                splitting one report across two corpora. Wait for the run to finish, then upload.
+            </div>
+        </div>
+      )}
 
       {/* ERROR / SUCCESS ALERTS */}
       {error && (
@@ -249,9 +270,10 @@ export const DataStudio: React.FC<Props> = ({ projectId, onDataIngested }) => {
                     </button>
                 </div>
                 <div className="p-6">
-                    <div 
-                        className="border-2 border-dashed border-slate-300 rounded-lg p-8 text-center hover:bg-slate-50 transition-colors cursor-pointer"
-                        onClick={() => fileInputRef.current?.click()}
+                    <div
+                        className={`border-2 border-dashed border-slate-300 rounded-lg p-8 text-center transition-colors ${uploadLocked ? 'opacity-50 cursor-not-allowed' : 'hover:bg-slate-50 cursor-pointer'}`}
+                        title={uploadLocked ? `Uploads locked — synthesis in progress (${run.done}/${run.total} sections)` : undefined}
+                        onClick={() => { if (!uploadLocked) fileInputRef.current?.click(); }}
                     >
                         <input 
                             type="file" 
@@ -364,12 +386,13 @@ export const DataStudio: React.FC<Props> = ({ projectId, onDataIngested }) => {
                       </div>
                   </div>
 
-                  <button 
+                  <button
                     onClick={handleIngest}
-                    disabled={isProcessing || (uniqueFiles.length === 0 && !manualText)}
+                    disabled={isProcessing || uploadLocked || (uniqueFiles.length === 0 && !manualText)}
+                    title={uploadLocked ? `Uploads locked — synthesis in progress (${run.done}/${run.total} sections)` : undefined}
                     className={`w-full py-3 rounded-lg font-bold shadow-lg transition-all flex items-center justify-center gap-2
-                        ${isProcessing || (uniqueFiles.length === 0 && !manualText)
-                            ? 'bg-slate-700 text-slate-500 cursor-not-allowed' 
+                        ${isProcessing || uploadLocked || (uniqueFiles.length === 0 && !manualText)
+                            ? 'bg-slate-700 text-slate-500 cursor-not-allowed'
                             : 'bg-indigo-600 hover:bg-indigo-500 text-white hover:shadow-indigo-500/25'}
                     `}
                   >

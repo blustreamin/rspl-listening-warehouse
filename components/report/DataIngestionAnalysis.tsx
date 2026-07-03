@@ -1,5 +1,5 @@
 /* ============================================================================
-   DataIngestionAnalysis — report section 20 (`methodology_evidence`) panel.
+   DataIngestionAnalysis — report section 20 (`data_foundation`) appendix panel.
    Self-chrome warm-premium "evidence base" ledger for the Lovingle baby-diaper
    report. Block order matches the approved mockup:
      [header + EVIDENCE BASE badge] → [4 KPIs] → [period banner + 2 definitions]
@@ -66,6 +66,7 @@ export default function DataIngestionAnalysis({ data = realLedger as unknown as 
   const topRated = rated.slice().sort((a, b) => (b.rating! - a.rating!))[0];
   const topReviewed = data.brands.slice().sort((a, b) => b.count - a.count)[0];
   return (
+    // page break comes from the wrapping section shell (data_foundation)
     <section className="lvig-panel" aria-label="Data ingestion analysis">
       <div className="lvig-motif" aria-hidden="true"><Icon k="glass" /></div>
 

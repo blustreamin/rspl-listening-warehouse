@@ -7,8 +7,9 @@ import { SectionRenderer } from './SectionRenderer';
 import { ModernSectionRenderer } from './report/ModernSectionRenderer';
 import { RunInspector } from './RunInspector';
 import { ExportBar } from './report/ExportBar';
+import { BookletCover, BookletTOC } from './report/blocks/BookletChrome';
 import { DataIngestionInfographic, CustomDataBadge } from './report/DataIngestionInfographic';
-import { beginRun, endRun } from '../lib/runState';
+import { beginRun, completeRun, abandonRun, reportRunProgress } from '../lib/runState';
 
 interface Props {
   projectId: ProjectId;
@@ -42,6 +43,14 @@ export const ReportView: React.FC<Props> = ({ projectId, injectedEvidence }) => 
   // GUARD: Ensure injected evidence belongs to current project if present
   const validEvidence = (injectedEvidence && injectedEvidence.projectId === projectId) ? injectedEvidence : null;
 
+  // N7 — client-facing browser-tab title for the baby-diapers report.
+  useEffect(() => {
+    if (projectId !== 'baby-diapers') return;
+    const prev = document.title;
+    document.title = 'Baby Diaper — Category and Consumer Understanding';
+    return () => { document.title = prev; };
+  }, [projectId]);
+
   useEffect(() => {
     let active = true; // ABORT FLAG
     console.debug(`[ReportView] MOUNTING ${projectId}`);
@@ -53,8 +62,9 @@ export const ReportView: React.FC<Props> = ({ projectId, injectedEvidence }) => 
           return;
       }
 
-      // Freeze the synthesis-engine choice for the whole run (lock the sidebar).
-      beginRun(projectId);
+      // Run-state lock: freezes exports, the engine choice, uploads for this
+      // project, and guards project switch / tab close until the run resolves.
+      beginRun(projectId, template.sections.length);
       
       // Reset State Immediately on Mount
       setSections([]);
@@ -69,7 +79,9 @@ export const ReportView: React.FC<Props> = ({ projectId, injectedEvidence }) => 
       });
 
       const localSections: SectionOutput[] = [];
-      
+      let resolvedCount = 0;
+      let failedCount = 0;
+
       // Execute Section Jobs Sequentially
       try {
       for (const sec of template.sections) {
@@ -115,7 +127,11 @@ export const ReportView: React.FC<Props> = ({ projectId, injectedEvidence }) => 
 
             localSections.push(result);
             setSections([...localSections]); // Incremental update
-            
+
+            resolvedCount++;
+            if (result.status === 'FAILED') failedCount++;
+            reportRunProgress(resolvedCount, failedCount);
+
             // Update Inspector Status
             setInspectorData(prev => ({
               ...prev,
@@ -125,32 +141,38 @@ export const ReportView: React.FC<Props> = ({ projectId, injectedEvidence }) => 
         } catch (err) {
             console.error(`Pipeline failed for ${sec.sectionId}`, err);
             if (active) {
+                resolvedCount++;
+                failedCount++;
+                reportRunProgress(resolvedCount, failedCount);
                 setInspectorData(prev => ({
                     ...prev,
                     perSectionStatus: { ...prev.perSectionStatus, [sec.sectionId]: 'FAILED' },
-                    retryLog: [...prev.retryLog, `CRITICAL FAIL S${sec.sectionId}: ${err}`]
+                    retryLog: [...prev.retryLog, `CRITICAL FAIL ${sec.sectionId}: ${err}`]
                 }));
             }
         }
       }
       } finally {
-        // Run finished or aborted — release the engine lock so the sidebar
-        // selector re-enables. (Unmount cleanup also calls endRun as a backstop.)
-        endRun();
+        // Natural end → complete (or partial_failed if any section FAILED);
+        // an aborted loop → abandoned, recorded as partial_failed so the
+        // half-run is visible in the runs table instead of silent.
+        if (active) completeRun();
+        else abandonRun();
       }
     };
 
     loadReport();
-    
+
     return () => {
         active = false; // Cleanup: Cancel the loop
-        endRun(); // Backstop: release engine lock if we unmount mid-run
+        abandonRun(); // Backstop: an unmount mid-run is an abandoned run
         console.debug(`[ReportView] UNMOUNTING ${projectId}`);
     };
-  }, [projectId, validEvidence]); 
+  }, [projectId, validEvidence]);
 
   return (
-    <div className="max-w-5xl mx-auto px-6 py-12 pb-32">
+    // id anchors the inspector-drawer content shift (booklet.css, ≥1280px)
+    <div id="lovingle-page" className="max-w-5xl mx-auto px-6 py-12 pb-32">
       {projectId === 'baby-diapers' && <ExportBar sections={sections} />}
       {/* Baby-diapers leads with the warm exec_summary cover; hide the slate report header. */}
       {projectId !== 'baby-diapers' && <header className="mb-12 lv-no-print">
@@ -194,7 +216,15 @@ export const ReportView: React.FC<Props> = ({ projectId, injectedEvidence }) => 
           </div>
       )}
 
-      <div className="space-y-2">
+      {/* N15 — html2pdf capture root: Cover → TOC → sections 00–20 all live
+          inside this container so the downloaded PDF captures the full booklet. */}
+      <div className="space-y-2" id="lovingle-report-container">
+        {projectId === 'baby-diapers' && (
+          <>
+            <BookletCover />
+            <BookletTOC />
+          </>
+        )}
         {sections
             .filter(section => {
                 if (section.projectId && section.projectId !== projectId) {

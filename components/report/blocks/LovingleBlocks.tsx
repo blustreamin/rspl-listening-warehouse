@@ -23,6 +23,7 @@ export interface VerbatimContent {
   source?: string;
   consumer?: string;
   prov?: 'corpus' | 'curated' | 'unverified';
+  verbatim_attribution?: VerbatimAttribution; // N12 — structured demographics
 }
 
 // ── tiny helpers ─────────────────────────────────────────────────────────────
@@ -55,6 +56,20 @@ export const cleanVerbatimText = (text?: string): string => {
     .replace(/Ã‚Â/g, '').replace(/Â/g, '')
     .replace(/\s+/g, ' ')
     .trim();
+};
+
+// ── N4 · consumer-terminology sanitiser ──────────────────────────────────────
+// "Laddi" is an internal RSPL product-line name, not a consumer term. Scrub it
+// from consumer-facing analysis text. Section 12 (Pack Architecture) is exempt:
+// its tier labels are built by its own PackCard (packLabel), which does not
+// route through InsightCard/VerbatimChip, so the exemption holds structurally.
+export const sanitiseConsumerText = (text?: string): string => {
+  if (!text) return '';
+  return String(text)
+    .replace(/\bLaddi Single\b/gi, 'single-use sachet pack')
+    .replace(/\bLaddi Twin\b/gi, 'twin sachet pack')
+    .replace(/\bnon[- ]laddi\b/gi, 'standard multi-count pack')
+    .replace(/\bLaddi\b/gi, 'sachet pack');
 };
 
 const confClass = (c?: ConfidenceLevel): string =>
@@ -107,33 +122,47 @@ export const LovingleGiraffe: React.FC = () => (
 
 // ── Block 2 · VerbatimChip ───────────────────────────────────────────────────
 
-// L1.2 + L1.5 — quotes are mojibake-cleaned, trimmed to ~120 chars with an
-// inline "show full quote" toggle (hidden in print). Provenance flag preserved.
-const VB_LIMIT = 120;
+// N12 — structured demographic attribution, extracted by the LLM per quote.
+export interface VerbatimAttribution {
+  parent_age?: string;        // "28 yrs"
+  baby_age?: string;          // "Mom of 3-month baby"
+  parity?: string;            // "1st time mom" | "2nd time mom"
+  city?: string;              // "Mumbai"
+  tier?: string;              // "Tier 1" | "Tier 2" | "Metro"
+  segment?: string;           // "Mass" | "Mid-Premium" | "Premium"
+  brand_user?: string;        // "Pampers User" | "Lovingle User"
+  platform?: string;          // "Amazon" | "Instagram" (fallback display)
+}
 
+export const formatAttribution = (attr?: VerbatimAttribution): string => {
+  if (!attr) return '';
+  const parts = [attr.parent_age, attr.baby_age, attr.parity, attr.city, attr.tier, attr.segment, attr.brand_user]
+    .map((p) => cleanVerbatimText(p)).filter(Boolean);
+  if (parts.length === 0) return attr.platform ? `— ${cleanVerbatimText(attr.platform)} review` : '';
+  return `— ${parts.join(', ')}`;
+};
+
+// N6 — quotes render in FULL (no truncation, no collapse), mojibake-cleaned
+// (L1.5) and terminology-sanitised (N4). Provenance flag preserved. Hierarchy
+// is carried by type: quotes are smaller/italic/grey vs the card finding.
 export const VerbatimChip: React.FC<{ v: VerbatimContent }> = ({ v }) => {
-  const quote = cleanVerbatimText(v?.quote);
-  const [open, setOpen] = React.useState(false);
+  const quote = sanitiseConsumerText(cleanVerbatimText(v?.quote));
   if (!quote) return null;
   // Only fabricated quotes are surfaced. Corpus-verified and curated render
   // identically (curated is intentionally silent).
   const unverified = v.prov === 'unverified';
-  const long = quote.length > VB_LIMIT;
-  const shown = long && !open ? quote.slice(0, VB_LIMIT).trimEnd() + '…' : quote;
+  const attribution = formatAttribution(v.verbatim_attribution);
   const source = cleanVerbatimText(v.source);
   const consumer = cleanVerbatimText(v.consumer);
   return (
     <p className={`lv-vb${unverified ? ' lv-vb-unverified' : ''}`}>
-      “{shown}”
-      {long && (
-        <button type="button" className="lv-vb-toggle lv-no-print" onClick={() => setOpen((o) => !o)}>
-          {open ? 'show less' : 'show full quote'}
-        </button>
-      )}
+      “{quote}”
       {unverified && (
         <span className="lv-vb-flag" title="This quote could not be matched to an ingested record. Treat as illustrative.">unverified</span>
       )}
-      {(source || consumer) && (
+      {attribution ? (
+        <span className="lv-vb-attr">{attribution}</span>
+      ) : (source || consumer) && (
         <span className="lv-src">
           {source && <b>{source}</b>}
           {source && consumer && ' · '}
@@ -144,27 +173,28 @@ export const VerbatimChip: React.FC<{ v: VerbatimContent }> = ({ v }) => {
   );
 };
 
-export const VerbatimChipList: React.FC<{ items: any; max?: number }> = ({ items, max = 3 }) => {
-  const list = asArray<VerbatimContent>(items).filter((v) => v?.quote).slice(0, max);
-  const [showAll, setShowAll] = React.useState(false);
+// N6 — every verbatim the section carries renders, full-text, screen and print.
+// Density is controlled at generation time (Layer 2.4: max 1/card, trimmed),
+// not by the renderer. `max` is retained for call-site compatibility but is
+// intentionally ignored.
+export const VerbatimChipList: React.FC<{ items: any; max?: number }> = ({ items }) => {
+  const list = asArray<VerbatimContent>(items).filter((v) => v?.quote);
   if (!list.length) return null;
-  // L1.2 — show the first verbatim only; the rest collapse behind "+N more"
-  // (omitted entirely in print, which renders just the first quote).
-  const visible = showAll ? list : list.slice(0, 1);
-  const hidden = list.length - 1;
   return (
     <div className="lv-quotes">
-      {visible.map((v, i) => <VerbatimChip key={i} v={v} />)}
-      {!showAll && hidden > 0 && (
-        <button type="button" className="lv-quotes-more lv-no-print" onClick={() => setShowAll(true)}>
-          +{hidden} more quote{hidden === 1 ? '' : 's'}
-        </button>
-      )}
+      {list.map((v, i) => <VerbatimChip key={i} v={v} />)}
     </div>
   );
 };
 
 // ── Block 1 · ReportHeader ───────────────────────────────────────────────────
+
+// N7 — the client-facing report title. "Lovingle" stays in the ANALYSIS text,
+// not the report chrome (headers / footers / navigation).
+export const REPORT_TITLE = 'Baby Diaper — Category and Consumer Understanding';
+
+// N8 — section eyebrows arrive as "Lovingle · X"; strip the brand from chrome.
+const stripBrandFromChrome = (s: string): string => String(s || '').replace(/^\s*Lovingle\s*·\s*/i, '');
 
 export interface ReportHeaderContent {
   eyebrow: string;
@@ -177,6 +207,7 @@ export interface ReportHeaderContent {
   metaSlot?: React.ReactNode; // e.g. the F2 EvidenceTrigger
   indicative?: boolean;     // flag sample/indicative (not-yet-corpus-wired) content
   provenance?: { corpus: number; total: number; unverified: number }; // verbatim grounding
+  secNum?: string;          // N14 — zero-padded section number ("01"…"25")
 }
 
 const renderAccentTitle = (title: string, accent?: string): React.ReactNode => {
@@ -192,20 +223,24 @@ const renderAccentTitle = (title: string, accent?: string): React.ReactNode => {
 };
 
 export const ReportHeader: React.FC<ReportHeaderContent> = ({
-  eyebrow, title, titleAccent, standfirst, evidenceN, confidence, window, metaSlot, indicative, provenance,
+  eyebrow, title, titleAccent, standfirst, evidenceN, confidence, window, metaSlot, indicative, provenance, secNum,
 }) => (
   <header className="lv-head lv-reveal" style={{ animationDelay: '.02s' }}>
     <div>
-      <div className="lv-brandrow"><LogoLockup /></div>
+      {/* N7/N8 — report title in the chrome; no brand logo/name. */}
+      <div className="lv-brandrow"><span className="lv-report-title">{REPORT_TITLE}</span></div>
       {indicative ? (
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap', marginBottom: 4 }}>
-          <span className="lv-eyebrow">{eyebrow}</span>
+          <span className="lv-eyebrow">{stripBrandFromChrome(eyebrow)}</span>
           <span className="lv-indicative">Indicative · sample data</span>
         </div>
       ) : (
-        <span className="lv-eyebrow">{eyebrow}</span>
+        <span className="lv-eyebrow">{stripBrandFromChrome(eyebrow)}</span>
       )}
-      <h1 className="lv-h1">{renderAccentTitle(title, titleAccent)}</h1>
+      <h1 className="lv-h1">
+        {secNum && <span className="lv-secnum">{secNum}</span>}
+        {renderAccentTitle(title, titleAccent)}
+      </h1>
       {standfirst && <p className="lv-standfirst">{standfirst}</p>}
     </div>
     <div className="lv-meta">
@@ -251,36 +286,56 @@ const MET_META: Record<string, { label: string; cls: string }> = {
   PARTIALLY: { label: 'PARTIALLY MET', cls: 'lv-met-partial' },
 };
 
-// L1.1 hero variant + L1.3 standardised evidence badge ("n = 620 · High").
-export const InsightCard: React.FC<{ c: InsightCardContent; hero?: boolean }> = ({ c, hero }) => {
+// N5+N13 — evidence badge shows the card's SHARE of section evidence, not the
+// raw count ("15% · High"). Tooltip carries the absolute. Falls back to the raw
+// count when no section total is available.
+export const evidencePct = (n?: number, totalN?: number): string | null => {
+  if (typeof n !== 'number') return null;
+  if (n === 0) return '—'; // zero evidence is shown as absent, never as "<1%"
+  if (!totalN || totalN <= 0) return null;
+  const pct = Math.round((n / totalN) * 100);
+  return pct < 1 ? '<1%' : `${pct}%`;
+};
+
+// L1.1 hero variant + N5/N13 percentage evidence badge.
+export const InsightCard: React.FC<{ c: InsightCardContent; hero?: boolean; totalN?: number; showVerbatims?: boolean }> =
+  ({ c, hero, totalN, showVerbatims = true }) => {
   const conf = c.confidence ? confLabel(c.confidence) : '';
-  const n = typeof c.evidenceWeight === 'number' ? c.evidenceWeight.toLocaleString() : '';
+  const hasN = typeof c.evidenceWeight === 'number';
+  const pct = evidencePct(c.evidenceWeight, totalN);
+  const nDisp = pct ?? (hasN ? `n = ${c.evidenceWeight!.toLocaleString()}` : '');
+  const badgeTitle = pct
+    ? `${c.evidenceWeight!.toLocaleString()} data points out of ${totalN!.toLocaleString()} in this section`
+    : 'Evidence weight — number of corpus records supporting this finding';
   const met = c.metStatus ? MET_META[String(c.metStatus).toUpperCase().replace(/[\s-]/g, '_')] : undefined;
   return (
     <div className={`lv-card${hero ? ' lv-hero' : ''}`}>
       <div className="lv-card-head">
-        <div className="lv-card-title">{c.headline}</div>
+        <div className="lv-card-title">{sanitiseConsumerText(c.headline)}</div>
         <div className="lv-card-badges">
           {met && <span className={`lv-met ${met.cls}`}>{met.label}</span>}
-          {(n || conf) && (
-            <span className={`lv-evbadge ${c.confidence ? confClass(c.confidence) : ''}`}
-                  title="Evidence weight — number of corpus records supporting this finding">
-              {n && <>n&nbsp;=&nbsp;{n}</>}
-              {n && conf && <span className="lv-evbadge-sep"> · </span>}
+          {(nDisp || conf) && (
+            <span className={`lv-evbadge ${c.confidence ? confClass(c.confidence) : ''}`} title={badgeTitle}>
+              {nDisp}
+              {nDisp && conf && <span className="lv-evbadge-sep"> · </span>}
               {conf}
             </span>
           )}
         </div>
       </div>
-      {c.signal && <div className="lv-card-sig">{c.signal}</div>}
-      <VerbatimChipList items={c.verbatims} max={6} />
+      {c.signal && <div className="lv-card-sig">{sanitiseConsumerText(c.signal)}</div>}
+      {showVerbatims && <VerbatimChipList items={c.verbatims} />}
     </div>
   );
 };
 
-export const InsightCardGrid: React.FC<{ items: InsightCardContent[] }> = ({ items }) => {
+export const InsightCardGrid: React.FC<{ items: InsightCardContent[]; totalN?: number; showVerbatims?: boolean }> =
+  ({ items, totalN, showVerbatims = true }) => {
   const list = asArray<InsightCardContent>(items);
   if (!list.length) return null;
+  // N5 — section-relative share: default the total to this group's own sum;
+  // multi-group sections (LabeledCardGroups) pass the cross-group total down.
+  const groupTotal = totalN ?? list.reduce((s, c) => s + (typeof c.evidenceWeight === 'number' ? c.evidenceWeight : 0), 0);
   // L1.1 — the single highest-evidence card in the group gets hero treatment.
   let heroIdx = -1, heroMax = -1;
   list.forEach((c, i) => {
@@ -290,7 +345,9 @@ export const InsightCardGrid: React.FC<{ items: InsightCardContent[] }> = ({ ite
   const heroOn = list.length > 1 && heroMax > 0;
   return (
     <div className="lv-cardgrid">
-      {list.map((c, i) => <InsightCard key={i} c={c} hero={heroOn && i === heroIdx} />)}
+      {list.map((c, i) => (
+        <InsightCard key={i} c={c} hero={heroOn && i === heroIdx} totalN={groupTotal} showVerbatims={showVerbatims} />
+      ))}
     </div>
   );
 };
@@ -597,16 +654,22 @@ export const SynthesisBlock: React.FC<{ title?: string; items?: any; children?: 
 
 export interface CardGroup { label: string; tone?: Tone; cards: InsightCardContent[]; }
 
-export const LabeledCardGroups: React.FC<{ groups: CardGroup[] }> = ({ groups }) => (
-  <>
-    {asArray<CardGroup>(groups).filter((g) => g.cards && g.cards.length).map((g, i) => (
-      <div key={i} className={`lv-subzone lv-sublayer-${(i % 4) + 1}`}>
-        <SubHead label={g.label} tone={g.tone} />
-        <InsightCardGrid items={g.cards} />
-      </div>
-    ))}
-  </>
-);
+export const LabeledCardGroups: React.FC<{ groups: CardGroup[] }> = ({ groups }) => {
+  const valid = asArray<CardGroup>(groups).filter((g) => g.cards && g.cards.length);
+  // N5 — evidence share is computed against the whole section (all groups).
+  const sectionTotal = valid.reduce(
+    (s, g) => s + g.cards.reduce((t, c) => t + (typeof c.evidenceWeight === 'number' ? c.evidenceWeight : 0), 0), 0);
+  return (
+    <>
+      {valid.map((g, i) => (
+        <div key={i} className={`lv-subzone lv-sublayer-${(i % 4) + 1}`}>
+          <SubHead label={g.label} tone={g.tone} />
+          <InsightCardGrid items={g.cards} totalN={sectionTotal} />
+        </div>
+      ))}
+    </>
+  );
+};
 
 // ── CrossTab (interaction matrix) ────────────────────────────────────────────
 
@@ -739,21 +802,29 @@ const sevClass = (s?: string): string => {
   return u === 'HIGH' ? 'lv-sev-high' : u === 'LOW' ? 'lv-sev-low' : 'lv-sev-med';
 };
 
-const GapRows: React.FC<{ bullets: GapBullet[] }> = ({ bullets }) => (
+const GapRows: React.FC<{ bullets: GapBullet[]; totalN?: number }> = ({ bullets, totalN }) => (
   <>
-    {asArray<GapBullet>(bullets).map((b, i) => (
+    {asArray<GapBullet>(bullets).map((b, i) => {
+      const pct = evidencePct(b.data_points, totalN);
+      return (
       <div key={i} className={`lv-gaprow ${sevClass(b.severity)}`}>
         <div className="lv-gaprow-head">
-          <span className="lv-gap-claim">{b.claim}</span>
+          <span className="lv-gap-claim">{sanitiseConsumerText(b.claim)}</span>
           <span style={{ display: 'flex', gap: 6, alignItems: 'center', flex: 'none' }}>
             {b.severity && <span className="lv-sev">{b.severity}</span>}
-            {typeof b.data_points === 'number' && <span className="lv-evbadge">n&nbsp;=&nbsp;{b.data_points.toLocaleString()}</span>}
+            {typeof b.data_points === 'number' && (
+              <span className="lv-evbadge"
+                title={pct ? `${b.data_points.toLocaleString()} data points out of ${totalN!.toLocaleString()} in this section` : 'Evidence weight — number of corpus records supporting this finding'}>
+                {pct ?? `n = ${b.data_points.toLocaleString()}`}
+              </span>
+            )}
           </span>
         </div>
-        {b.explanation && <div className="lv-gap-exp">{b.explanation}</div>}
-        <VerbatimChipList items={b.consumer_evidence} max={5} />
+        {b.explanation && <div className="lv-gap-exp">{sanitiseConsumerText(b.explanation)}</div>}
+        <VerbatimChipList items={b.consumer_evidence} />
       </div>
-    ))}
+      );
+    })}
   </>
 );
 
@@ -761,21 +832,26 @@ export interface GapColumnsContent {
   current?: GapBlock; resolved?: GapBlock; unresolved?: GapBlock; needGap?: { heading?: string; need_statements: NeedStatement[] };
 }
 
-export const GapColumns: React.FC<GapColumnsContent> = ({ current, resolved, unresolved, needGap }) => (
+export const GapColumns: React.FC<GapColumnsContent> = ({ current, resolved, unresolved, needGap }) => {
+  // N5 — share-of-evidence denominator spans every bullet in the section.
+  const gapTotal = [current, resolved, unresolved]
+    .flatMap((blk) => asArray<GapBullet>(blk?.bullets))
+    .reduce((s, b) => s + (typeof b?.data_points === 'number' ? b.data_points : 0), 0);
+  return (
   <div>
     {current && asArray(current.bullets).length > 0 && (
       <div className="lv-subzone">
         <SubHead label={current.heading || 'Current challenges'} tone="rose" />
-        <GapRows bullets={current.bullets} />
+        <GapRows bullets={current.bullets} totalN={gapTotal} />
       </div>
     )}
     {((resolved && asArray(resolved.bullets).length) || (unresolved && asArray(unresolved.bullets).length)) && (
       <div className="lv-subzone lv-gapcols">
         {resolved && asArray(resolved.bullets).length > 0 && (
-          <div><SubHead label={resolved.heading || 'Resolved'} tone="teal" /><GapRows bullets={resolved.bullets} /></div>
+          <div><SubHead label={resolved.heading || 'Resolved'} tone="teal" /><GapRows bullets={resolved.bullets} totalN={gapTotal} /></div>
         )}
         {unresolved && asArray(unresolved.bullets).length > 0 && (
-          <div><SubHead label={unresolved.heading || 'Unresolved'} tone="orange" /><GapRows bullets={unresolved.bullets} /></div>
+          <div><SubHead label={unresolved.heading || 'Unresolved'} tone="orange" /><GapRows bullets={unresolved.bullets} totalN={gapTotal} /></div>
         )}
       </div>
     )}
@@ -790,13 +866,14 @@ export const GapColumns: React.FC<GapColumnsContent> = ({ current, resolved, unr
             </div>
             {n.why_now && <div className="lv-need-meta"><b>Why now:</b> {n.why_now}</div>}
             {n.who && <div className="lv-need-meta"><b>Who:</b> {n.who}</div>}
-            <VerbatimChipList items={n.consumer_evidence} max={5} />
+            <VerbatimChipList items={n.consumer_evidence} />
           </div>
         ))}
       </div>
     )}
   </div>
-);
+  );
+};
 
 // ── Block 20 · SovBars (brand landscape) ─────────────────────────────────────
 
@@ -1103,8 +1180,8 @@ const ChannelNodeCard: React.FC<{ n: ChannelNode }> = ({ n }) => (
       {typeof n.share === 'number' && <span className="lv-flow-share">{n.share}%</span>}
     </div>
     {typeof n.share === 'number' && <div className="lv-flow-bar"><span style={{ width: `${clamp(n.share)}%` }} /></div>}
-    {n.maps_to_pack && <div className="lv-flow-pack">{n.maps_to_pack}</div>}
-    {n.note && <div className="lv-flow-note">{n.note}</div>}
+    {n.maps_to_pack && <div className="lv-flow-pack">{sanitiseConsumerText(n.maps_to_pack)}</div>}
+    {n.note && <div className="lv-flow-note">{sanitiseConsumerText(n.note)}</div>}
     <VerbatimChipList items={n.verbatims} max={1} />
   </div>
 );

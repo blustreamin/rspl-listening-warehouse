@@ -194,7 +194,7 @@ export const runPipelineForSection = async (
   });
 
   let content: any = null;
-  let status: 'OK' | 'PARTIAL' | 'FAILED' | 'SEEDED' = 'OK';
+  let status: 'OK' | 'PARTIAL' | 'FAILED' | 'SEEDED' | 'PENDING' = 'OK';
   let logs: string[] = [];
   const logPrefix = `[${projectId}][${template.templateId}]`;
 
@@ -210,7 +210,9 @@ export const runPipelineForSection = async (
     const cached = await apiGet('/api/cache', {
       project_id: projectId, section_id: sectionId, evidence_hash: hashKey, provider: wantProvider,
     });
-    if (cached?.hit && cached.row?.content) {
+    // PENDING rows are awaiting-generation stubs, never a servable cache hit —
+    // treating one as a hit would permanently block the section's generation.
+    if (cached?.hit && cached.row?.content && cached.row.status !== 'PENDING') {
       content = cached.row.content;
       status = (cached.row.status as any) || 'OK';
       cacheHit = true;
@@ -309,28 +311,30 @@ export const runPipelineForSection = async (
         }
 
     } else if (projectId === 'baby-diapers') {
-        // --- BABY DIAPERS (LOVINGLE) EXECUTION BRANCH ---
-        logs.push(`${logPrefix} Running Baby Diapers Synthesis for S${sectionId}...`);
+        // --- BABY DIAPERS EXECUTION BRANCH (v2 registry — bare section keys) ---
+        logs.push(`${logPrefix} Running Baby Diapers Synthesis for ${sectionId}...`);
 
-        // 1. Synthesis (returns null when no API key — seed fallback below)
+        // 1. Synthesis (returns null when no API key — awaiting-stub below)
         content = await synthesizeBabyDiapersSection(sectionId, evidence, template, (msg) => logs.push(`${logPrefix} ${msg}`));
 
         if (!content || (typeof content === 'object' && Object.keys(content).length === 0)) {
-            logs.push(`${logPrefix} No synthesis output — applying SEEDED render.`);
-            content = normalizeBabyDiapers(sectionId, {});
-            status = 'SEEDED';
+            // v2: no seeds for the new registry — persist an awaiting-generation
+            // stub (status PENDING, empty content) so the section is visible in
+            // Supabase and regenerates on the next provider-configured run.
+            logs.push(`${logPrefix} No synthesis output — writing PENDING stub for ${sectionId}.`);
+            content = {};
+            status = 'PENDING';
         } else {
-            // 2. Normalize + seed-merge
+            // 2. Normalize (pass-through in v2; renderers normalise defensively)
             content = normalizeBabyDiapers(sectionId, content);
 
-            // 3. Quality Gate (synthesis already self-repairs; here we only seed-override on hard fail)
+            // 3. Quality Gate (synthesis already self-repairs; a hard fail leaves the PENDING stub)
             const quality = evaluateBabyDiapersQuality(sectionId, content);
             if (!quality.ok) {
-                logs.push(`${logPrefix} Quality Gate soft-fail (Score ${quality.score}: ${quality.failures.join(', ')}). Merging seeds.`);
-                content = normalizeBabyDiapers(sectionId, content); // seed-merge already inside; keep content
+                logs.push(`${logPrefix} Quality Gate soft-fail (Score ${quality.score}: ${quality.failures.join(', ')}).`);
                 if (!content || Object.keys(content).length === 0) {
-                    content = normalizeBabyDiapers(sectionId, {});
-                    status = 'SEEDED';
+                    content = {};
+                    status = 'PENDING';
                 }
             } else {
                 logs.push(`${logPrefix} Quality Gate Passed (Score ${quality.score}).`);
@@ -381,17 +385,25 @@ export const runPipelineForSection = async (
 
   } catch (e) {
     logs.push(`${logPrefix} Generation Failed: ${e instanceof Error ? e.message : 'Unknown'}`);
-    logs.push(`${logPrefix} Applying SEEDED Fallback.`);
     console.error(`[Pipeline] Error in generation for ${sectionId}:`, e);
-    
-    // Explicit seeded override for adult diapers on catastrophic failure
+
     if (projectId === 'adult-diapers') {
+        // Explicit seeded override for adult diapers on catastrophic failure
+        logs.push(`${logPrefix} Applying SEEDED Fallback.`);
         content = normalizeAdultDiapersData(sectionId, {});
+        status = 'SEEDED';
+    } else if (projectId === 'baby-diapers') {
+        // v2: no seeds for the new registry — a failed section stays an
+        // awaiting-generation stub and retries on the next run.
+        logs.push(`${logPrefix} Writing PENDING stub for ${sectionId}.`);
+        content = {};
+        status = 'PENDING';
     } else {
+        logs.push(`${logPrefix} Applying SEEDED Fallback.`);
         content = applyFallback(template, sectionId);
         content = normalizeSectionData(sectionId, content, evidence, projectId, template.templateId);
+        status = 'SEEDED';
     }
-    status = 'SEEDED';
   }
 
   // ── PERSISTENCE: write the produced section to the cache ────────────────

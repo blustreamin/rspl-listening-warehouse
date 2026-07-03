@@ -15,14 +15,13 @@ import { InsightCard, TriggerClusterCard, SwitchingPathway, MatrixTable, SafeTex
 import { DataQualityNoticeCard } from './DataQualityNotice';
 import { EvidenceTrigger } from './EvidencePanel';
 import {
-    LovingleCategoryContext, LovingleJourney, LovingleStyles, LovinglePack,
-    LovingleBehaviour, LovingleNeeds, LovingleDecision, LovingleAttributes,
-    LovinglePricePackSection, LovingleGap, LovingleDiagnostic, LovingleBrand,
-    LovingleExecSummary, LovingleSeasonality, LovingleTargetGroup, LovingleChannel,
-    LovingleGeography, LovingleInfluencer, LovingleWhitespace, LovingleMethodology,
-    // ✦ Stream C — new sections
-    LovinglePersonas, LovingleStyleSwitchJourney, LovingleDecisionJourney,
-    LovingleDiaperAvoidance, LovingleConsumerLanguage,
+    // v2 registry — booklet sections (RSPL structure rework, 02 Jul 2026)
+    BkExecSummary, BkParentingRituals, BkFamilyRolesBabycare, BkBabycareNeeds,
+    BkNeedsByLifestage, BkDiaperNeedsFes, BkDecisionJourney, BkUsageOccasions,
+    BkFamilyRolesDiapering, BkFeaturesBenefits, BkShopperRoles, BkChannelDynamics,
+    BkCompetitiveLandscape, BkLovingleJourney, BkPricingDynamics,
+    BkRegionalDifferences, BkFirstVsSecondTimeMoms, BkConsumerVocabulary,
+    BkShoppingSearchTerms, BkConsumerPersonas, BkDataFoundation, BkGenericSection,
 } from './LovingleSections';
 import { 
     MenstruationContextRenderer, 
@@ -2862,38 +2861,31 @@ export const ModernSectionRenderer: React.FC<Props> = ({ data, projectId }) => {
         else if (data.sectionId === 'gap_analysis') Component = AdultGapAnalysisRenderer;
     }
 
-    // --- STRICT ROUTING: BABY DIAPERS / LOVINGLE (F3 warm-premium, self-chrome) ---
+    // --- STRICT ROUTING: BABY DIAPERS (booklet chrome, v2 registry 00–20) ---
     else if (projectId === 'baby-diapers') {
         switch (data.sectionId) {
-            // F3 Gate 3 — new sections
-            case 'exec_summary':              Component = LovingleExecSummary; break;
-            case 'seasonality':               Component = LovingleSeasonality; break;
-            case 'target_group':              Component = LovingleTargetGroup; break;
-            case 'channel_retail':            Component = LovingleChannel; break;
-            case 'geography_regional':        Component = LovingleGeography; break;
-            case 'influencer_community':      Component = LovingleInfluencer; break;
-            case 'whitespace_recommendations': Component = LovingleWhitespace; break;
-            case 'methodology_evidence':      Component = LovingleMethodology; break;
-            // Gate 1–2 — existing sections
-            case 'category_context':     Component = LovingleCategoryContext; break;
-            case 'babys_world_journey':  Component = LovingleJourney; break;
-            case 'diaper_styles':        Component = LovingleStyles; break;
-            case 'pack_architecture':    Component = LovinglePack; break;
-            case 'behaviour_usage':      Component = LovingleBehaviour; break;
-            case 'needs_triggers_pains': Component = LovingleNeeds; break;
-            case 'decision_influencers': Component = LovingleDecision; break;
-            case 'attribute_drivers':    Component = LovingleAttributes; break;
-            case 'price_pack_signals':   Component = LovinglePricePackSection; break;
-            case 'gap_analysis':         Component = LovingleGap; break;
-            case 'lovingle_diagnostic':  Component = LovingleDiagnostic; break;
-            case 'brand_landscape':      Component = LovingleBrand; break;
-            // ✦ Stream C — new sections
-            case 'consumer_personas':       Component = LovinglePersonas; break;
-            case 'style_switch_journey':    Component = LovingleStyleSwitchJourney; break;
-            case 'decision_journey_stages': Component = LovingleDecisionJourney; break;
-            case 'diaper_avoidance':        Component = LovingleDiaperAvoidance; break;
-            case 'consumer_language':       Component = LovingleConsumerLanguage; break;
-            default:                     Component = LovingleCategoryContext; break;
+            case 'exec_summary':              Component = BkExecSummary; break;
+            case 'parenting_rituals':         Component = BkParentingRituals; break;
+            case 'family_roles_babycare':     Component = BkFamilyRolesBabycare; break;
+            case 'babycare_needs':            Component = BkBabycareNeeds; break;
+            case 'needs_by_lifestage':        Component = BkNeedsByLifestage; break;
+            case 'diaper_needs_fes':          Component = BkDiaperNeedsFes; break;
+            case 'decision_journey':          Component = BkDecisionJourney; break;
+            case 'usage_occasions':           Component = BkUsageOccasions; break;
+            case 'family_roles_diapering':    Component = BkFamilyRolesDiapering; break;
+            case 'features_benefits':         Component = BkFeaturesBenefits; break;
+            case 'shopper_roles':             Component = BkShopperRoles; break;
+            case 'channel_dynamics':          Component = BkChannelDynamics; break;
+            case 'competitive_landscape':     Component = BkCompetitiveLandscape; break;
+            case 'lovingle_journey':          Component = BkLovingleJourney; break;
+            case 'pricing_dynamics':          Component = BkPricingDynamics; break;
+            case 'regional_differences':      Component = BkRegionalDifferences; break;
+            case 'first_vs_second_time_moms': Component = BkFirstVsSecondTimeMoms; break;
+            case 'consumer_vocabulary':       Component = BkConsumerVocabulary; break;
+            case 'shopping_search_terms':     Component = BkShoppingSearchTerms; break;
+            case 'consumer_personas':         Component = BkConsumerPersonas; break;
+            case 'data_foundation':           Component = BkDataFoundation; break;
+            default:                          Component = BkGenericSection; break;
         }
     }
 

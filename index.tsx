@@ -3,6 +3,7 @@ import ReactDOM from 'react-dom/client';
 import App from './App';
 import './styles/lovingle.css';
 import './styles/lovingle-print.css';
+import './styles/booklet.css';
 
 const rootElement = document.getElementById('root');
 if (!rootElement) {

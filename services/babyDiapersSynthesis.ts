@@ -1,5 +1,6 @@
 
 import { EvidenceGraph, TemplatePack, EvidenceEventV1 } from '../types';
+import { BABY_DIAPERS_TEMPLATE } from '../templates/baby_diapers_template';
 import { normalizeBabyDiapers } from '../utils/normalizers/normalizeBabyDiapers';
 import { evaluateBabyDiapersQuality } from './babyDiapersQualityGate';
 import { callLLM } from '../lib/llmClient';
@@ -7,21 +8,49 @@ import { verifyContentVerbatims, type VerbatimAudit } from '../utils/verbatimPro
 
 const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
-// Section → keywords for targeted evidence selection
+// Section → keywords for targeted evidence selection (v2 registry, 02 Jul 2026)
 const SECTION_KEYWORDS: Record<string, string[]> = {
-  category_context: ["brand", "choice", "best", "research", "monsoon", "festival", "doctor", "paediatrician", "influencer", "premium", "value", "options"],
-  babys_world_journey: ["newborn", "month", "crawl", "walk", "solids", "night", "sleep", "daycare", "potty", "training", "size", "grow", "expecting", "pregnan", "toddler"],
-  diaper_styles: ["tape", "pant", "cloth", "reusable", "fit", "wriggle", "laundry", "drying", "pull up", "switch", "style"],
-  pack_architecture: ["laddi", "pack", "single", "twin", "99", "399", "999", "jumbo", "bulk", "value", "per piece", "subscription", "monthly"],
-  behaviour_usage: ["night", "overnight", "day", "travel", "daycare", "outing", "monsoon", "change", "frequency", "stock"],
-  needs_triggers_pains: ["leak", "rash", "skin", "soft", "fit", "absorb", "guilt", "safe", "peace of mind", "overwhelm", "recommend"],
-  decision_influencers: ["decide", "husband", "father", "nanny", "grandmother", "mother in law", "hospital", "doctor", "influencer", "search", "review", "buy"],
-  attribute_drivers: ["leak", "soft", "fit", "tab", "breathable", "overnight", "absorb", "indicator", "eco", "chemical", "odour"],
-  price_pack_signals: ["price", "cost", "per piece", "cheap", "expensive", "value", "discount", "offer", "subscription", "bulk", "afford", "budget"],
-  gap_analysis: ["leak", "rash", "size", "overwhelm", "wish", "want", "better", "afford", "breathable", "overnight", "should", "why"],
-  lovingle_diagnostic: ["lovingle", "value", "available", "kirana", "rash", "skin", "safe", "trust", "switch", "tried", "daytime"],
-  brand_landscape: ["pampers", "mamypoko", "huggies", "little angels", "lovingle", "leak", "soft", "overnight", "value", "best", "review"],
+  exec_summary: ["brand", "best", "price", "leak", "rash", "value", "night", "recommend"],
+  parenting_rituals: ["bath", "massage", "malish", "sleep", "feed", "play", "crawl", "routine", "morning", "night", "oil", "outing"],
+  family_roles_babycare: ["father", "husband", "papa", "grandmother", "grandparents", "mother in law", "nanny", "family", "help", "dadi", "nani", "saas"],
+  babycare_needs: ["need", "wish", "help", "remedy", "tips", "advice", "care", "skin", "sleep", "feed", "hygiene", "worry"],
+  needs_by_lifestage: ["newborn", "month", "crawl", "walk", "solids", "potty", "training", "size", "grow", "toddler", "milestone"],
+  diaper_needs_fes: ["leak", "rash", "skin", "soft", "fit", "absorb", "overnight", "indicator", "guilt", "safe", "peace of mind", "overwhelm", "recommend"],
+  decision_journey: ["decide", "hospital", "doctor", "paediatrician", "influencer", "search", "review", "recommend", "trust", "first time", "tried", "size"],
+  usage_occasions: ["night", "overnight", "day", "travel", "daycare", "outing", "monsoon", "summer", "cloth", "langot", "tape", "pant", "avoid", "season"],
+  family_roles_diapering: ["father", "husband", "papa", "grandmother", "grandparents", "mother in law", "nanny", "change", "buy", "diaper duty"],
+  features_benefits: ["leak", "soft", "fit", "tab", "breathable", "overnight", "absorb", "indicator", "eco", "chemical", "odour", "wetness", "biodegradable"],
+  shopper_roles: ["buy", "bought", "order", "husband", "wife", "decide", "shop", "purchase"],
+  channel_dynamics: ["amazon", "flipkart", "blinkit", "zepto", "instamart", "kirana", "chemist", "pharmacy", "store", "offer", "delivery", "order", "stock", "firstcry"],
+  competitive_landscape: ["pampers", "mamypoko", "huggies", "little angels", "lovingle", "best", "compare", "switch", "brand", "review"],
+  lovingle_journey: ["lovingle", "tried", "switch", "rash", "skin", "safe", "trust", "kirana", "value", "available"],
+  pricing_dynamics: ["price", "cost", "per piece", "cheap", "expensive", "value", "discount", "offer", "sale", "afford", "budget", "bulk"],
+  regional_differences: ["delhi", "mumbai", "chennai", "kolkata", "bangalore", "kerala", "punjab", "bengal", "south", "north", "humid", "winter", "summer"],
+  first_vs_second_time_moms: ["first baby", "second baby", "first time", "experience", "elder", "younger", "second child"],
+  consumer_vocabulary: ["soft", "mulayam", "geela", "sukha", "raat", "rash", "leak", "hawa", "tight", "dheela", "soakh"],
+  shopping_search_terms: ["search", "best diaper", "under", "price", "size", "newborn", "pant", "buy online"],
+  consumer_personas: ["mom", "mother", "baby", "buy", "use", "prefer", "always", "never", "switch"],
+  data_foundation: ["review", "mention", "post", "rating", "platform"],
 };
+
+// ── Load-time registry integrity check (v2) ─────────────────────────────────
+// The section key from the baby_diapers_v2 registry is the ONLY identifier —
+// across the prompt map, this keyword-targeting map, token budgets, job names,
+// Supabase section_id and renderer routing. A key that resolves to no prompt or
+// no keyword entry silently breaks that section's generation, so fail LOUDLY at
+// module load.
+for (const sec of BABY_DIAPERS_TEMPLATE.sections) {
+  if (!BABY_DIAPERS_TEMPLATE.promptPack.sectionPrompts[sec.sectionId]) {
+    console.error(
+      `[BabyDiapers] REGISTRY INTEGRITY FAILURE: section "${sec.sectionId}" has no sectionPrompt — its generation WILL fail.`
+    );
+  }
+  if (!SECTION_KEYWORDS[sec.sectionId]) {
+    console.error(
+      `[BabyDiapers] REGISTRY INTEGRITY FAILURE: section "${sec.sectionId}" has no keyword-targeting entry — its evidence capsule will be untargeted.`
+    );
+  }
+}
 
 
 const prepareTargetedEvidence = (graph: EvidenceGraph, sectionId: string) => {
@@ -198,7 +227,7 @@ export const synthesizeBabyDiapersSection = async (
       const audit: VerbatimAudit = verifyContentVerbatims(content, corpusTexts, curatedTexts, true);
       content._verbatim_audit = audit;
       logger?.(
-        `[BabyDiapers] provenance S=${sectionId}: ${audit.corpus}/${audit.total} corpus-verified, ` +
+        `[BabyDiapers] provenance ${sectionId}: ${audit.corpus}/${audit.total} corpus-verified, ` +
         `${audit.unverified} fabricated (dropped)`
       );
     } catch (err: any) {
@@ -207,7 +236,7 @@ export const synthesizeBabyDiapersSection = async (
     return content;
   };
 
-  logger?.(`[BabyDiapers] S=${sectionId} evidence=${capsule.count}`);
+  logger?.(`[BabyDiapers] ${sectionId} evidence=${capsule.count}`);
 
   const buildPrompt = (tier: string, isRepair = false) => `
 ${systemPrompt}
@@ -216,6 +245,12 @@ ${tier}
 ${isRepair ? "CRITICAL: Previous output failed the quality gate. Use Search Grounding + category norms to fill gaps. Never leave arrays empty. Hold the Lovingle = rash/skin-safety objection lock and the two-axis (style ≠ pack) rule." : ""}
 
 SECTION TASK: ${sectionPrompt}
+
+FIELD BUDGETS (HARD CEILINGS — these override any looser field description above):
+- headline: ≤9 words · body/description/what_it_means/reading: ≤35 words
+- why / how_met_today / style·lifestage·day-night notes / shift notes: ≤22 words each
+- pool_note: ≤55 words · synthesis: ≤110 words · notes/points per card: MAX 3
+Prefer omission over compression — cut items, don't cram sentences. Exceeding a ceiling is a defect.
 
 CONTEXT DATA:
 BRAND_SOV_STATS: ${JSON.stringify(brandSov)}
@@ -238,9 +273,9 @@ VERBATIM SOURCING — NON-NEGOTIABLE (provenance is audited downstream):
   // 5+ verbatims) can exceed 8k output tokens; truncation → invalid JSON → seed.
   // Give those headroom; keep the lighter sections lean.
   const HEAVY_SECTIONS = new Set([
-    'lovingle_diagnostic', 'babys_world_journey', 'pack_architecture',
-    'brand_landscape', 'decision_journey_stages', 'consumer_personas',
-    'needs_triggers_pains', 'gap_analysis',
+    'babycare_needs', 'diaper_needs_fes', 'decision_journey', 'usage_occasions',
+    'features_benefits', 'channel_dynamics', 'competitive_landscape',
+    'pricing_dynamics', 'consumer_personas',
   ]);
   const outputTokens = HEAVY_SECTIONS.has(sectionId) ? 16384 : 8192;
 
@@ -264,7 +299,7 @@ VERBATIM SOURCING — NON-NEGOTIABLE (provenance is audited downstream):
         attempts > 1,
         budget
       );
-      if (text === null) { logger?.(`[BabyDiapers] no provider configured — seeding`); return null; }
+      if (text === null) { logger?.(`[BabyDiapers] no provider configured — pipeline writes PENDING stub`); return null; }
 
       const parsed = cleanAndParseJSON(text || "{}");
       if (parsed.__rawText) throw new Error("Model returned non-JSON");
@@ -275,7 +310,7 @@ VERBATIM SOURCING — NON-NEGOTIABLE (provenance is audited downstream):
 
       if (!quality.ok) {
         if (attempts === 1) { logger?.(`[BabyDiapers] retry with repair prompt`); continue; }
-        logger?.(`[BabyDiapers] repair failed — seed override`);
+        logger?.(`[BabyDiapers] repair failed — pipeline writes PENDING stub`);
         return normalizeBabyDiapers(sectionId, {});
       }
       return finalizeReal(normalized);
@@ -286,6 +321,6 @@ VERBATIM SOURCING — NON-NEGOTIABLE (provenance is audited downstream):
     }
   }
 
-  logger?.(`[BabyDiapers] generation failed — seeded fallback`);
+  logger?.(`[BabyDiapers] generation failed — pipeline writes PENDING stub`);
   return normalizeBabyDiapers(sectionId, {});
 };
