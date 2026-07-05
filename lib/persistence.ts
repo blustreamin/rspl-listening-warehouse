@@ -1,5 +1,7 @@
 import { apiGet, apiPost, apiDelete } from "./api";
-import type { EvidenceGraph } from "../types";
+import type { EvidenceGraph, ProjectId } from "../types";
+import { graphProvenance, isMockGraph } from "./graphProvenance";
+import { isRegistryBacked } from "../constants/projectConfig";
 
 // Thin, failure-tolerant persistence wrappers. Every call swallows errors so the
 // app behaves identically when the backend / Supabase is absent (local `vite dev`).
@@ -12,6 +14,13 @@ import type { EvidenceGraph } from "../types";
  *  rows. Falls back to the legacy POST when the sign mode isn't deployed. */
 export async function persistEvidence(graph: EvidenceGraph, datasetIds: string[] = []): Promise<boolean> {
   if (!graph?.projectId) return false;
+  // PERSIST VETO (mock-corpus guard): never write the demo/mock corpus to
+  // evidence_graphs. The 05-Jul incident persisted an untrusted graph via the
+  // run-start persist; a mock graph must never become canonical evidence.
+  if (isMockGraph(graph)) {
+    console.warn("[persistence] refused to persist a mock/demo evidence graph.");
+    return false;
+  }
   const events = graph.events || (graph as any).evidence_graph_v1?.events || [];
   const evidenceHash = (graph as any).evidenceHash || null;
 
@@ -87,6 +96,26 @@ export async function loadEvidence(projectId: string): Promise<EvidenceGraph | n
     // the one that ran (generated_at comes from the DB row, jsonb reorders
     // keys) — recomputing would orphan every cached section on reload.
     if (r.meta?.evidence_hash) (g as any).evidenceHash = r.meta.evidence_hash;
+    // Surface the graph's registry dataset links so a run can verify it is the
+    // CURRENT registry corpus (mock-guard) before trusting it. A row with no
+    // dataset links (e.g. the stale 05-Jul demo graph) stays 'unknown' and a
+    // registry-backed run re-assembles instead of trusting it.
+    if (Array.isArray(r.meta?.dataset_ids)) {
+      g.__datasetIds = r.meta.dataset_ids;
+      g.__provenance = r.meta.dataset_ids.length > 0 ? 'registry' : 'unknown';
+    }
+    // Never rehydrate the demo/mock corpus as real evidence.
+    if (isMockGraph(g)) {
+      console.warn("[persistence] loaded evidence graph flagged mock — discarding.");
+      return null;
+    }
+    // A registry-backed project must not adopt an untrusted (no dataset links)
+    // persisted graph as its corpus — e.g. the stale 05-Jul demo graph. Discard
+    // it so the run re-assembles from the authoritative registry instead.
+    if (isRegistryBacked(projectId as ProjectId) && graphProvenance(g) !== 'registry') {
+      console.warn(`[persistence] loaded graph for registry-backed ${projectId} has no dataset links — discarding (run will re-assemble).`);
+      return null;
+    }
     return g;
   } catch {
     return null;

@@ -140,6 +140,9 @@ export async function assembleGraphFromRegistry(
   const graph = await ingestRawData(request);
   if (!graph) return null;
   (graph as any).__datasetIds = usedIds;
+  // Provenance: this graph is registry-derived. The run only TRUSTS a graph as
+  // its corpus when its __datasetIds match the current registry (mock-guard).
+  (graph as any).__provenance = 'registry';
   const total = graph.events?.length ?? 0;
   log?.(`Graph assembled: ${total.toLocaleString('en-US')} deduplicated events from ${inputs.length}/${datasets.length} datasets.`);
   return graph;

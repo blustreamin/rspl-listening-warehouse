@@ -397,10 +397,17 @@ export interface EvidenceGraph {
     stateCounts?: Array<{ state: string; count: number }>;
   };
   // Fallback for legacy pipeline compatibility
-  evidence_graph_v1?: { events: any[] }; 
+  evidence_graph_v1?: { events: any[] };
   nodes?: any[];
   edges?: any[];
   stats?: Record<string, any>;
+  // Provenance markers (mock-corpus guard). __provenance labels how the graph
+  // was produced; __datasetIds are the registry dataset ids it was assembled
+  // from. A registry-backed run only trusts a graph whose __datasetIds match
+  // the current registry; the built-in demo corpus is tagged 'mock' and is
+  // refused by the persist/cache/synthesis paths. See lib/graphProvenance.ts.
+  __provenance?: 'mock' | 'registry' | 'unknown';
+  __datasetIds?: string[];
 }
 
 // --- FILE UPLOAD & INGESTION TYPES ---

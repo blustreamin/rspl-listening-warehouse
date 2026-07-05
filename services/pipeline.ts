@@ -14,6 +14,8 @@ import { evaluateBabyDiapersQuality } from './babyDiapersQualityGate';
 import { DiagnosticTrace } from '../utils/diagnostics';
 import { apiGet, apiPost } from '../lib/api';
 import { getProvider, getStatus as getProviderStatus } from '../lib/llmSettings';
+import { isRegistryBacked } from '../constants/projectConfig';
+import { isMockGraph } from '../lib/graphProvenance';
 
 // --- A. Evidence Engine (Legacy/Default) ---
 const computeEvidenceGraph = (mentions: Quote[], projectId: ProjectId): EvidenceGraph => {
@@ -31,10 +33,13 @@ const computeEvidenceGraph = (mentions: Quote[], projectId: ProjectId): Evidence
   }));
 
   return {
-    projectId, 
+    projectId,
     events,
     stats: { totalMentions: mentions.length },
-    evidence_graph_v1: { events }
+    evidence_graph_v1: { events },
+    // Tag the built-in demo corpus so the persist/cache/synthesis paths can
+    // refuse it for registry-backed projects (mock-corpus guard).
+    __provenance: 'mock',
   };
 };
 
@@ -51,7 +56,11 @@ const computeEvidenceHash = async (graph: EvidenceGraph): Promise<string> => {
 // share the exact evidence-resolution / hashing / provider-scoping code paths
 // the pipeline itself uses, so a probe and a run always agree on the key.
 
-/** The evidence graph a run for this project would use (injected, else mock). */
+/** The evidence graph a run for this project would use (injected, else the
+ *  built-in demo corpus). The demo corpus it returns for a registry-backed
+ *  project is tagged 'mock' and is REFUSED downstream — callers (executeRun,
+ *  runPipelineForSection) must never synthesize/persist/cache it. It remains a
+ *  usable placeholder only for the hydrate hash probe and for demo projects. */
 export const resolveEvidenceForProject = (
   projectId: ProjectId,
   injectedEvidence?: EvidenceGraph
@@ -101,7 +110,11 @@ export const readCachedSection = async (
 /** Map the evidence graph to the Quote[] every SectionOutput carries. */
 export const buildEvidenceRef = (evidence: EvidenceGraph): Quote[] => {
   const sourceEvents = evidence.events || evidence.evidence_graph_v1?.events || [];
-  if (sourceEvents.length === 0) return RAW_MENTIONS;
+  if (sourceEvents.length === 0) {
+    // A registry-backed project never DISPLAYS the demo corpus as its evidence
+    // (its runs abort before reaching an empty/mock graph anyway).
+    return (evidence.projectId && isRegistryBacked(evidence.projectId as ProjectId)) ? [] : RAW_MENTIONS;
+  }
   return sourceEvents.map(e => ({
     quoteId: e.evidenceId || e.evidence_id || 'unknown',
     text: e.content?.text || (e.text as any)?.raw || '',
@@ -242,6 +255,13 @@ export const runPipelineForSection = async (
   const evidence = resolveEvidenceForProject(projectId, injectedEvidence);
   if (injectedEvidence && evidence !== injectedEvidence) {
       console.warn(`[Pipeline] Evidence graph mismatch. Expected ${projectId}, got ${injectedEvidence.projectId}. Recomputing mock.`);
+  }
+  // MOCK-CORPUS GUARD (defense in depth): a registry-backed project must never
+  // synthesize against the demo/mock corpus. executeRun aborts the whole run
+  // before this loop, so reaching here with mock evidence means an unexpected
+  // caller — fail the section loudly rather than burn provider spend on mock.
+  if (isRegistryBacked(projectId) && isMockGraph(evidence)) {
+      throw new Error(`REGISTRY_GUARD: refusing to synthesize registry-backed ${projectId}/${sectionId} against the demo/mock corpus — no registry-derived evidence graph was provided.`);
   }
   const hashKey = await computeEvidenceHashKey(evidence);
   const wantProvider = resolveRunProvider();
@@ -513,6 +533,13 @@ const executeSectionJob = async (
   // The write key MUST match the read/dedupe key (wantProvider), or seed-mode
   // rows land under an engine that never ran and probes permanently miss them.
   const resultProvider: string = status === 'SEEDED' ? 'seed' : wantProvider;
+  // CACHE VETO (mock-corpus guard): never persist output produced against the
+  // demo/mock corpus for a registry-backed project under a real provider+hash —
+  // such a row rehydrates as a "complete" report forever. Registry-backed runs
+  // abort before synthesis, so this is a backstop; demo projects cache normally.
+  if (isRegistryBacked(projectId) && isMockGraph(evidence)) {
+    logs.push(`${logPrefix} CACHE VETO — mock-provenance output for registry-backed ${projectId} NOT written to cache.`);
+  } else {
   try {
     await apiPost('/api/cache', {
       project_id: projectId,
@@ -524,6 +551,7 @@ const executeSectionJob = async (
       content,
     });
   } catch { /* no backend -> skip persistence */ }
+  }
   } // end if(!cacheHit)
 
   if (projectId === 'adult-diapers') {

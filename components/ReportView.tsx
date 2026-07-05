@@ -18,6 +18,8 @@ import { useProviderId, ensureProviderStatus } from '../lib/llmSettings';
 import { ensureEvidencePersisted } from '../lib/persistence';
 import { assembleGraphFromRegistry } from '../services/graphAssembly';
 import { apiGet } from '../lib/api';
+import { isRegistryBacked } from '../constants/projectConfig';
+import { graphProvenance, sameIdSet } from '../lib/graphProvenance';
 
 interface Props {
   projectId: ProjectId;
@@ -122,16 +124,25 @@ export const ReportView: React.FC<Props> = ({ projectId, injectedEvidence, onEvi
       if (!alive) return;
 
       const graph = resolveEvidenceForProject(projectId, validEvidence || undefined);
-      const hashKey = await computeEvidenceHashKey(graph);
+      // A registry-backed project with no TRUSTED registry graph in memory has
+      // no knowable corpus hash until run-time assembly. Do NOT probe the cache
+      // under the mock placeholder hash — it would surface demo-hash rows and
+      // stamp a mock hash on the run. Show an assemble-on-run state instead.
+      const registryBackedNoGraph =
+        isRegistryBacked(projectId) && graphProvenance(validEvidence || undefined) !== 'registry';
+      const hashKey = registryBackedNoGraph ? '' : await computeEvidenceHashKey(graph);
       if (!alive) return;
       hashKeyRef.current = hashKey;
       const wantProvider = resolveRunProvider();
 
       // Provider-scoped, hash-scoped cache reads — the only network activity
-      // navigation is allowed. Zero synthesis API calls.
-      const rows = await Promise.all(
-        expectedIds.map(id => readCachedSection(projectId, id, hashKey, wantProvider))
-      );
+      // navigation is allowed. Zero synthesis API calls. Skipped when the corpus
+      // hash is not yet knowable (registry-backed, pre-assembly).
+      const rows = registryBackedNoGraph
+        ? []
+        : await Promise.all(
+            expectedIds.map(id => readCachedSection(projectId, id, hashKey, wantProvider))
+          );
       if (!alive) return;
 
       const evidenceRef = buildEvidenceRef(graph);
@@ -251,51 +262,102 @@ export const ReportView: React.FC<Props> = ({ projectId, injectedEvidence, onEvi
     let failedCount = 0;
     let pendingCount = 0;
 
-    // The graph this run executes against — injected evidence, or (when the
-    // persisted graph was lost) reassembled from the dataset registry below.
+    // The graph this run executes against. For a registry-backed project this
+    // is ALWAYS a registry-derived corpus (a trusted loaded graph or a fresh
+    // assembly) — never the demo/mock corpus. For a demo project it may be the
+    // injected graph, an assembly, or (permitted) the built-in sample corpus.
     let graph: EvidenceGraph | null = validEvidence;
     let hashKey = hashKeyRef.current;
+    const registryBacked = isRegistryBacked(projectId);
+
+    const logAssembly = (msg: string) => {
+      if (alive()) setInspectorData(prev => ({ ...prev, retryLog: [...prev.retryLog, `[assembly] ${msg}`] }));
+    };
+    // Abort the run loudly WITHOUT calling any provider, persisting a graph, or
+    // writing any section cache. Leaves the run FAILED (never falsely complete).
+    const abortRun = (msg: string) => {
+      console.error(`[ReportView] ABORT ${projectId}: ${msg}`);
+      if (alive()) {
+        setInspectorData(prev => ({ ...prev, retryLog: [...prev.retryLog, `CRITICAL ABORT: ${msg}`] }));
+        reportRunProgress(0, targets.length, undefined, 0); // done=0, failed=all → partial_failed (pill red)
+      }
+    };
 
     try {
-      if (!graph) {
-        // REGISTRY REBUILD: datasets are registered but no graph exists in
-        // memory or in evidence_graphs (persistence lost / fresh session).
-        // Reassemble from the EXISTING registrations — nothing re-uploads.
-        // A project with no registrations (mock/demo flow) stays on mock.
-        const assembled = await assembleGraphFromRegistry(projectId, (msg) => {
-          if (alive()) setInspectorData(prev => ({ ...prev, retryLog: [...prev.retryLog, `[assembly] ${msg}`] }));
-        });
-        if (!alive()) return; // finally records the abandon
-        if (assembled && (assembled.events?.length ?? 0) > 0) {
+      if (registryBacked) {
+        // ── AUTHORITATIVE REGISTRY READ (run time, never the probe closure) ──
+        // Gaps 1/2/A3: a transient or failed cache probe must not disarm the
+        // guard, so the registry is re-read HERE and the run aborts loudly on
+        // an empty or unreachable registry — it never falls back to mock.
+        let registryIds: string[] = [];
+        let registryReadable = true;
+        try {
+          const reg = await apiGet('/api/datasets', { project_id: projectId });
+          if (reg?.persistence === false) registryReadable = false;
+          registryIds = Array.isArray(reg?.datasets)
+            ? reg.datasets.map((d: any) => d?.id).filter(Boolean)
+            : [];
+        } catch {
+          registryReadable = false;
+        }
+        if (!alive()) return;
+
+        if (!registryReadable) {
+          abortRun(`Dataset registry unreachable (persistence off or fetch failed) for ${projectId} — refusing to fall back to the demo corpus. No provider called, nothing persisted. Re-run once the backend is reachable.`);
+          return;
+        }
+        if (registryIds.length === 0) {
+          abortRun(`Dataset registry is EMPTY for ${projectId} (0 datasets) — a registry-backed project never falls back to the demo/mock corpus. Run aborted before any synthesis; zero provider spend.`);
+          return;
+        }
+
+        // Trust an injected/loaded graph as the corpus ONLY if it is
+        // registry-derived AND its dataset links match the CURRENT registry.
+        // A stale pre-rebuild graph (empty/mismatched dataset_ids — the 35,254
+        // demo corpus) is NOT trusted and is re-assembled from the registry.
+        const injectedIds = validEvidence?.__datasetIds ?? [];
+        const injectedTrusted = !!validEvidence
+          && graphProvenance(validEvidence) === 'registry'
+          && (validEvidence.events?.length ?? 0) > 0
+          && sameIdSet(injectedIds, registryIds);
+
+        if (injectedTrusted) {
+          graph = validEvidence;             // reuse the pinned hash → cache hits
+        } else {
+          if (validEvidence) logAssembly(`injected graph not trusted (provenance=${graphProvenance(validEvidence)}, ${injectedIds.length} links vs ${registryIds.length} registered) — re-assembling from the registry.`);
+          const assembled = await assembleGraphFromRegistry(projectId, logAssembly);
+          if (!alive()) return;
+          if (!assembled || (assembled.events?.length ?? 0) === 0) {
+            abortRun(`Evidence-graph assembly from ${registryIds.length} registered datasets FAILED — run aborted before any synthesis. No provider called, nothing persisted. See [assembly] lines above; re-run to retry transient errors.`);
+            return;
+          }
           graph = assembled;
           hashKey = await computeEvidenceHashKey(assembled);
           if (!alive()) return;
           hashKeyRef.current = hashKey;
           setRunEvidenceHash(hashKey);       // run record carries the REAL hash
           onEvidenceAssembled?.(assembled);  // App state → panel + post-run hydrate
-        } else if (cacheProbe.registryCount > 0) {
-          // The registry HAS datasets but assembly produced nothing (deploy
-          // lag, storage failure, partial fetch). NEVER burn provider spend
-          // on the mock corpus when a real one was promised — fail loudly.
-          console.error(`[ReportView] Registry assembly failed for ${projectId} — run aborted before any synthesis.`);
-          if (alive()) {
-            setInspectorData(prev => ({
-              ...prev,
-              retryLog: [...prev.retryLog, `CRITICAL: evidence-graph assembly from ${cacheProbe.registryCount} registered datasets FAILED — run aborted before any synthesis. See [assembly] lines above; re-run to retry.`],
-            }));
-            reportRunProgress(0, targets.length, undefined, 0); // pill goes red
-          }
-          return; // finally resolves the run as partial_failed
+        }
+      } else if (!graph) {
+        // ── DEMO PROJECT ── no injected graph: assemble from a registry if one
+        // exists, else the built-in sample corpus is permitted (graph stays
+        // null → the pipeline resolves the demo corpus for this demo project).
+        const assembled = await assembleGraphFromRegistry(projectId, logAssembly);
+        if (!alive()) return;
+        if (assembled && (assembled.events?.length ?? 0) > 0) {
+          graph = assembled;
+          hashKey = await computeEvidenceHashKey(assembled);
+          if (!alive()) return;
+          hashKeyRef.current = hashKey;
+          setRunEvidenceHash(hashKey);
+          onEvidenceAssembled?.(assembled);
         }
       }
 
       // PERSIST-AT-ASSEMBLY: write the graph to evidence_graphs BEFORE the
-      // first section synthesizes. An aborted run then can never leave the
-      // graph unpersisted, and the corpus figures injected into each prompt
-      // come from the same row the Data Foundation panel reads. Real corpora
-      // only — the mock/seed graph is never persisted. Idempotent per
-      // (project, hash). If the run is abandoned during this await, the
-      // loop's alive() guard below breaks and the finally records the abandon.
+      // first section synthesizes. Real corpora only — persistEvidence itself
+      // refuses a mock graph, so a demo project's sample-corpus run (graph
+      // null) persists nothing. Idempotent per (project, hash).
       if (graph) {
         const persisted = await ensureEvidencePersisted(graph, hashKey);
         if (!persisted && alive()) {

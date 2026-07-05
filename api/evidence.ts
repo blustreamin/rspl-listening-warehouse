@@ -70,7 +70,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       events,
       aggregations: data.aggregations || {},
     };
-    return res.status(200).json({ graph, meta: { id: data.id, evidence_hash: data.evidence_hash }, persistence: true });
+    // dataset_ids is additive here: the client mock-corpus guard uses it to
+    // confirm a loaded graph reflects the CURRENT dataset registry before
+    // trusting it as a run corpus. (No change to read auth/keys/storage.)
+    return res.status(200).json({
+      graph,
+      meta: { id: data.id, evidence_hash: data.evidence_hash, dataset_ids: data.dataset_ids || [] },
+      persistence: true,
+    });
   }
 
   if (req.method === "POST") {
