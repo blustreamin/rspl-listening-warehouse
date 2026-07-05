@@ -59,7 +59,7 @@ const computeStats = (evidence: EvidenceGraph) => {
                 : rawPlatform.includes('news') ? 'News Sites'
                 : rawPlatform.includes('forum') ? 'Forums'
                 : rawPlatform.includes('web') ? 'Web'
-                : rawPlatform === 'social' ? 'Other Social'
+                : rawPlatform === 'social' || rawPlatform.includes('awario') ? 'Other Social'
                 : rawPlatform.replace('.com', '').replace('.in', '').replace('www.', '') || 'Other';
             awarioSubSources[subSource] = (awarioSubSources[subSource] || 0) + 1;
         }
@@ -241,7 +241,7 @@ const EvidenceRepositoryModal = ({ evidence, onClose }: { evidence: EvidenceGrap
                                 <h3 className="text-xs font-bold text-slate-600 uppercase mb-3">Data Source Composition</h3>
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     <div className="bg-white rounded-lg p-4 border border-slate-100">
-                                        <div className="text-[10px] font-bold text-indigo-600 uppercase mb-2">Awario Social Listening</div>
+                                        <div className="text-[10px] font-bold text-indigo-600 uppercase mb-2">Social Listening</div>
                                         <div className="text-2xl font-black text-slate-800">{(awarioTotal > 0 ? awarioTotal : stats.total - commerceTotal).toLocaleString()}</div>
                                         <div className="text-[10px] text-slate-500 mt-1">{stats.awarioSubSources.length > 0 ? stats.awarioSubSources.map(([src, cnt]) => `${src}: ${cnt}`).join(' · ') : 'All non-commerce social mentions'}</div>
                                     </div>
@@ -304,12 +304,12 @@ const EvidenceRepositoryModal = ({ evidence, onClose }: { evidence: EvidenceGrap
 
                             {stats.awarioSubSources.length > 0 && (
                                 <div className="bg-indigo-50/50 rounded-xl border border-indigo-200 p-5">
-                                    <h3 className="text-xs font-bold text-indigo-700 uppercase mb-1">Awario — Sub-Source Breakdown</h3>
-                                    <p className="text-[10px] text-indigo-500 mb-4">Awario captures mentions from multiple platforms. This shows where those mentions originated.</p>
+                                    <h3 className="text-xs font-bold text-indigo-700 uppercase mb-1">Social Listening — Sub-Source Breakdown</h3>
+                                    <p className="text-[10px] text-indigo-500 mb-4">Social listening captures mentions from multiple platforms. This shows where those mentions originated.</p>
                                     {stats.awarioSubSources.map(([label, count], i) => (
                                         <BarRow key={label} label={label} count={count} total={awarioTotal} color={platformColors[(i + 2) % platformColors.length]} />
                                     ))}
-                                    <div className="mt-3 pt-3 border-t border-indigo-200 text-[10px] text-indigo-600 font-bold">Total Awario: {awarioTotal.toLocaleString()}</div>
+                                    <div className="mt-3 pt-3 border-t border-indigo-200 text-[10px] text-indigo-600 font-bold">Total social listening: {awarioTotal.toLocaleString()}</div>
                                 </div>
                             )}
 
@@ -519,7 +519,7 @@ export const DataIngestionInfographic: React.FC<Props> = ({ evidence, projectId 
                     {/* Social Mentions sub-breakdown */}
                     {stats.awarioSubSources.length > 0 && (
                         <div className="mt-3 pt-3 border-t border-slate-100">
-                            <div className="text-[9px] font-bold text-slate-400 uppercase mb-2">Social Mentions Breakdown (Awario Sources + LLM Evidence Bank)</div>
+                            <div className="text-[9px] font-bold text-slate-400 uppercase mb-2">Social Mentions Breakdown (Listening Sources + LLM Evidence Bank)</div>
                             <div className="flex flex-wrap gap-1.5">
                                 {stats.awarioSubSources.map(([src, cnt]) => (
                                     <span key={src} className="bg-slate-100 text-slate-600 text-[9px] font-mono px-2 py-0.5 rounded">{src}: {cnt}</span>
@@ -577,7 +577,7 @@ export const DataIngestionInfographic: React.FC<Props> = ({ evidence, projectId 
                                     <div className="bg-rose-50/50 rounded-lg p-3 border border-rose-100 text-[10px] text-slate-600 leading-relaxed space-y-1">
                                         <p>{coveredPct}% of records ({geoTotal.toLocaleString()}) have geographic attribution. {100 - coveredPct}% lack location data (typical for social listening sources).</p>
                                         {topCity && <p>{topCity[0]} dominates with {geoTotal > 0 ? Math.round((topCity[1] / geoTotal) * 100) : 0}% of geo-tagged mentions, suggesting strong metro-market data representation.</p>}
-                                        <p>Coverage spans {stats.topCities.length} distinct locations. Tier 1 cities are well-represented; Tier 3/rural coverage depends on Awario source depth.</p>
+                                        <p>Coverage spans {stats.topCities.length} distinct locations. Tier 1 cities are well-represented; Tier 3/rural coverage depends on social listening source depth.</p>
                                     </div>
                                 </>
                             );

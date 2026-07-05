@@ -243,7 +243,7 @@
       "pct": 1.7
     }
   ],
-  "footnote": "Computed from the live Lovingle baby-diaper corpus (Amazon + Flipkart reviews, Awario social listening, Instagram, Facebook). Social listening reflects global brand/category chatter; the India consumer voice is carried by the e-commerce reviews and Lovingle's owned social. Geographic coverage is approximate — blended from author-location tags, post locations and place references in text, rolled up to state level over the geo-identifiable subset.",
+  "footnote": "Computed from the live Lovingle baby-diaper corpus (Amazon + Flipkart reviews, social listening, Instagram, Facebook). Social listening reflects global brand/category chatter; the India consumer voice is carried by the e-commerce reviews and Lovingle's owned social. Geographic coverage is approximate — blended from author-location tags, post locations and place references in text, rolled up to state level over the geo-identifiable subset.",
   "_diagnostics": {
     "review_total": 45161,
     "social_total": 46474,

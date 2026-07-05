@@ -46,6 +46,66 @@ const computeEvidenceHash = async (graph: EvidenceGraph): Promise<string> => {
   return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
 };
 
+// ── EXPLICIT-RUN-GATE HELPERS ────────────────────────────────────────────────
+// The run bar (ReportView) reads cache state WITHOUT starting synthesis. These
+// share the exact evidence-resolution / hashing / provider-scoping code paths
+// the pipeline itself uses, so a probe and a run always agree on the key.
+
+/** The evidence graph a run for this project would use (injected, else mock). */
+export const resolveEvidenceForProject = (
+  projectId: ProjectId,
+  injectedEvidence?: EvidenceGraph
+): EvidenceGraph => {
+  if (injectedEvidence && (!injectedEvidence.projectId || injectedEvidence.projectId === projectId)) {
+    return injectedEvidence;
+  }
+  return computeEvidenceGraph(RAW_MENTIONS, projectId);
+};
+
+/** The 40-char evidence hash key that scopes cache rows. */
+export const computeEvidenceHashKey = async (graph: EvidenceGraph): Promise<string> => {
+  const hash = await computeEvidenceHash(graph);
+  return hash.substring(0, 40);
+};
+
+/** Which provider a run would execute on right now ('seed' when unconfigured). */
+export const resolveRunProvider = (): string => {
+  const pStatus = getProviderStatus();
+  return (pStatus.any && pStatus.providers[getProvider()]) ? getProvider() : 'seed';
+};
+
+/** Read-only cache probe — never writes, never generates. Null on any error. */
+export const readCachedSection = async (
+  projectId: ProjectId,
+  sectionId: string,
+  hashKey: string,
+  provider: string
+): Promise<{ hit: boolean; row: any } | null> => {
+  try {
+    const cached = await apiGet('/api/cache', {
+      project_id: projectId, section_id: sectionId, evidence_hash: hashKey, provider,
+    });
+    return { hit: !!cached?.hit, row: cached?.row ?? null };
+  } catch {
+    return null;
+  }
+};
+
+/** Map the evidence graph to the Quote[] every SectionOutput carries. */
+export const buildEvidenceRef = (evidence: EvidenceGraph): Quote[] => {
+  const sourceEvents = evidence.events || evidence.evidence_graph_v1?.events || [];
+  if (sourceEvents.length === 0) return RAW_MENTIONS;
+  return sourceEvents.map(e => ({
+    quoteId: e.evidenceId || e.evidence_id || 'unknown',
+    text: e.content?.text || (e.text as any)?.raw || '',
+    sourceType: e.eventType === 'COMMERCE_REVIEW' ? 'review' : 'social',
+    timestamp: e.time?.createdAtISO || e.timestamp_iso || '',
+    language: e.lang || 'en',
+    location: e.geo?.country || 'Unknown',
+    brand: e.commerce?.brand
+  }));
+};
+
 const computeEvidenceSummary = (events: EvidenceEventV1[]) => {
   const total = events.length;
   const amazon = events.filter(e => e.sourceTag?.toLowerCase() === 'amazon' || e.commerce?.platform?.toLowerCase() === 'amazon').length;
@@ -154,13 +214,63 @@ const enrichContentWithBackfill = (sectionId: string, content: any, graph: Evide
     return traverse(content);
 };
 
+// ── JOB-LEVEL IN-FLIGHT DEDUPE ───────────────────────────────────────────────
+// One live job per (project, section, evidence_hash, provider). A double
+// trigger (StrictMode remount, racing effects, a double click) JOINS the
+// in-flight promise instead of burning a second synthesis call.
+const inFlightJobs = new Map<string, Promise<SectionOutput>>();
+
+export interface PipelineOptions {
+  /** Skip the cache read — an explicit Regenerate re-runs synthesis and upserts over the cached row. */
+  force?: boolean;
+}
+
 export const runPipelineForSection = async (
   projectId: ProjectId,
   sectionId: string,
   inspectorCallback: (data: Partial<RunInspectorData>) => void,
-  injectedEvidence?: EvidenceGraph
+  injectedEvidence?: EvidenceGraph,
+  opts?: PipelineOptions
 ): Promise<SectionOutput> => {
-  
+  const evidence = resolveEvidenceForProject(projectId, injectedEvidence);
+  if (injectedEvidence && evidence !== injectedEvidence) {
+      console.warn(`[Pipeline] Evidence graph mismatch. Expected ${projectId}, got ${injectedEvidence.projectId}. Recomputing mock.`);
+  }
+  const hash = await computeEvidenceHash(evidence);
+  const hashKey = hash.substring(0, 40);
+  const wantProvider = resolveRunProvider();
+
+  const force = opts?.force === true;
+  // force is part of the key: an explicit Regenerate must never join a
+  // lingering cache-read job and be handed the row it asked to replace.
+  const jobKey = `${projectId}|${sectionId}|${hashKey}|${wantProvider}|${force ? 'f' : 'c'}`;
+  const existing = inFlightJobs.get(jobKey);
+  if (existing) {
+    console.debug(`[Synthesis] dedupe {projectId: ${projectId}, sectionId: ${sectionId}} — identical job already in flight, joining it`);
+    return existing;
+  }
+  const job = executeSectionJob(
+    projectId, sectionId, inspectorCallback, evidence, hash, hashKey, wantProvider, force
+  );
+  inFlightJobs.set(jobKey, job);
+  try {
+    return await job;
+  } finally {
+    inFlightJobs.delete(jobKey);
+  }
+};
+
+const executeSectionJob = async (
+  projectId: ProjectId,
+  sectionId: string,
+  inspectorCallback: (data: Partial<RunInspectorData>) => void,
+  evidence: EvidenceGraph,
+  hash: string,
+  hashKey: string,
+  wantProvider: string,
+  force: boolean
+): Promise<SectionOutput> => {
+
   console.debug(`[Synthesis] start {projectId: ${projectId}, sectionId: ${sectionId}}`);
   const runId = `run_${Date.now()}`;
   if (projectId === 'adult-diapers') {
@@ -169,25 +279,13 @@ export const runPipelineForSection = async (
 
   const template = TEMPLATE_REGISTRY[projectId];
   if (!template) throw new Error(`CRITICAL: No template found for project ${projectId}`);
-  
+
   if (projectId === 'adult-diapers' && !template.templateId.startsWith('adult_diapers_v')) {
       throw new Error(`CONFIGURATION ERROR: Adult Diapers mapped to wrong template ${template.templateId}`);
   }
 
-  let evidence = injectedEvidence;
-  if (!evidence) {
-      evidence = computeEvidenceGraph(RAW_MENTIONS, projectId);
-  }
-  
-  if (evidence.projectId && evidence.projectId !== projectId) {
-      console.warn(`[Pipeline] Evidence graph mismatch. Expected ${projectId}, got ${evidence.projectId}. Recomputing mock.`);
-      evidence = computeEvidenceGraph(RAW_MENTIONS, projectId);
-  }
-
-  const hash = await computeEvidenceHash(evidence);
-  
-  inspectorCallback({ 
-    templateId: template.templateId, 
+  inspectorCallback({
+    templateId: template.templateId,
     evidenceHash: hash.substring(0, 8) + "...",
     promptVersion: template.versionPolicy.version,
     schemaVersion: "v1.0"
@@ -201,11 +299,10 @@ export const runPipelineForSection = async (
   // ── PERSISTENCE: section-output cache ───────────────────────────────────
   // Key by (project, section, evidence_hash, provider). A refresh that hits the
   // cache returns instantly and re-burns no LLM spend. Degrades to a miss if the
-  // backend / Supabase is unavailable.
-  const hashKey = hash.substring(0, 40);
-  const pStatus = getProviderStatus();
-  const wantProvider: string = (pStatus.any && pStatus.providers[getProvider()]) ? getProvider() : 'seed';
+  // backend / Supabase is unavailable. `force` (explicit Regenerate) skips the
+  // read so the run genuinely re-synthesises; the upsert below overwrites.
   let cacheHit = false;
+  if (!force) {
   try {
     const cached = await apiGet('/api/cache', {
       project_id: projectId, section_id: sectionId, evidence_hash: hashKey, provider: wantProvider,
@@ -219,6 +316,7 @@ export const runPipelineForSection = async (
       logs.push(`${logPrefix} Cache hit (${wantProvider}). Skipping synthesis.`);
     }
   } catch { /* no backend -> treat as miss */ }
+  }
 
   if (!cacheHit) {
   try {
@@ -407,7 +505,9 @@ export const runPipelineForSection = async (
   }
 
   // ── PERSISTENCE: write the produced section to the cache ────────────────
-  const resultProvider: string = status === 'SEEDED' ? 'seed' : getProvider();
+  // The write key MUST match the read/dedupe key (wantProvider), or seed-mode
+  // rows land under an engine that never ran and probes permanently miss them.
+  const resultProvider: string = status === 'SEEDED' ? 'seed' : wantProvider;
   try {
     await apiPost('/api/cache', {
       project_id: projectId,
@@ -428,21 +528,7 @@ export const runPipelineForSection = async (
 
   inspectorCallback({ retryLog: logs });
 
-  let evidenceRef: Quote[] = [];
-  const sourceEvents = evidence.events || evidence.evidence_graph_v1?.events || [];
-  if (sourceEvents.length > 0) {
-      evidenceRef = sourceEvents.map(e => ({
-          quoteId: e.evidenceId || e.evidence_id || 'unknown',
-          text: e.content?.text || (e.text as any)?.raw || '',
-          sourceType: e.eventType === 'COMMERCE_REVIEW' ? 'review' : 'social',
-          timestamp: e.time?.createdAtISO || e.timestamp_iso || '',
-          language: e.lang || 'en',
-          location: e.geo?.country || 'Unknown',
-          brand: e.commerce?.brand
-      }));
-  } else {
-      evidenceRef = RAW_MENTIONS;
-  }
+  const evidenceRef: Quote[] = buildEvidenceRef(evidence);
 
   console.debug(`[Synthesis] finish {projectId: ${projectId}, sectionId: ${sectionId}, status: ${status}}`);
 

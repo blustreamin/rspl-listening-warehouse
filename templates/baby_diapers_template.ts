@@ -53,7 +53,7 @@ GLOBAL NON-NEGOTIABLES:
 6. FAMILY STRUCTURE + MOTHER TYPE are explicit cuts: nuclear (incl. nanny/support system) vs joint
    (incl. grandparents); first-time vs second-time+ mothers. Fathers are increasingly co-deciders.
 7. VERBATIM FORMAT (MANDATORY — NON-NEGOTIABLE): every quote is an object
-   { "quote": "<copied word-for-word from a real EVIDENCE_CAPSULE record>", "source": "<the platform shown on that record: Amazon | Flipkart | Instagram | Facebook | Awario>", "consumer": "<short, honest tag, e.g. 'Mother of 8-month-old, Mumbai'>" }.
+   { "quote": "<copied word-for-word from a real EVIDENCE_CAPSULE record>", "source": "<the platform shown on that record: Amazon | Flipkart | FirstCry | Instagram | Facebook | Social listening>", "consumer": "<short, honest tag, e.g. 'Mother of 8-month-old, Mumbai'>" }.
    QUOTES MUST BE REAL HUMAN VOICE copied verbatim from the capsule — NEVER a product title, listing, URL, hashtag blurb, or SKU list, and NEVER invented. Hinglish and vernacular text is preserved exactly as written — do not translate or clean it up. If the capsule has no suitable human quote for a point, include fewer verbatims (or none) rather than padding with non-voice text.
    CONSUMER TAG IS SHORT: at most role + baby-age + city-or-tier. Only state attributes the underlying record actually supports.
    SOURCES ARE LITERAL: use only the real platform on the record.
@@ -561,7 +561,11 @@ Output: { "sources": string[], "excluded": string[], "window": string, "coverage
 DIRECTIVE: source layers (social, e-commerce reviews, content communities, influencer ecosystem,
 vernacular & search), the minimum 36-month listening window, an explicit "WhatsApp groups excluded"
 note, and a coverage + confidence summary. Vendor-genericised. (The rendered panel draws its figures
-from the committed ingestion ledger; this JSON is a methodological summary, not the ledger.)`,
+from the committed ingestion ledger; this JSON is a methodological summary, not the ledger.)
+MANDATORY DISCLOSURE (include as its own line inside "disclaimer"): the corpus was rebuilt on
+05 Jul 2026 — a clean re-ingestion with a trimmed listening window and challenger brands added to
+the tracked brand map (SuperBottoms, Babyhug, Dabur, R for Rabbit) — so mention counts, shares and
+denominators changed by design and are NOT comparable with pre-rebuild report editions.`,
     },
   },
   validators: {

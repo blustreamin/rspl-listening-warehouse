@@ -125,38 +125,96 @@ const prepareTargetedEvidence = (graph: EvidenceGraph, sectionId: string) => {
     })
     .sort((a, b) => b.score - a.score);
 
-  // Take a GENEROUS, BRAND-DIVERSE slice so the model has real range to quote
-  // from (small capsules force repetition / invention). Round-robin across
-  // brands among the on-topic hits, then top up with the best remaining.
+  // Take a GENEROUS slice so the model has real range to quote from (small
+  // capsules force repetition / invention). The slice is STRATIFIED two ways:
+  //   • SOURCE LAYER (sourceTag): ≤50% of the capsule from any single layer,
+  //     ≥2 layers whenever the pool offers them — an all-Amazon capsule reads
+  //     one shopping context as the whole category;
+  //   • BRAND: round-robin WITHIN each layer so no brand dominates a layer.
+  // A mono-layer pool still fills the capsule — the cap is relaxed rather than
+  // starving the evidence, and the resulting mix is logged per section job.
   const TARGET = 60;
+  const LAYER_CAP = Math.floor(TARGET / 2);
   const onTopic = scored.filter(x => x.score > 0).map(x => x.e);
-  const byBrand = new Map<string, any[]>();
+  const layerOf = (e: any): string => (e.sourceTag || 'other').toString();
+
+  // Brand round-robin ordering within one layer (keeps per-brand score order).
+  const brandRoundRobin = (list: any[]): any[] => {
+    const byBrand = new Map<string, any[]>();
+    for (const e of list) {
+      const b = (e.commerce?.brand || e.content?.platform || 'misc').toString();
+      if (!byBrand.has(b)) byBrand.set(b, []);
+      byBrand.get(b)!.push(e);
+    }
+    const out: any[] = [];
+    let more = true;
+    while (more) {
+      more = false;
+      for (const l of byBrand.values()) {
+        const next = l.shift();
+        if (next) { out.push(next); more = true; }
+      }
+    }
+    return out;
+  };
+
+  const byLayer = new Map<string, any[]>();
   for (const e of onTopic) {
-    const b = (e.commerce?.brand || e.content?.platform || 'misc').toString();
-    if (!byBrand.has(b)) byBrand.set(b, []);
-    byBrand.get(b)!.push(e);
+    const l = layerOf(e);
+    if (!byLayer.has(l)) byLayer.set(l, []);
+    byLayer.get(l)!.push(e);
   }
+  for (const [l, list] of byLayer) byLayer.set(l, brandRoundRobin(list));
+
   const picked: any[] = [];
   const pickedIds = new Set<string>();
+  const layerMix: Record<string, number> = {};
+  const take = (e: any) => {
+    picked.push(e);
+    pickedIds.add(e.evidenceId);
+    const l = layerOf(e);
+    layerMix[l] = (layerMix[l] || 0) + 1;
+  };
+
+  // Pass 1 — layer round-robin under the 50% cap (≥2 layers whenever available).
   let added = true;
   while (added && picked.length < TARGET) {
     added = false;
-    for (const list of byBrand.values()) {
+    for (const [l, list] of byLayer) {
+      if ((layerMix[l] || 0) >= LAYER_CAP) continue;
       const next = list.shift();
       if (next && !pickedIds.has(next.evidenceId)) {
-        picked.push(next); pickedIds.add(next.evidenceId); added = true;
+        take(next); added = true;
         if (picked.length >= TARGET) break;
       }
     }
   }
-  // Top up from any quotable evidence (even off-topic) so we never run thin.
+  // Pass 2 — cap relaxed for effectively mono-layer pools: breadth is
+  // preferred, but evidence volume is never sacrificed for it.
   if (picked.length < TARGET) {
-    for (const e of quotable) {
-      if (pickedIds.has(e.evidenceId)) continue;
-      picked.push(e); pickedIds.add(e.evidenceId);
+    added = true;
+    while (added && picked.length < TARGET) {
+      added = false;
+      for (const list of byLayer.values()) {
+        const next = list.shift();
+        if (next && !pickedIds.has(next.evidenceId)) {
+          take(next); added = true;
+          if (picked.length >= TARGET) break;
+        }
+      }
+    }
+  }
+  // Pass 3 — top up from any quotable evidence (even off-topic) so we never
+  // run thin; under-cap layers are drawn from first.
+  if (picked.length < TARGET) {
+    const topUp = quotable.filter(e => !pickedIds.has(e.evidenceId));
+    topUp.sort((a, b) => (layerMix[layerOf(a)] || 0) - (layerMix[layerOf(b)] || 0));
+    for (const e of topUp) {
+      take(e);
       if (picked.length >= TARGET) break;
     }
   }
+  const layerCapExceeded = Object.values(layerMix).some(n => n > LAYER_CAP);
 
   const simplified = picked.map(e => ({
     text: e.content?.text,
@@ -172,10 +230,10 @@ const prepareTargetedEvidence = (graph: EvidenceGraph, sectionId: string) => {
   const json = JSON.stringify({
     stats: graph.aggregations,
     sample_evidence: simplified,
-    note: `Targeted REAL evidence for '${sectionId}' — ${simplified.length} distinct ingested records (Amazon / Flipkart / Instagram / Facebook / Awario). Every verbatim MUST be copied from a sample_evidence 'text' field; set source: to that record's platform. The 'axes' field carries detected style:/pack: tags — keep STYLE and PACK as separate axes. Represent 4+ platforms per section. There is no other permitted source of quotes.`,
+    note: `Targeted REAL evidence for '${sectionId}' — ${simplified.length} distinct ingested records (Amazon / Flipkart / FirstCry / Instagram / Facebook / social listening). Every verbatim MUST be copied from a sample_evidence 'text' field; set source: to that record's platform. The 'axes' field carries detected style:/pack: tags — keep STYLE and PACK as separate axes. Represent 4+ platforms per section. There is no other permitted source of quotes.`,
   });
 
-  return { json, count: simplified.length };
+  return { json, count: simplified.length, layerMix, layerCapExceeded };
 };
 
 const calculateBrandSOV = (graph: EvidenceGraph) => {
@@ -236,7 +294,9 @@ export const synthesizeBabyDiapersSection = async (
     return content;
   };
 
-  logger?.(`[BabyDiapers] ${sectionId} evidence=${capsule.count}`);
+  // Layer mix per section job — the stratification audit trail (≤50%/layer).
+  const mixStr = Object.entries(capsule.layerMix).map(([l, n]) => `${l}:${n}`).join(' ');
+  logger?.(`[BabyDiapers] ${sectionId} evidence=${capsule.count} layer_mix={${mixStr}} cap50=${capsule.layerCapExceeded ? 'relaxed' : 'ok'}`);
 
   const buildPrompt = (tier: string, isRepair = false) => `
 ${systemPrompt}
@@ -251,6 +311,10 @@ FIELD BUDGETS (HARD CEILINGS — these override any looser field description abo
 - why / how_met_today / style·lifestage·day-night notes / shift notes: ≤22 words each
 - pool_note: ≤55 words · synthesis: ≤110 words · notes/points per card: MAX 3
 Prefer omission over compression — cut items, don't cram sentences. Exceeding a ceiling is a defect.
+
+TERMINOLOGY — VENDOR-NEUTRAL SOURCE NAMES:
+- Never name data-collection vendors or scraping tools ("Awario", "Apify") anywhere in the output — headlines, notes, sources, pool notes, synthesis.
+- Cite sources by consumer platform (Amazon, Flipkart, FirstCry, Instagram, Facebook, YouTube, Quora); when a record's platform is a listening aggregate, write "Social listening".
 
 CONTEXT DATA:
 BRAND_SOV_STATS: ${JSON.stringify(brandSov)}

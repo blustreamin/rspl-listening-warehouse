@@ -31,11 +31,17 @@ export interface RunSnapshot {
   total: number;
   /** sections that resolved FAILED */
   failed: number;
+  /** sections that resolved PENDING (awaiting stubs — not ok, not failed) */
+  pending: number;
+  /** 40-char evidence hash key the run executes against (freshness anchor) */
+  evidenceHash: string | null;
+  /** engine the run actually executes on ('seed' when unconfigured) */
+  provider: string | null;
 }
 
 type Listener = () => void;
 
-let _snap: RunSnapshot = { phase: "idle", projectId: null, done: 0, total: 0, failed: 0 };
+let _snap: RunSnapshot = { phase: "idle", projectId: null, done: 0, total: 0, failed: 0, pending: 0, evidenceHash: null, provider: null };
 const _listeners = new Set<Listener>();
 
 function set(next: Partial<RunSnapshot>): void {
@@ -53,9 +59,13 @@ function postRunRecord(status: "done" | "partial_failed", viaBeacon = false): vo
   if (status === "partial_failed" && _snap.done === 0) return;
   const payload = {
     project_id: _snap.projectId,
-    provider: getProvider(),
+    // The run's OWN engine ('seed' when unconfigured) — getProvider() would
+    // misattribute seed runs to the default engine and poison the freshness probe.
+    provider: _snap.provider ?? getProvider(),
+    evidence_hash: _snap.evidenceHash,
     sections_total: _snap.total,
-    sections_ok: Math.max(0, _snap.done - _snap.failed),
+    // PENDING stubs are neither ok nor failed — they await generation.
+    sections_ok: Math.max(0, _snap.done - _snap.failed - _snap.pending),
     status,
     finished_at: new Date().toISOString(),
   };
@@ -79,15 +89,22 @@ function postRunRecord(status: "done" | "partial_failed", viaBeacon = false): vo
 // ── transitions ──────────────────────────────────────────────────────────────
 
 /** Start a run. Idempotent for the same project. */
-export function beginRun(projectId: string, total = 0): void {
+export function beginRun(projectId: string, total = 0, evidenceHash?: string, provider?: string): void {
   if (_snap.phase === "running" && _snap.projectId === projectId) return;
-  set({ phase: "running", projectId, done: 0, total, failed: 0 });
+  set({
+    phase: "running", projectId, done: 0, total, failed: 0, pending: 0,
+    evidenceHash: evidenceHash ?? null, provider: provider ?? null,
+  });
 }
 
 /** Live progress from the synthesis loop. */
-export function reportRunProgress(done: number, failed: number, total?: number): void {
+export function reportRunProgress(done: number, failed: number, total?: number, pending?: number): void {
   if (_snap.phase !== "running") return;
-  set({ done, failed, ...(typeof total === "number" ? { total } : {}) });
+  set({
+    done, failed,
+    ...(typeof total === "number" ? { total } : {}),
+    ...(typeof pending === "number" ? { pending } : {}),
+  });
 }
 
 /** The loop ran to its natural end. */

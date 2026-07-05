@@ -15,24 +15,36 @@ const cyrb53 = (str: string, seed = 0) => {
 };
 
 // INDIA BABY DIAPER BRAND LIST — hardcoded; new entrants require a code change.
+// Majors stay first: extractBrandFromText is first-match, so list order decides
+// who claims a multi-brand text. Challengers (05 Jul corpus rebuild) append.
 const INDIA_BABY_DIAPER_BRANDS = [
   "Lovingle", "Pampers", "MamyPoko", "Huggies", "Little Angels",
   "Bumtum", "Supples", "Mee Mee", "Himalaya", "LuvLap", "Teddyy Baby",
-  "Nobel Hygiene", "Snuggy", "Bey Bee", "Quick Dry",
+  "Nobel Hygiene", "Snuggy", "Bey Bee",
+  "SuperBottoms", "Babyhug", "Dabur", "R for Rabbit",
 ];
 
-// Variant hints that should still resolve to a parent brand
+// Variant hints that should still resolve to a parent brand.
+// NOTE: consumers write "Little Angel" (singular — the pack says Little Angel)
+// and hashtags join words (#littleangel, #superbottoms, RforRabbit); the map
+// previously carried plural/spaced forms only, which is why Little Angels
+// attributed ZERO events in the 02-Jul corpus despite being tracked.
 const BRAND_HINTS: Array<[string, string]> = [
   ["lovingle", "Lovingle"],
   ["pampers", "Pampers"],
   ["mamypoko", "MamyPoko"], ["mamy poko", "MamyPoko"],
   ["huggies", "Huggies"],
-  ["little angels", "Little Angels"], ["littleangels", "Little Angels"],
+  ["little angel", "Little Angels"], ["littleangel", "Little Angels"],
   ["bumtum", "Bumtum"],
   ["supples", "Supples"],
   ["mee mee", "Mee Mee"], ["meemee", "Mee Mee"],
   ["himalaya", "Himalaya"],
   ["luvlap", "LuvLap"], ["luv lap", "LuvLap"],
+  ["teddyy", "Teddyy Baby"],
+  ["superbottoms", "SuperBottoms"], ["super bottoms", "SuperBottoms"],
+  ["babyhug", "Babyhug"], ["baby hug", "Babyhug"],
+  ["dabur", "Dabur"],
+  ["r for rabbit", "R for Rabbit"], ["rforrabbit", "R for Rabbit"],
 ];
 
 const extractBrandFromText = (text: string): string => {

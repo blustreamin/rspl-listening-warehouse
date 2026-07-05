@@ -42,10 +42,21 @@ export const toTitleCase = (s?: string): string => {
     .join(' ');
 };
 
+// ── Vendor-name neutraliser ──────────────────────────────────────────────────
+// Data-collection vendors (Awario, Apify) are pipeline tooling, not consumer
+// platforms — a client-facing page never names them. Cached generations that
+// predate the TERMINOLOGY prompt rule are sanitised here at render time.
+const neutraliseVendorNames = (text: string): string => {
+  return text
+    .replace(/\s*[([](?:via\s+)?(?:awario|apify)[)\]]/gi, '')
+    .replace(/\bawario\b/gi, 'Social listening')
+    .replace(/\bapify\b/gi, 'e-commerce reviews');
+};
+
 // ── L1.5 · UTF-8 / mojibake repair applied to every rendered verbatim ────────
 export const cleanVerbatimText = (text?: string): string => {
   if (!text) return '';
-  return String(text)
+  return neutraliseVendorNames(String(text)
     .replace(/ÃÂ®/g, '®').replace(/Ã‚Â®/g, '®').replace(/Ã®/g, '®')
     .replace(/ÃÂ©/g, 'é').replace(/Ã©/g, 'é')
     .replace(/Ã¢â‚¬â„¢/g, '’').replace(/â€™/g, '’')
@@ -55,7 +66,7 @@ export const cleanVerbatimText = (text?: string): string => {
     .replace(/Ã¢â‚¬â€/g, '—').replace(/â€”/g, '—')
     .replace(/Ã‚Â/g, '').replace(/Â/g, '')
     .replace(/\s+/g, ' ')
-    .trim();
+    .trim());
 };
 
 // ── N4 · consumer-terminology sanitiser ──────────────────────────────────────
@@ -65,11 +76,11 @@ export const cleanVerbatimText = (text?: string): string => {
 // route through InsightCard/VerbatimChip, so the exemption holds structurally.
 export const sanitiseConsumerText = (text?: string): string => {
   if (!text) return '';
-  return String(text)
+  return neutraliseVendorNames(String(text)
     .replace(/\bLaddi Single\b/gi, 'single-use sachet pack')
     .replace(/\bLaddi Twin\b/gi, 'twin sachet pack')
     .replace(/\bnon[- ]laddi\b/gi, 'standard multi-count pack')
-    .replace(/\bLaddi\b/gi, 'sachet pack');
+    .replace(/\bLaddi\b/gi, 'sachet pack'));
 };
 
 const confClass = (c?: ConfidenceLevel): string =>

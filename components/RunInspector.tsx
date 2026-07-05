@@ -27,7 +27,9 @@ export const RunInspector: React.FC<Props> = ({ data, projectId }) => {
   // run-state machine; per-section detail from the inspector data.
   const run = useRunState();
   const statuses = Object.values(data.perSectionStatus);
-  const total = (projectId && TEMPLATE_REGISTRY[projectId]?.sections.length) || statuses.length || 0;
+  // Prefer the live status map (it excludes femcare's retired section '10');
+  // the registry length is only the pre-hydration fallback.
+  const total = statuses.length || (projectId && TEMPLATE_REGISTRY[projectId]?.sections.length) || 0;
   const resolved = statuses.filter((s) => s !== 'PENDING').length;
   const failed = statuses.filter((s) => s === 'FAILED').length;
   const running = run.phase === 'running';

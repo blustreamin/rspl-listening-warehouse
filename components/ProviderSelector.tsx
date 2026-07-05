@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { loadProviderStatus, getProvider, setProvider, ProviderId, ProviderStatus } from "../lib/llmSettings";
+import { ensureProviderStatus, setProvider, useProviderId, ProviderId, ProviderStatus } from "../lib/llmSettings";
 import { isRunActive, subscribeRunState } from "../lib/runState";
 
 const LABELS: Record<ProviderId, string> = {
@@ -13,15 +13,15 @@ const LABELS: Record<ProviderId, string> = {
 // When none are configured the app runs in seed mode.
 export const ProviderSelector: React.FC = () => {
   const [status, setStatus] = useState<ProviderStatus | null>(null);
-  const [active, setActive] = useState<ProviderId>(getProvider());
+  // Store-subscribed: the dropdown always shows the engine a run would use.
+  const active = useProviderId();
   const [locked, setLocked] = useState<boolean>(isRunActive());
 
   useEffect(() => {
     let alive = true;
-    loadProviderStatus().then((s) => {
-      if (!alive) return;
-      setStatus(s);
-      setActive(getProvider());
+    // Shared memoised load — ReportView's hydrate awaits the same promise.
+    ensureProviderStatus().then((s) => {
+      if (alive) setStatus(s);
     });
     return () => { alive = false; };
   }, []);
@@ -40,9 +40,7 @@ export const ProviderSelector: React.FC = () => {
 
   const onChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     if (locked) return; // hard guard in addition to the disabled attribute
-    const p = e.target.value as ProviderId;
-    setProvider(p);
-    setActive(p);
+    setProvider(e.target.value as ProviderId); // store notifies subscribers
   };
 
   return (
