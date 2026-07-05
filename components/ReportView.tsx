@@ -15,6 +15,7 @@ import { BookletCover, BookletTOC } from './report/blocks/BookletChrome';
 import { DataIngestionInfographic } from './report/DataIngestionInfographic';
 import { beginRun, completeRun, abandonRun, reportRunProgress, isRunActive, useRunState } from '../lib/runState';
 import { useProviderId, ensureProviderStatus } from '../lib/llmSettings';
+import { ensureEvidencePersisted } from '../lib/persistence';
 import { apiGet } from '../lib/api';
 
 interface Props {
@@ -235,6 +236,15 @@ export const ReportView: React.FC<Props> = ({ projectId, injectedEvidence }) => 
     let pendingCount = 0;
 
     try {
+      // PERSIST-AT-ASSEMBLY: write the assembled graph to evidence_graphs BEFORE
+      // the first section synthesizes. An aborted run then can never leave the
+      // graph unpersisted, and the corpus figures injected into each prompt come
+      // from the same row the Data Foundation panel reads. Real corpora only —
+      // the mock/seed graph is never persisted. Idempotent per (project, hash).
+      // If the run is abandoned during this await, the loop's alive() guard
+      // below breaks immediately and the finally records the abandon.
+      if (validEvidence) await ensureEvidencePersisted(validEvidence, hashKeyRef.current);
+
       for (const sectionId of targets) {
         if (!alive()) break;
 

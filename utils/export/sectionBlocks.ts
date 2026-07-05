@@ -266,7 +266,7 @@ const sectionToBlocks = (sectionId: string, d: any): { eyebrow: string; standfir
           { type: 'moves', title: 'Recommended Moves', moves: arr(d.moves).map((m: any) => ({ n: m?.n ?? '', title: m?.title || '', rationale: m?.rationale || '' })) },
         ] };
     case 'methodology_evidence':
-      return { eyebrow: EY('Methodology'), standfirst: "The credibility appendix — source layers, a 36-month+ listening window, what's excluded, and the coverage behind every cut.",
+      return { eyebrow: EY('Methodology'), standfirst: "The credibility appendix — source layers, a multi-year listening window, what's excluded, and the coverage behind every cut.",
         blocks: [
           { type: 'notes', title: 'Evidence Source Layers', items: arr<string>(d.sources) },
           { type: 'notes', title: 'Excluded', items: arr<string>(d.excluded) },

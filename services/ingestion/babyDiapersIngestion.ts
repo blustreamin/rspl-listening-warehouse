@@ -90,6 +90,20 @@ export const babyDiapersIngestion = (request: IngestRequestV1): EvidenceGraph =>
   const ratings: number[] = [];
   const seenTextHashes = new Set<number>();
 
+  // Ingestion-panel aggregations (05 Jul rebuild) — computed here, once, at
+  // graph-assembly time. The Data Foundation panel reads these; it never
+  // recomputes corpus stats client-side.
+  const platformCounts: Record<string, number> = {};
+  const socialSourceCounts: Record<string, number> = {};
+  const stateCounts: Record<string, number> = {};
+  const brandRatingAcc: Record<string, { sum: number; count: number }> = {};
+  let commerceCount = 0;
+  let socialCount = 0;
+  let verbatimCount = 0;
+  let datedCount = 0;
+  let dateMin: string | null = null;
+  let dateMax: string | null = null;
+
   request.inputs.forEach(input => {
     const sourceTag = input.sourceTag.toLowerCase();
     const fieldMap = input.mapping.canonicalFieldMap;
@@ -111,6 +125,7 @@ export const babyDiapersIngestion = (request: IngestRequestV1): EvidenceGraph =>
       const textHash = cyrb53(cleanText);
       if (seenTextHashes.has(textHash)) return;
       seenTextHashes.add(textHash);
+      if (text.trim().length >= 10) verbatimCount++; // panel's usable-verbatim floor
 
       // BRAND
       let brand = getField(raw, fieldMap.brand) || "Generic/Other";
@@ -122,9 +137,21 @@ export const babyDiapersIngestion = (request: IngestRequestV1): EvidenceGraph =>
         }
       }
       if (brand === "Generic/Other") brand = extractBrandFromText(cleanText);
-      const probe = (cleanText + " " + brand).toLowerCase();
+      // Canonicalise the brand/product FIELD values only ("Mamy Poko", a
+      // "Little Angel" alert name → canonical map entries). The review text is
+      // deliberately NOT probed here — a Huggies review saying "better than
+      // Pampers" must never flip to Pampers by hint order (that misattributes
+      // the mention AND its star rating).
+      const fieldProbe = (getField(raw, fieldMap.brand) + " " + getField(raw, fieldMap.product)).toLowerCase();
       for (const [hint, canonical] of BRAND_HINTS) {
-        if (probe.includes(hint)) { brand = canonical; break; }
+        if (fieldProbe.includes(hint)) { brand = canonical; break; }
+      }
+      // Text-level RESCUE only when no field resolved a brand: catches variant
+      // spellings the canonical list can't ("mamy poko", "#littleangel").
+      if (brand === "Generic/Other") {
+        for (const [hint, canonical] of BRAND_HINTS) {
+          if (cleanText.includes(hint)) { brand = canonical; break; }
+        }
       }
       brandCounts[brand] = (brandCounts[brand] || 0) + 1;
 
@@ -135,6 +162,10 @@ export const babyDiapersIngestion = (request: IngestRequestV1): EvidenceGraph =>
         const p = parseFloat(rv);
         if (!isNaN(p) && p >= 1 && p <= 5) { rating = p; ratings.push(rating); }
       }
+      if (rating > 0 && brand !== 'Generic/Other') {
+        const acc = brandRatingAcc[brand] || (brandRatingAcc[brand] = { sum: 0, count: 0 });
+        acc.sum += rating; acc.count++;
+      }
 
       // GEO
       let country = getField(raw, fieldMap.location) || 'IN';
@@ -143,6 +174,7 @@ export const babyDiapersIngestion = (request: IngestRequestV1): EvidenceGraph =>
       if (country === 'India' || country === 'in') country = 'IN';
       if (city && city.length < 2) city = '';
       if (state && state.length < 2) state = '';
+      if (state) stateCounts[state] = (stateCounts[state] || 0) + 1;
 
       // PLATFORM
       const isCommerce = sourceTag.includes('amazon') || sourceTag.includes('flipkart') || sourceTag.includes('firstcry');
@@ -165,12 +197,28 @@ export const babyDiapersIngestion = (request: IngestRequestV1): EvidenceGraph =>
         else if (src.includes('web')) platformName = 'Web';
         else platformName = (getField(raw, fieldMap.platform)) || 'Social Listening';
       }
+      platformCounts[platformName] = (platformCounts[platformName] || 0) + 1;
+      if (isCommerce) commerceCount++;
+      else {
+        socialCount++;
+        socialSourceCounts[platformName] = (socialSourceCounts[platformName] || 0) + 1;
+      }
 
       // DATE
       const dateStr = getField(raw, fieldMap.createdAtISO);
       let createdAt = new Date().toISOString();
       if (dateStr) {
-        try { const d = new Date(dateStr); if (!isNaN(d.getTime())) createdAt = d.toISOString(); } catch { /* default */ }
+        try {
+          const d = new Date(dateStr);
+          if (!isNaN(d.getTime())) {
+            createdAt = d.toISOString();
+            // Only genuinely dated records feed the collection-period line —
+            // the ingest-time default above would pollute the max.
+            datedCount++;
+            if (!dateMin || createdAt < dateMin) dateMin = createdAt;
+            if (!dateMax || createdAt > dateMax) dateMax = createdAt;
+          }
+        } catch { /* default */ }
       }
 
       // STYLE + PACK tags (stashed in derived.tokens; kept as two independent axes)
@@ -211,6 +259,15 @@ export const babyDiapersIngestion = (request: IngestRequestV1): EvidenceGraph =>
       brandCounts: Object.entries(brandCounts).map(([k, v]) => ({ brand: k, count: v })),
       ratingSummary: { count: ratings.length, avg: avgRating, p50: 0, p90: 0 },
       languageCounts: [{ lang: 'en', count: events.length }],
+      platformCounts: Object.entries(platformCounts).map(([platform, count]) => ({ platform, count })),
+      eventTypeCounts: { commerce: commerceCount, social: socialCount },
+      socialSourceCounts: Object.entries(socialSourceCounts).map(([source, count]) => ({ source, count })),
+      brandRatings: Object.entries(brandRatingAcc).map(([brand, a]) => ({
+        brand, count: a.count, avg: Math.round((a.sum / a.count) * 100) / 100,
+      })),
+      verbatimCount,
+      dateRange: { min: dateMin, max: dateMax, datedCount },
+      stateCounts: Object.entries(stateCounts).map(([state, count]) => ({ state, count })),
     },
   };
 };

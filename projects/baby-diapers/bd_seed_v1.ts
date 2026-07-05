@@ -540,7 +540,7 @@ export const BD_SEEDS_V1: Record<string, any> = {
   methodology_evidence: {
     sources: ["Social platforms", "E-commerce reviews", "Content communities", "Influencer ecosystem", "Vernacular & search"],
     excluded: ["WhatsApp groups (closed / end-to-end encrypted)", "Closed Facebook groups (best-effort / manual only)"],
-    window: "Minimum 36-month (three-year) historical listening window — enough to observe a baby's full diaper journey end-to-end.",
+    window: "A multi-year historical listening window — long enough to observe a baby's full diaper journey end-to-end.",
     coverage: [
       { label: "Geography", detail: "Metro, Tier 2 and Tier 3; North, South, East, West & Central India." },
       { label: "Lifestage", detail: "Expecting (3rd trimester) through 2–3y, anchored to the baby's age." },

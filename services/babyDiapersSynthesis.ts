@@ -245,6 +245,65 @@ const calculateBrandSOV = (graph: EvidenceGraph) => {
   })).sort((a, b) => b.mentions - a.mentions);
 };
 
+// ── RUNTIME CORPUS CONTEXT ────────────────────────────────────────────────────
+// Standing law: NO corpus number may be a string literal in a prompt. Every
+// figure the model is allowed to cite about the corpus (size, platform count,
+// listening window, per-brand volumes incl. Lovingle) is read HERE from the
+// assembled graph's live aggregations and interpolated into every section's
+// prompt. Fossilised counts in the template have been removed in favour of a
+// reference to this block, so a corpus rebuild can never leave a stale number
+// in a generated section again.
+const buildCorpusContext = (graph: EvidenceGraph): string => {
+  const events = graph.events || graph.evidence_graph_v1?.events || [];
+  const total = events.length;
+  if (total === 0) {
+    return `CORPUS CONTEXT (LIVE): the evidence corpus for this run is empty or not yet assembled. Do NOT cite any record count, platform count, listening window or brand-mention figure — speak about coverage qualitatively only.`;
+  }
+  const agg = graph.aggregations || {};
+
+  const pc = (agg.platformCounts || []).slice().sort((a, b) => b.count - a.count);
+  const platformClause = pc.length
+    ? ` across ${pc.length} platforms (${pc.slice(0, 8).map(p => p.platform).join(', ')})`
+    : '';
+
+  // Prefer the aggregation's date range; else derive the span straight from the
+  // events' timestamps (mock/seed and pre-aggregation graphs carry these but no
+  // dateRange), and only then fall back to the generic phrase.
+  let windowLine = 'a multi-year historical window';
+  let minMs = Infinity, maxMs = -Infinity;
+  const dr = agg.dateRange;
+  if (dr?.min && dr?.max) {
+    minMs = new Date(dr.min).getTime();
+    maxMs = new Date(dr.max).getTime();
+  } else {
+    for (const e of events) {
+      const iso = e?.time?.createdAtISO;
+      if (!iso) continue;
+      const t = new Date(iso).getTime();
+      if (!Number.isNaN(t)) { if (t < minMs) minMs = t; if (t > maxMs) maxMs = t; }
+    }
+  }
+  if (Number.isFinite(minMs) && Number.isFinite(maxMs) && maxMs >= minMs) {
+    windowLine = `${new Date(minMs).getFullYear()}–${new Date(maxMs).getFullYear()}`;
+  }
+
+  const bc = (agg.brandCounts || [])
+    .filter(b => b.brand && b.brand !== 'Generic/Other' && b.brand !== 'Unknown')
+    .slice().sort((a, b) => b.count - a.count);
+  const brandLine = bc.length
+    ? `\n- Brand mention volumes (this corpus): ${bc.slice(0, 10).map(b => `${b.brand} ${b.count.toLocaleString('en-US')}`).join(', ')}.`
+    : '';
+  const lovingle = bc.find(b => /lovingle/i.test(b.brand));
+  const lovingleLine = lovingle
+    ? `\n- Lovingle appears ${lovingle.count.toLocaleString('en-US')} time(s) in this corpus — cite THIS number, never a remembered one.`
+    : '';
+
+  return `CORPUS CONTEXT (LIVE — the ONLY corpus figures you may cite; never invent a record count, platform count, listening window or brand-mention total):
+- Total evidence base: ${total.toLocaleString('en-US')} deduplicated records${platformClause}.
+- Listening window: ${windowLine} (dated subset; timestamp depth varies by source).${brandLine}${lovingleLine}
+Calibrate every data_points value and corpus_frequency PROPORTIONALLY to the live total above. If a figure is not stated here, describe it qualitatively — do not fabricate a number.`;
+};
+
 const cleanAndParseJSON = (text: string): any => {
   let c = (text || '').trim();
   if (c.startsWith('```')) c = c.replace(/^```(json)?\n?/, '').replace(/\n?```$/, '').trim();
@@ -267,6 +326,8 @@ export const synthesizeBabyDiapersSection = async (
 
   const capsule = prepareTargetedEvidence(evidenceGraph, sectionId);
   const brandSov = calculateBrandSOV(evidenceGraph);
+  // Live corpus figures (size/platforms/window/brands) — injected, never fossilised.
+  const corpusContext = buildCorpusContext(evidenceGraph);
 
   // ── Provenance corpus: ONLY real ingested quote text. The curated bank has
   // been removed from the capsule entirely, so no quote should match it; any
@@ -315,6 +376,8 @@ Prefer omission over compression — cut items, don't cram sentences. Exceeding 
 TERMINOLOGY — VENDOR-NEUTRAL SOURCE NAMES:
 - Never name data-collection vendors or scraping tools ("Awario", "Apify") anywhere in the output — headlines, notes, sources, pool notes, synthesis.
 - Cite sources by consumer platform (Amazon, Flipkart, FirstCry, Instagram, Facebook, YouTube, Quora); when a record's platform is a listening aggregate, write "Social listening".
+
+${corpusContext}
 
 CONTEXT DATA:
 BRAND_SOV_STATS: ${JSON.stringify(brandSov)}

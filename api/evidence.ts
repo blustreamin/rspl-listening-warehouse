@@ -18,7 +18,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   const admin = getAdmin();
 
   if (req.method === "GET") {
-    const { project_id } = req.query as Record<string, string>;
+    const { project_id, stats } = req.query as Record<string, string>;
     if (!project_id) return res.status(400).json({ error: "missing_project_id" });
     const { data, error } = await admin
       .from("evidence_graphs")
@@ -28,6 +28,23 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       .limit(1)
       .maybeSingle();
     if (error) return res.status(500).json({ error: error.message });
+
+    // Light mode (?stats=1) — registry metadata + aggregations only, no event
+    // blob download. The Data Foundation ingestion panel reads THIS; it never
+    // pulls the full corpus just to show counts.
+    if (stats) {
+      if (!data) return res.status(200).json({ stats: null, persistence: true });
+      return res.status(200).json({
+        stats: {
+          event_count: data.event_count ?? 0,
+          generated_at: data.generated_at,
+          evidence_hash: data.evidence_hash,
+          aggregations: data.aggregations || {},
+        },
+        persistence: true,
+      });
+    }
+
     if (!data) return res.status(200).json({ graph: null, persistence: true });
 
     let events: any[] = [];

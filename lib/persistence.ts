@@ -17,6 +17,20 @@ export async function persistEvidence(graph: EvidenceGraph, datasetIds: string[]
   } catch { /* no backend -> skip */ }
 }
 
+/** Persist the assembled graph iff no evidence_graphs row for this (project,
+ *  evidence_hash) exists yet. Called at RUN START so an aborted run can never
+ *  leave the graph unpersisted, without piling a duplicate row on every
+ *  regenerate. Degrades to a plain persist when the freshness probe fails. */
+export async function ensureEvidencePersisted(graph: EvidenceGraph, evidenceHash: string): Promise<void> {
+  if (!graph?.projectId) return;
+  try {
+    const r = await apiGet("/api/evidence", { project_id: graph.projectId, stats: "1" });
+    const existing = r?.stats?.evidence_hash ?? r?.meta?.evidence_hash ?? null;
+    if (existing && existing === evidenceHash) return; // already persisted — no dup
+  } catch { /* probe failed -> fall through and attempt the persist */ }
+  await persistEvidence({ ...(graph as any), evidenceHash }, (graph as any).__datasetIds || []);
+}
+
 /** Load the latest persisted evidence graph for a project, or null. */
 export async function loadEvidence(projectId: string): Promise<EvidenceGraph | null> {
   try {

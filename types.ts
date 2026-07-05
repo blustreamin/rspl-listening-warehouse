@@ -386,6 +386,15 @@ export interface EvidenceGraph {
       p90: number;
     };
     languageCounts?: Array<{ lang: string; count: number }>;
+    // Ingestion-panel stats (05 Jul rebuild) — emitted at graph-assembly time
+    // so the Data Foundation panel never recomputes corpus stats client-side.
+    platformCounts?: Array<{ platform: string; count: number }>;
+    eventTypeCounts?: { commerce: number; social: number };
+    socialSourceCounts?: Array<{ source: string; count: number }>;
+    brandRatings?: Array<{ brand: string; count: number; avg: number }>;
+    verbatimCount?: number;
+    dateRange?: { min: string | null; max: string | null; datedCount: number };
+    stateCounts?: Array<{ state: string; count: number }>;
   };
   // Fallback for legacy pipeline compatibility
   evidence_graph_v1?: { events: any[] }; 

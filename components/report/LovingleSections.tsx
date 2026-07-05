@@ -855,10 +855,11 @@ export const BkConsumerPersonas: React.FC<Props> = ({ data, section }) => {
 };
 
 // ── 20 · Data Foundation & Methodology (Appendix) ────────────────────────────
-// The DataIngestionAnalysis evidence ledger (91,635-record corpus, 9 platforms,
-// largest-remainder %s), re-chromed inside the booklet shell. Retained as an
-// appendix beyond the structure doc (§10.2 — Venkat decision); it answers N9's
-// data-source-clarity concern and carries report credibility.
+// The DataIngestionAnalysis evidence ledger, LIVE-DERIVED from the ingestion
+// registry + the latest evidence graph (05 Jul rebuild — no static snapshot),
+// re-chromed inside the booklet shell. Retained as an appendix beyond the
+// structure doc (§10.2 — Venkat decision); it answers N9's data-source-clarity
+// concern and carries report credibility.
 
 export const BkDataFoundation: React.FC<Props> = ({ data, section }) => (
   <LovingleSectionShell section={section} data={data}>

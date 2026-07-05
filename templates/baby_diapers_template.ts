@@ -65,8 +65,9 @@ GLOBAL NON-NEGOTIABLES:
 9. VENDOR HYGIENE: refer to "enterprise social listening" and "e-commerce review harvest" — never name
    the underlying tools. WhatsApp groups are NOT part of the deliverable (closed/E2E-encrypted); never
    cite WhatsApp. Closed Facebook groups are best-effort/manual only.
-10. LISTENING WINDOW + DATA POINT CALIBRATION: a minimum 36-month (three-year) historical window. The
-   total evidence base is ~91,600 records across 9 platforms. Calibrate data_points per insight:
+10. DATA POINT CALIBRATION: the CORPUS CONTEXT block (below) states the live evidence-base size, platform
+   count and listening window for THIS run — use only those figures, never a remembered one. Calibrate
+   data_points per insight PROPORTIONALLY to that live total:
    - HIGH frequency themes (overnight leak, rash, value): 400-900 data points
    - MEDIUM frequency (size transitions, brand switching, daycare): 150-400 data points
    - LOW frequency (regional/seasonal nuances): 50-150 data points
@@ -176,7 +177,7 @@ export const BABY_DIAPERS_TEMPLATE: TemplatePack = {
 SECTION 00: EXECUTIVE SUMMARY (board-level lead for the report)
 Output: {
   "pool_note": string,
-  "stats": Array<{stat, label}> (exactly 3 hero stats — listening window in months, total evidence pool, platform count),
+  "stats": Array<{stat, label}> (exactly 3 hero stats — listening window, total evidence pool, platform count — each copied from CORPUS CONTEXT in the form stated there; never convert or invent a figure it does not give),
   "north_star": string,
   "insights": Array<{headline, what_it_means (≤30 words), theme:"parenting_category"|"product"|"shopping"|"brand", data_points:N}> (4–6 cards, NO verbatims field)
 }
@@ -495,7 +496,7 @@ Output: {
     functional_meaning: string,
     emotional_meaning: string (what it signals emotionally — guilt, pride, reassurance, fear),
     pack_implication: string (what this wording implies for pack/comms language),
-    corpus_frequency: N (approximate appearances across the ~91,600-record corpus),
+    corpus_frequency: N (approximate appearances across the corpus — scale to the live total in CORPUS CONTEXT),
     verbatims: [{quote,source,consumer,verbatim_attribution}] (MAX 1)
   }> (MIN 8, RANKED by corpus_frequency, most-used first),
   "clusters": Array<{label: string (e.g. "Benefit words", "Format words", "Pack words", "Time-of-day words"), terms: string[]}>,
@@ -559,7 +560,7 @@ Output: {
 SECTION 20 (APPENDIX): DATA FOUNDATION & METHODOLOGY
 Output: { "sources": string[], "excluded": string[], "window": string, "coverage": Array<{label, detail}>, "confidence": string, "disclaimer": string }
 DIRECTIVE: source layers (social, e-commerce reviews, content communities, influencer ecosystem,
-vernacular & search), the minimum 36-month listening window, an explicit "WhatsApp groups excluded"
+vernacular & search), the actual listening window stated in CORPUS CONTEXT, an explicit "WhatsApp groups excluded"
 note, and a coverage + confidence summary. Vendor-genericised. (The rendered panel draws its figures
 from the committed ingestion ledger; this JSON is a methodological summary, not the ledger.)
 MANDATORY DISCLOSURE (include as its own line inside "disclaimer"): the corpus was rebuilt on
