@@ -4,6 +4,7 @@ import { ReportView } from './components/ReportView';
 import { DataStudio } from './components/DataStudio';
 import { ProviderSelector } from './components/ProviderSelector';
 import { persistEvidence, loadEvidence } from './lib/persistence';
+import { computeEvidenceHashKey } from './services/pipeline';
 import { isRunActive, getRunState } from './lib/runState';
 import { ProjectId, EvidenceGraph } from './types';
 
@@ -36,8 +37,12 @@ const App: React.FC = () => {
               ...prev,
               [data.projectId!]: data
           }));
-          // Persist the computed graph so the report survives a refresh.
-          void persistEvidence(data);
+          // Persist the computed graph so the report survives a refresh —
+          // WITH its hash, so the run-start dedup probe recognises the row
+          // instead of persisting the same corpus a second time.
+          void computeEvidenceHashKey(data).then((h) =>
+            persistEvidence({ ...(data as any), evidenceHash: h })
+          );
           // Auto-switch project context if data implies a different project —
           // guarded: it would remount ReportView and abandon a live run.
           if (data.projectId !== projectId) {
@@ -173,6 +178,14 @@ const App: React.FC = () => {
                 key={projectId} // CRITICAL FIX: Force remount on project change to wipe state
                 projectId={projectId}
                 injectedEvidence={activeEvidence}
+                onEvidenceAssembled={(g) => {
+                    // Registry rebuild mid-run: adopt the assembled graph so the
+                    // panel, hash probes and future sessions all see one corpus.
+                    // Persistence is handled by the run itself (persist-at-assembly).
+                    if (g.projectId) {
+                        setEvidenceByProject(prev => ({ ...prev, [g.projectId!]: g }));
+                    }
+                }}
              />
           </div>
           {view === 'data' && (

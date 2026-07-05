@@ -97,6 +97,14 @@ export function beginRun(projectId: string, total = 0, evidenceHash?: string, pr
   });
 }
 
+/** Registry assembly resolves the true corpus hash only AFTER beginRun has
+ *  engaged the lock — update the snapshot so the run record carries the real
+ *  hash instead of the pre-assembly (mock) one. */
+export function setRunEvidenceHash(hash: string): void {
+  if (_snap.phase !== "running") return;
+  set({ evidenceHash: hash });
+}
+
 /** Live progress from the synthesis loop. */
 export function reportRunProgress(done: number, failed: number, total?: number, pending?: number): void {
   if (_snap.phase !== "running") return;

@@ -6,6 +6,10 @@ import {
 
 // /api/datasets — uploaded social-listening files.
 //   GET    ?project_id           -> { datasets: [...metadata] }
+//   GET    ?id&download=1        -> { url } signed download URL for the stored
+//                                   rows JSON (registry graph rebuild reads the
+//                                   blob straight from Storage — a 20k-row file
+//                                   would blow the serverless response limit)
 //   POST   { project_id, name, source_tag, columns, rows[] }
 //          -> stores rows JSON in Storage, inserts metadata row
 //   DELETE ?id                    -> removes metadata row + Storage object
@@ -22,7 +26,19 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   const admin = getAdmin();
 
   if (req.method === "GET") {
-    const { project_id } = req.query as Record<string, string>;
+    const { project_id, id, download } = req.query as Record<string, string>;
+
+    if (id && download) {
+      const { data: row, error: rowErr } = await admin
+        .from("datasets").select("storage_path").eq("id", id).maybeSingle();
+      if (rowErr) return res.status(500).json({ error: rowErr.message });
+      if (!row?.storage_path) return res.status(404).json({ error: "not_found" });
+      const { data, error } = await admin.storage
+        .from(DATASET_BUCKET).createSignedUrl(row.storage_path, 600);
+      if (error) return res.status(500).json({ error: error.message });
+      return res.status(200).json({ url: data.signedUrl, persistence: true });
+    }
+
     let q = admin.from("datasets").select("*").order("uploaded_at", { ascending: false });
     if (project_id) q = q.eq("project_id", project_id);
     const { data, error } = await q;

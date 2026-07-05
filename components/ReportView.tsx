@@ -13,14 +13,18 @@ import { ExportBar } from './report/ExportBar';
 import { RunBar, PROVIDER_LABELS } from './report/RunBar';
 import { BookletCover, BookletTOC } from './report/blocks/BookletChrome';
 import { DataIngestionInfographic } from './report/DataIngestionInfographic';
-import { beginRun, completeRun, abandonRun, reportRunProgress, isRunActive, useRunState } from '../lib/runState';
+import { beginRun, completeRun, abandonRun, reportRunProgress, setRunEvidenceHash, isRunActive, useRunState } from '../lib/runState';
 import { useProviderId, ensureProviderStatus } from '../lib/llmSettings';
 import { ensureEvidencePersisted } from '../lib/persistence';
+import { assembleGraphFromRegistry } from '../services/graphAssembly';
 import { apiGet } from '../lib/api';
 
 interface Props {
   projectId: ProjectId;
   injectedEvidence?: EvidenceGraph | null;
+  /** Registry assembly during a run hands the graph up so App state, the
+   *  ingestion panel and post-run hydration all see the same corpus. */
+  onEvidenceAssembled?: (graph: EvidenceGraph) => void;
 }
 
 interface CacheProbe {
@@ -31,9 +35,11 @@ interface CacheProbe {
   probed: boolean;
   /** corpus hash changed since the last recorded run on this engine */
   stale: boolean;
+  /** registered datasets for this project — the registry-rebuild source */
+  registryCount: number;
 }
 
-export const ReportView: React.FC<Props> = ({ projectId, injectedEvidence }) => {
+export const ReportView: React.FC<Props> = ({ projectId, injectedEvidence, onEvidenceAssembled }) => {
   // STATE GUARD: Track projectId with ref for synchronous invalidation of stale renders
   const lastProjectIdRef = useRef<ProjectId | null>(null);
 
@@ -53,7 +59,7 @@ export const ReportView: React.FC<Props> = ({ projectId, injectedEvidence }) => 
 
   const [sections, setSections] = useState<SectionOutput[]>([]);
   const [showEvidenceModal, setShowEvidenceModal] = useState(false);
-  const [cacheProbe, setCacheProbe] = useState<CacheProbe>({ provider: 'seed', cachedIds: [], probed: false, stale: false });
+  const [cacheProbe, setCacheProbe] = useState<CacheProbe>({ provider: 'seed', cachedIds: [], probed: false, stale: false, registryCount: 0 });
 
   // The evidence hash the RunBar probed — a click-run executes against exactly this.
   const hashKeyRef = useRef<string>('');
@@ -178,6 +184,16 @@ export const ReportView: React.FC<Props> = ({ projectId, injectedEvidence }) => 
           stale = (r?.runs || []).some((x: any) => x.provider === wantProvider && (x.sections_ok ?? 0) > 0);
         } catch { /* no backend — no badge */ }
       }
+      // Registry size — with no graph in memory, a click-run reassembles the
+      // corpus from these registrations (metadata read only, no row download).
+      // Only relevant when no graph is loaded; skip the GET otherwise.
+      let registryCount = 0;
+      if (!validEvidence) {
+        try {
+          const reg = await apiGet('/api/datasets', { project_id: projectId });
+          registryCount = Array.isArray(reg?.datasets) ? reg.datasets.length : 0;
+        } catch { /* registry unknown — assembly self-guards at run time */ }
+      }
       if (!alive) return;
 
       setSections(outs);
@@ -190,7 +206,7 @@ export const ReportView: React.FC<Props> = ({ projectId, injectedEvidence }) => 
         validatorFailures: [],
         retryLog: [`[${projectId}] Hydrated ${cachedIds.length}/${expectedIds.length} sections from cache (${wantProvider}) — no synthesis triggered.`],
       });
-      setCacheProbe({ provider: wantProvider, cachedIds, probed: true, stale });
+      setCacheProbe({ provider: wantProvider, cachedIds, probed: true, stale, registryCount });
       probeScopeRef.current = { hash: hashKey, provider: wantProvider };
     };
 
@@ -198,7 +214,7 @@ export const ReportView: React.FC<Props> = ({ projectId, injectedEvidence }) => 
       console.error(`[ReportView] Cache probe failed for ${projectId}:`, err);
       // Fail open on the UI, never on spend: the button unfreezes as a plain
       // "Run Report" and the confirm dialog still gates any synthesis.
-      if (alive) setCacheProbe({ provider: resolveRunProvider(), cachedIds: [], probed: true, stale: false });
+      if (alive) setCacheProbe({ provider: resolveRunProvider(), cachedIds: [], probed: true, stale: false, registryCount: 0 });
     });
     return () => { alive = false; };
     // runActiveHere: a hydrate skipped during a live run re-fires on run end,
@@ -235,15 +251,61 @@ export const ReportView: React.FC<Props> = ({ projectId, injectedEvidence }) => 
     let failedCount = 0;
     let pendingCount = 0;
 
+    // The graph this run executes against — injected evidence, or (when the
+    // persisted graph was lost) reassembled from the dataset registry below.
+    let graph: EvidenceGraph | null = validEvidence;
+    let hashKey = hashKeyRef.current;
+
     try {
-      // PERSIST-AT-ASSEMBLY: write the assembled graph to evidence_graphs BEFORE
-      // the first section synthesizes. An aborted run then can never leave the
-      // graph unpersisted, and the corpus figures injected into each prompt come
-      // from the same row the Data Foundation panel reads. Real corpora only —
-      // the mock/seed graph is never persisted. Idempotent per (project, hash).
-      // If the run is abandoned during this await, the loop's alive() guard
-      // below breaks immediately and the finally records the abandon.
-      if (validEvidence) await ensureEvidencePersisted(validEvidence, hashKeyRef.current);
+      if (!graph) {
+        // REGISTRY REBUILD: datasets are registered but no graph exists in
+        // memory or in evidence_graphs (persistence lost / fresh session).
+        // Reassemble from the EXISTING registrations — nothing re-uploads.
+        // A project with no registrations (mock/demo flow) stays on mock.
+        const assembled = await assembleGraphFromRegistry(projectId, (msg) => {
+          if (alive()) setInspectorData(prev => ({ ...prev, retryLog: [...prev.retryLog, `[assembly] ${msg}`] }));
+        });
+        if (!alive()) return; // finally records the abandon
+        if (assembled && (assembled.events?.length ?? 0) > 0) {
+          graph = assembled;
+          hashKey = await computeEvidenceHashKey(assembled);
+          if (!alive()) return;
+          hashKeyRef.current = hashKey;
+          setRunEvidenceHash(hashKey);       // run record carries the REAL hash
+          onEvidenceAssembled?.(assembled);  // App state → panel + post-run hydrate
+        } else if (cacheProbe.registryCount > 0) {
+          // The registry HAS datasets but assembly produced nothing (deploy
+          // lag, storage failure, partial fetch). NEVER burn provider spend
+          // on the mock corpus when a real one was promised — fail loudly.
+          console.error(`[ReportView] Registry assembly failed for ${projectId} — run aborted before any synthesis.`);
+          if (alive()) {
+            setInspectorData(prev => ({
+              ...prev,
+              retryLog: [...prev.retryLog, `CRITICAL: evidence-graph assembly from ${cacheProbe.registryCount} registered datasets FAILED — run aborted before any synthesis. See [assembly] lines above; re-run to retry.`],
+            }));
+            reportRunProgress(0, targets.length, undefined, 0); // pill goes red
+          }
+          return; // finally resolves the run as partial_failed
+        }
+      }
+
+      // PERSIST-AT-ASSEMBLY: write the graph to evidence_graphs BEFORE the
+      // first section synthesizes. An aborted run then can never leave the
+      // graph unpersisted, and the corpus figures injected into each prompt
+      // come from the same row the Data Foundation panel reads. Real corpora
+      // only — the mock/seed graph is never persisted. Idempotent per
+      // (project, hash). If the run is abandoned during this await, the
+      // loop's alive() guard below breaks and the finally records the abandon.
+      if (graph) {
+        const persisted = await ensureEvidencePersisted(graph, hashKey);
+        if (!persisted && alive()) {
+          // Persist failure must never again be invisible (the 05-Jul lesson).
+          setInspectorData(prev => ({
+            ...prev,
+            retryLog: [...prev.retryLog, `[persist] evidence graph NOT persisted (hash ${hashKey.substring(0, 8)}…) — synthesis continues; persistence retries at the next run start.`],
+          }));
+        }
+      }
 
       for (const sectionId of targets) {
         if (!alive()) break;
@@ -266,7 +328,7 @@ export const ReportView: React.FC<Props> = ({ projectId, injectedEvidence }) => 
                 retryLog: update.retryLog ? [...prev.retryLog, ...update.retryLog] : prev.retryLog,
               }));
             },
-            validEvidence || undefined,
+            graph || undefined,
             { force }
           );
 
@@ -316,14 +378,22 @@ export const ReportView: React.FC<Props> = ({ projectId, injectedEvidence }) => 
   const startRun = () => {
     if (!template || !cacheProbe.probed || isRunActive()) return;
     const missing = expectedIds.filter(id => !cacheProbe.cachedIds.includes(id));
+    // Registry assembly means the run executes under a NEW hash — the probe's
+    // cachedIds are mock-hash-scoped and must not shrink the target list.
+    const willAssemble = !validEvidence && cacheProbe.registryCount > 0;
     const regenerate = missing.length === 0 || cacheProbe.stale;
-    const targets = regenerate ? expectedIds : missing;
+    const targets = (regenerate || willAssemble) ? expectedIds : missing;
     if (targets.length === 0) return;
 
     const engine = PROVIDER_LABELS[cacheProbe.provider] || cacheProbe.provider;
+    // No graph in memory + a populated registry → the run starts by
+    // reassembling the corpus from the registered datasets. Say so.
+    const assemblyNote = !validEvidence && cacheProbe.registryCount > 0
+      ? `The evidence graph will first be assembled from ${cacheProbe.registryCount} registered datasets (no re-upload). `
+      : '';
     const message = cacheProbe.provider === 'seed'
-      ? `Run ${targets.length} sections in seed mode? No provider API is configured — this costs nothing.`
-      : `Run ${targets.length} sections on ${engine}? This calls the provider API.`;
+      ? `${assemblyNote}Run ${targets.length} sections in seed mode? No provider API is configured — this costs nothing.`
+      : `${assemblyNote}Run ${targets.length} sections on ${engine}? This calls the provider API.`;
     if (!window.confirm(message)) return;
 
     void executeRun(targets, regenerate);

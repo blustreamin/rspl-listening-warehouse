@@ -6,7 +6,16 @@ import {
 
 // /api/evidence — persisted deterministic evidence graphs (so a refresh keeps data).
 //   GET  ?project_id            -> latest graph for the project (events hydrated from Storage)
+//   GET  ?project_id&stats=1    -> lightweight row metadata + aggregations (no event blob)
 //   POST { project_id, dataset_ids, evidence_hash, graph } -> stores graph (events in Storage)
+//        LEGACY single-shot path — fails on large corpora (the serverless body
+//        limit is ~4.5MB; a 60k-event blob is ~10x that, which is exactly how
+//        the 05-Jul rebuild registered 30 datasets but zero graph rows).
+//   POST { mode: "sign", project_id } -> { id, path, url } signed UPLOAD URL:
+//        the client PUTs the events blob straight to Storage (no size limit),
+//   POST { mode: "register", project_id, id, storage_path, evidence_hash,
+//          event_count, aggregations, dataset_ids } -> inserts the graph row
+//        without the blob. sign + register = the large-corpus-safe persist.
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (handlePreflight(req, res)) return;
 
@@ -66,6 +75,39 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   if (req.method === "POST") {
     const b = readBody(req);
+
+    // Phase 1 — hand the client a signed upload URL for the events blob.
+    if (b.mode === "sign") {
+      if (!b.project_id) return res.status(400).json({ error: "missing_project_id" });
+      await ensureBucket();
+      const id = crypto.randomUUID();
+      const path = `${b.project_id}/evidence/${id}.json`;
+      const { data, error } = await admin.storage
+        .from(DATASET_BUCKET).createSignedUploadUrl(path);
+      if (error) return res.status(500).json({ error: error.message });
+      return res.status(200).json({ id, path, url: data.signedUrl, persistence: true });
+    }
+
+    // Phase 2 — register the graph row against the already-uploaded blob.
+    if (b.mode === "register") {
+      if (!b.project_id || !b.storage_path) return res.status(400).json({ error: "missing_fields" });
+      const { data, error } = await admin
+        .from("evidence_graphs")
+        .insert({
+          id: b.id || crypto.randomUUID(),
+          project_id: b.project_id,
+          dataset_ids: Array.isArray(b.dataset_ids) ? b.dataset_ids : [],
+          evidence_hash: b.evidence_hash || null,
+          event_count: typeof b.event_count === "number" ? b.event_count : 0,
+          aggregations: b.aggregations || {},
+          storage_path: b.storage_path,
+        })
+        .select("id")
+        .maybeSingle();
+      if (error) return res.status(500).json({ error: error.message });
+      return res.status(200).json({ ok: true, id: data?.id, persistence: true });
+    }
+
     if (!b.project_id || !b.graph) return res.status(400).json({ error: "missing_fields" });
     await ensureBucket();
 

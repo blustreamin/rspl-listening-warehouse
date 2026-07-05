@@ -62,8 +62,15 @@ export const resolveEvidenceForProject = (
   return computeEvidenceGraph(RAW_MENTIONS, projectId);
 };
 
-/** The 40-char evidence hash key that scopes cache rows. */
+/** The 40-char evidence hash key that scopes cache rows.
+ *  A graph loaded from persistence carries its STORED hash (loadEvidence pins
+ *  meta.evidence_hash onto it) — reuse it, never recompute: the reconstructed
+ *  graph is not byte-identical to the one that ran (generated_at comes from
+ *  the DB row, jsonb reorders keys), so recomputing would orphan every cached
+ *  section and force a full paid re-run on each reload. */
 export const computeEvidenceHashKey = async (graph: EvidenceGraph): Promise<string> => {
+  const pinned = (graph as any)?.evidenceHash;
+  if (typeof pinned === 'string' && pinned.length >= 16) return pinned;
   const hash = await computeEvidenceHash(graph);
   return hash.substring(0, 40);
 };
@@ -236,8 +243,7 @@ export const runPipelineForSection = async (
   if (injectedEvidence && evidence !== injectedEvidence) {
       console.warn(`[Pipeline] Evidence graph mismatch. Expected ${projectId}, got ${injectedEvidence.projectId}. Recomputing mock.`);
   }
-  const hash = await computeEvidenceHash(evidence);
-  const hashKey = hash.substring(0, 40);
+  const hashKey = await computeEvidenceHashKey(evidence);
   const wantProvider = resolveRunProvider();
 
   const force = opts?.force === true;
@@ -250,7 +256,7 @@ export const runPipelineForSection = async (
     return existing;
   }
   const job = executeSectionJob(
-    projectId, sectionId, inspectorCallback, evidence, hash, hashKey, wantProvider, force
+    projectId, sectionId, inspectorCallback, evidence, hashKey, wantProvider, force
   );
   inFlightJobs.set(jobKey, job);
   try {
@@ -265,7 +271,6 @@ const executeSectionJob = async (
   sectionId: string,
   inspectorCallback: (data: Partial<RunInspectorData>) => void,
   evidence: EvidenceGraph,
-  hash: string,
   hashKey: string,
   wantProvider: string,
   force: boolean
@@ -286,7 +291,7 @@ const executeSectionJob = async (
 
   inspectorCallback({
     templateId: template.templateId,
-    evidenceHash: hash.substring(0, 8) + "...",
+    evidenceHash: hashKey.substring(0, 8) + "...",
     promptVersion: template.versionPolicy.version,
     schemaVersion: "v1.0"
   });
