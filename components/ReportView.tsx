@@ -20,6 +20,7 @@ import { assembleGraphFromRegistry } from '../services/graphAssembly';
 import { apiGet } from '../lib/api';
 import { isRegistryBacked } from '../constants/projectConfig';
 import { graphProvenance, sameIdSet } from '../lib/graphProvenance';
+import { getShareSnapshot } from '../lib/shareSnapshot';
 
 interface Props {
   projectId: ProjectId;
@@ -77,6 +78,12 @@ export const ReportView: React.FC<Props> = ({ projectId, injectedEvidence, onEvi
   const run = useRunState();
   const runActiveHere = run.phase === 'running' && run.projectId === projectId;
 
+  // SHARE MODE — non-null only in a VITE_SHARE_MODE=1 build (ShareApp registers
+  // the bundled snapshot before render). Sections then come from the snapshot,
+  // the hydrate effect makes zero network calls, and all run/inspector chrome
+  // is dropped: the share deployment is read-only by construction.
+  const share = getShareSnapshot();
+
   useEffect(() => { sectionsRef.current = sections; }, [sections]);
 
   // FEATURE FLAG: Enable modern renderer for specific projects
@@ -118,6 +125,34 @@ export const ReportView: React.FC<Props> = ({ projectId, injectedEvidence, onEvi
       }
       // Never clobber a live run's state from a background re-probe.
       if (isRunActive()) return;
+
+      // SHARE MODE: the bundled snapshot is the whole corpus of truth — no
+      // provider status, no cache probe, no runs/registry reads. Sections
+      // missing from the snapshot render as inert Awaiting panels.
+      if (share && share.projectId === projectId) {
+        const outs: SectionOutput[] = expectedIds.map((id) => {
+          const title = template.sections.find(s => s.sectionId === id)?.title || 'Unknown';
+          const snap = share.sections[id];
+          if (snap && snap.content && snap.status !== 'PENDING') {
+            return {
+              status: snap.status, title, content: snap.content,
+              fallbacksUsed: snap.status !== 'OK',
+              templateId: template.templateId, sectionId: id, projectId,
+            };
+          }
+          return {
+            status: 'PENDING', title, content: {}, fallbacksUsed: true,
+            templateId: template.templateId, sectionId: id, projectId,
+          };
+        });
+        setSections(outs);
+        setCacheProbe({
+          provider: 'share',
+          cachedIds: outs.filter(o => o.status !== 'PENDING').map(o => o.sectionId as string),
+          probed: true, stale: false, registryCount: share.datasets.length,
+        });
+        return;
+      }
 
       setCacheProbe(p => ({ ...p, probed: false }));
       await ensureProviderStatus();
@@ -477,8 +512,9 @@ export const ReportView: React.FC<Props> = ({ projectId, injectedEvidence, onEvi
   return (
     // id anchors the inspector-drawer content shift (booklet.css, ≥1280px)
     <div id="lovingle-page" className="max-w-5xl mx-auto px-6 py-12 pb-32">
-      {/* EXPLICIT RUN GATE — the only way synthesis starts */}
-      <RunBar
+      {/* EXPLICIT RUN GATE — the only way synthesis starts. Absent entirely
+          in a share build: the snapshot deployment has no synthesis path. */}
+      {!share && <RunBar
         projectId={projectId}
         provider={cacheProbe.provider}
         cached={cacheProbe.cachedIds.length}
@@ -486,7 +522,7 @@ export const ReportView: React.FC<Props> = ({ projectId, injectedEvidence, onEvi
         probed={cacheProbe.probed}
         stale={cacheProbe.stale}
         onRun={startRun}
-      />
+      />}
       {projectId === 'baby-diapers' && <ExportBar sections={sections.filter(s => s.status !== 'PENDING')} />}
       {/* Baby-diapers leads with the warm exec_summary cover; hide the slate report header. */}
       {projectId !== 'baby-diapers' && <header className="mb-12 lv-no-print">
@@ -592,9 +628,9 @@ export const ReportView: React.FC<Props> = ({ projectId, injectedEvidence, onEvi
         )}
       </div>
 
-      <div className="lv-no-print">
+      {!share && <div className="lv-no-print">
         <RunInspector data={inspectorData} projectId={projectId} />
-      </div>
+      </div>}
     </div>
   );
 };

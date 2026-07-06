@@ -27,6 +27,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { apiGet } from '../../lib/api';
+import { getShareSnapshot } from '../../lib/shareSnapshot';
 
 type Tone = 'orange' | 'teal' | 'blue' | 'cream';
 type IconKey = 'dish' | 'bars' | 'chat' | 'link' | 'star' | 'cal' | 'doc' | 'quote' | 'info' | 'glass';
@@ -211,6 +212,18 @@ const useLiveIngestLedger = (enabled: boolean, projectId = 'baby-diapers'): Inge
   const [ledger, setLedger] = useState<IngestLedger | null>(null);
   useEffect(() => {
     if (!enabled) return;
+    // SHARE MODE: the bundled snapshot carries the registry metadata and the
+    // graph's aggregations — the exact same inputs the two fetches below
+    // return — so the ledger renders identically with zero network.
+    const share = getShareSnapshot();
+    if (share) {
+      setLedger(buildLiveLedger(share.datasets, {
+        event_count: share.evidenceGraph.event_count,
+        generated_at: share.evidenceGraph.generated_at,
+        aggregations: share.evidenceGraph.aggregations || {},
+      }));
+      return;
+    }
     let alive = true;
     (async () => {
       let datasets: DatasetMeta[] = [];

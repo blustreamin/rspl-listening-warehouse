@@ -7,6 +7,14 @@ import react from '@vitejs/plugin-react';
 // client env var is VITE_API_BASE (optional; '' = same-origin in production).
 export default defineConfig(() => {
     return {
+      // Compile-time share flag (from VITE_SHARE_MODE): a CONSTANT so the
+      // dead shell branch in index.tsx is eliminated at build time — the
+      // share bundle carries no App/Data Studio code and the main bundle
+      // carries no share snapshot. A runtime import.meta.env check would
+      // keep both in every build.
+      define: {
+        __SHARE_MODE__: JSON.stringify(process.env.VITE_SHARE_MODE === '1'),
+      },
       server: {
         port: 3000,
         host: '0.0.0.0',
