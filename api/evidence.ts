@@ -56,18 +56,23 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     if (!data) return res.status(200).json({ graph: null, persistence: true });
 
-    let events: any[] = [];
+    // Events travel via a short-lived signed download URL, NOT inline: the
+    // inline payload exceeded Vercel's ~4.5MB function-response cap from
+    // ~15k events, so cross-session evidence loads silently failed and every
+    // fresh session re-assembled under a new hash, orphaning the section
+    // cache. Mirrors /api/datasets ?download=1 (same bucket, sign call, 600s).
+    let eventsUrl: string | null = null;
     if (data.storage_path) {
-      const dl = await admin.storage.from(DATASET_BUCKET).download(data.storage_path);
-      if (dl.data) {
-        try { events = JSON.parse(await dl.data.text()); } catch { events = []; }
-      }
+      const { data: signed, error: signErr } = await admin.storage
+        .from(DATASET_BUCKET).createSignedUrl(data.storage_path, 600);
+      if (signErr) return res.status(500).json({ error: signErr.message });
+      eventsUrl = signed.signedUrl;
     }
     const graph = {
       schemaVersion: "evidence_graph_v1",
       projectId: project_id,
       generatedAtISO: data.generated_at,
-      events,
+      events: [] as any[],
       aggregations: data.aggregations || {},
     };
     // dataset_ids is additive here: the client mock-corpus guard uses it to
@@ -75,6 +80,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     // trusting it as a run corpus. (No change to read auth/keys/storage.)
     return res.status(200).json({
       graph,
+      events_url: eventsUrl,
       meta: { id: data.id, evidence_hash: data.evidence_hash, dataset_ids: data.dataset_ids || [] },
       persistence: true,
     });

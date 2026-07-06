@@ -92,6 +92,21 @@ export async function loadEvidence(projectId: string): Promise<EvidenceGraph | n
     const r = await apiGet("/api/evidence", { project_id: projectId });
     if (!r?.graph) return null;
     const g = r.graph as EvidenceGraph;
+    // Events arrive via a short-lived signed Storage URL (events_url) — the
+    // inline payload blew Vercel's ~4.5MB response cap from ~15k events and
+    // made every cross-session load fail, orphaning the section cache. The
+    // legacy inline shape is still honored for a not-yet-redeployed API.
+    if (r.events_url && !(Array.isArray(g.events) && g.events.length > 0)) {
+      const resp = await fetch(r.events_url);
+      if (!resp.ok) return null;
+      const events = await resp.json();
+      if (!Array.isArray(events)) return null;
+      g.events = events;
+    }
+    // A graph without events is useless as a corpus and misleading in the UI
+    // (it would light "Custom Data Active" with nothing behind it) — every
+    // load failure degrades uniformly to null, and the run re-assembles.
+    if (!(Array.isArray(g.events) && g.events.length > 0)) return null;
     // PIN the stored hash. The reconstructed graph is not byte-identical to
     // the one that ran (generated_at comes from the DB row, jsonb reorders
     // keys) — recomputing would orphan every cached section on reload.
