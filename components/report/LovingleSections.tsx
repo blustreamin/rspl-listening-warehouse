@@ -587,13 +587,20 @@ export const BkCompetitiveLandscape: React.FC<Props> = ({ data, section }) => {
             </div>
           )}
           <div>
-            {sov.slice().sort((a, b) => (b?.share_pct || 0) - (a?.share_pct || 0)).map((s, i) => (
-              <div key={i} className="lv-attr">
-                <span className="lv-attr-name">{str(s?.brand)}</span>
-                <span className="lv-attr-track"><span style={{ width: `${Math.min(100, Math.max(1, s?.share_pct || 0))}%` }} /></span>
-                <span className="lv-attr-score">{typeof s?.share_pct === 'number' ? `${s.share_pct}%` : ''}</span>
-              </div>
-            ))}
+            {sov.slice().sort((a, b) => (b?.share_pct || 0) - (a?.share_pct || 0)).map((s, i) => {
+              const pct = typeof s?.share_pct === 'number' ? s.share_pct : 0;
+              const mentions = typeof s?.mentions === 'number' ? s.mentions : undefined;
+              const subOnePercent = pct < 1 && (mentions ?? 0) > 0;
+              const label = typeof s?.share_pct === 'number' ? (subOnePercent ? '<1%' : `${pct}%`) : '';
+              const title = mentions != null ? `${mentions} mention${mentions === 1 ? '' : 's'}` : undefined;
+              return (
+                <div key={i} className="lv-attr" title={title}>
+                  <span className="lv-attr-name">{str(s?.brand)}</span>
+                  <span className="lv-attr-track"><span style={{ width: `${Math.min(100, Math.max(1, pct))}%` }} /></span>
+                  <span className="lv-attr-score">{label}</span>
+                </div>
+              );
+            })}
           </div>
         </Zone>
       )}
