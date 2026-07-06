@@ -672,26 +672,17 @@
 }
 @media print { .rspl-insp-pill, .rspl-insp-drawer { display: none !important; } }
 
-/* ---------- PDF export capture (html2pdf clone only — never the live DOM) ---
-   Applied by ExportBar's html2canvas onclone. Constrains the capture to A4
-   width @96dpi with print-appropriate spacing, and carries the fragmentation
-   rules html2pdf's 'css' pagebreak mode reads (screen media in the clone, so
-   the @media print block below does not apply there). */
-.pdf-export { width: 794px !important; max-width: 794px !important; margin: 0 auto; }
+/* ---------- PDF export capture (html2canvas clone only — never the live DOM)
+   Applied by ExportBar's onclone. One .lv-section-break leaf renders to ONE A4
+   page (fit-to-contain), captured at the booklet's TRUE on-screen width. Width
+   must NOT be forced here: the old `width: 794px !important` reflowed the
+   booklet into a narrow mobile column and sprawled the export to 86 fragmented
+   pages. Fragmentation (break-*) rules are gone with slicing itself. */
 .pdf-export .lv-sheet { padding: 24px; box-shadow: none; }
-.pdf-export .lv-section-break { break-before: page; }
-/* no card sliced mid-body */
-.pdf-export .bk-quote, .pdf-export .bk-callout, .pdf-export .bk-callout-row,
-.pdf-export .bk-persona, .pdf-export .bk-tier-item, .pdf-export .bk-tier,
-.pdf-export .bk-iconcard, .pdf-export .bk-ritual, .pdf-export .bk-region,
-.pdf-export .bk-stagecard, .pdf-export .bk-perception, .pdf-export .bk-gap,
-.pdf-export .bk-drivercard, .pdf-export .bk-subtheme, .pdf-export .bk-stat,
-.pdf-export .bk-strip, .pdf-export .bk-synthesis, .pdf-export .bk-segrow,
-.pdf-export .lv-card, .pdf-export .bk-foot-wrap { break-inside: avoid; }
-.pdf-export .bk-headbar, .pdf-export .bk-zonetitle { break-after: avoid; }
-/* A4 content box = 842−28−32 = 782pt; at 794px→547pt capture scale that is
-   ~1135 CSS px per page — 1100px fills the cover page without spilling. */
-.pdf-export .bk-cover { min-height: 1100px; }
+/* A4 printable box at 12mm margins = 527x774pt; the 976px-wide booklet fits
+   by width at ~0.54pt/px, so a full page ≈ 1430 CSS px tall — the cover fills
+   its page instead of floating in white. */
+.pdf-export .bk-cover { min-height: 1430px; }
 
 /* ---------- print ----------------------------------------------------------- */
 @media print {

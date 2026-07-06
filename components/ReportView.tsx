@@ -530,8 +530,9 @@ export const ReportView: React.FC<Props> = ({ projectId, injectedEvidence, onEvi
           </div>
       )}
 
-      {/* N15 — html2pdf capture root: Cover → TOC → sections 00–20 all live
-          inside this container so the downloaded PDF captures the full booklet. */}
+      {/* N15 — PDF capture root: Cover → TOC → sections 00–20 all live inside
+          this container; ExportBar captures its .lv-section-break units one at
+          a time (a whole-container canvas exceeds browser limits and blanks). */}
       <div className="space-y-2" id="lovingle-report-container">
         {projectId === 'baby-diapers' && (
           <>

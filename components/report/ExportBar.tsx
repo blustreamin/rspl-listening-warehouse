@@ -37,35 +37,34 @@ export const ExportBar: React.FC<{ sections?: SectionOutput[] }> = ({ sections =
   const lockTip = runLocked ? `Synthesis in progress — ${run.done}/${run.total} sections` : undefined;
   const ready = sections.length > 0;
 
-  // N15 — client-side PDF via per-SECTION html2canvas captures + jsPDF
+  // N15 — client-side PDF via per-LEAF html2canvas captures + jsPDF
   // (dynamic-imported so they code-split).
   //
-  // WHY per-section (06 Jul fix): the previous single html2pdf capture of the
-  // whole booklet rendered ONE master canvas of the entire container — at
-  // 794px/scale 2 the full 21-section report is ~199,000 device px tall,
-  // 3x Chrome's 65,535px canvas ceiling. Past that limit the browser yields a
-  // blank canvas with NO error, so every sliced page came out pure white and
-  // the PDF still "saved" — the all-blank-pages bug. Capturing one section at
-  // a time keeps every canvas far under the limit, kills the blank leading
-  // page (break-before applied to the cover itself), and replaces html2pdf's
-  // drifting spacer pagination with exact px->pt page math.
-  const A4 = { w: 595.28, h: 841.89 };                    // pt
-  const MARGIN = { top: 28, left: 24, bottom: 32, right: 24 }; // pt
-  const PRINT_W = A4.w - MARGIN.left - MARGIN.right;      // 547.28pt
-  const PRINT_H = A4.h - MARGIN.top - MARGIN.bottom;      // 781.89pt
-  const CAPTURE_W = 794;                                  // A4 width @96dpi — desktop grids still apply (>768)
-  // Blocks the booklet CSS marks break-inside:avoid — page cuts snap to their
-  // bottoms so the raster never slices a card mid-body (booklet.css §pdf-export).
-  const AVOID_SELECTORS = '.bk-quote,.bk-callout,.bk-callout-row,.bk-persona,.bk-tier-item,.bk-tier,.bk-iconcard,.bk-ritual,.bk-region,.bk-stagecard,.bk-perception,.bk-gap,.bk-drivercard,.bk-subtheme,.bk-stat,.bk-strip,.bk-synthesis,.bk-segrow,.lv-card,.bk-foot-wrap';
+  // WHY per-leaf capture (06 Jul): a whole-report capture renders ONE master
+  // canvas (~199,000 device px tall for 21 sections) — 3x Chrome's 65,535px
+  // canvas ceiling, past which the browser yields a blank canvas with NO
+  // error: the all-blank-pages bug. NEVER reintroduce whole-report capture.
+  //
+  // Pagination (06 Jul v2): ONE .lv-section-break leaf -> exactly ONE A4 page,
+  // scaled to CONTAIN inside the printable box — no slicing, nothing cut.
+  // Captured at the booklet's true on-screen width (viewport 1024 -> the
+  // #lovingle-page max-w-5xl layout, 976px content), NOT the old 794px mobile
+  // reflow that sprawled 21 sections across 86 fragmented pages. Final page
+  // count == on-screen leaf count (cover + TOC + sections).
+  const A4 = { w: 595.28, h: 841.89 };            // pt
+  const MARGIN_PT = 12 * (72 / 25.4);             // 12mm uniform ≈ 34pt
+  const BOX_W = A4.w - MARGIN_PT * 2;             // printable width ≈ 527.2pt
+  const BOX_H = A4.h - MARGIN_PT * 2;             // printable height ≈ 773.9pt
+  const CAPTURE_VIEWPORT = 1024;                  // clone viewport -> 976px booklet content, as on screen
 
   const onPdf = async () => {
     if (busy || runLocked) return;
     const reportElement = document.getElementById('lovingle-report-container');
     if (!reportElement) { window.print(); return; }
-    // Top-level booklet units: cover, TOC, then one element per section.
-    const units = (Array.from(reportElement.querySelectorAll('.lv-section-break')) as HTMLElement[])
+    // Top-level booklet leaves: cover, TOC, then one element per section.
+    const leaves = (Array.from(reportElement.querySelectorAll('.lv-section-break')) as HTMLElement[])
       .filter((el) => !el.parentElement?.closest('.lv-section-break'));
-    if (units.length === 0) { window.print(); return; }
+    if (leaves.length === 0) { window.print(); return; }
     setBusy('pdf');
     try {
       const [{ default: html2canvas }, { jsPDF }] = await Promise.all([
@@ -78,81 +77,54 @@ export const ExportBar: React.FC<{ sections?: SectionOutput[] }> = ({ sections =
         (Array.from(reportElement.querySelectorAll('img')) as HTMLImageElement[]).map((i) => i.decode?.())
       );
 
-      const pdf = new jsPDF({ unit: 'pt', format: 'a4', orientation: 'portrait' });
-      let firstPage = true;
+      const pdf = new jsPDF({ unit: 'pt', format: 'a4', orientation: 'portrait', compress: true });
 
-      for (let idx = 0; idx < units.length; idx++) {
-        const el = units[idx];
-        el.dataset.pdfCapture = '1';
-        let cutsCss: number[] = [];
-        let canvas: HTMLCanvasElement;
-        try {
-          const capture = (scale: number) => html2canvas(el, {
-            scale,
-            useCORS: true,
-            scrollY: 0,
-            windowWidth: CAPTURE_W,
-            backgroundColor: '#ffffff',
-            onclone: (doc: Document) => {
-              // .pdf-export in the CLONE only — never the live DOM.
-              doc.getElementById('lovingle-report-container')?.classList.add('pdf-export');
-              // Measure card bottoms in the clone (already laid out at 794px)
-              // as page-cut candidates, relative to this section's top.
-              const section = doc.querySelector('[data-pdf-capture="1"]');
-              if (!section) return;
-              const top = section.getBoundingClientRect().top;
-              const ys = new Set<number>();
-              section.querySelectorAll(AVOID_SELECTORS).forEach((n) => {
-                const r = n.getBoundingClientRect();
-                if (r.height > 0) ys.add(Math.round(r.bottom - top) + 2);
-              });
-              cutsCss = [...ys].sort((a, b) => a - b);
-            },
-          });
-          canvas = await capture(2);
-          // Pathologically tall single section: recapture below the browser's
-          // silent ~65,535px canvas ceiling rather than emit blank pages.
-          if (canvas.height > 64000 || canvas.height === 0) {
-            const cssH = canvas.height / 2 || el.scrollHeight;
-            canvas = await capture(Math.max(0.5, Math.min(2, 60000 / cssH)));
-          }
-        } finally {
-          delete el.dataset.pdfCapture;
+      for (let i = 0; i < leaves.length; i++) {
+        const el = leaves[i];
+        // Adaptive raster density: target ~3x pixels AT THE SIZE the leaf is
+        // DRAWN. Fit-to-page shrinks tall leaves, so a flat scale 3 would
+        // capture pixels the page can never show and balloon the file several
+        // times past the old 39MB. Clamp >=1 so extreme leaves stay legible
+        // on zoom; short leaves land near scale 3 (crisp text).
+        const rect = el.getBoundingClientRect();
+        const estFit = Math.min(BOX_W / Math.max(1, rect.width), BOX_H / Math.max(1, rect.height));
+        const scale = Math.min(3, Math.max(1, 3 * estFit));
+
+        const canvas = await html2canvas(el, {
+          scale,
+          useCORS: true,
+          logging: false,
+          scrollY: 0,
+          windowWidth: CAPTURE_VIEWPORT,
+          backgroundColor: '#ffffff',
+          onclone: (doc: Document) => {
+            // .pdf-export in the CLONE only — never the live DOM.
+            doc.getElementById('lovingle-report-container')?.classList.add('pdf-export');
+          },
+        });
+
+        // CONTAIN the whole leaf inside the printable box — nothing is cut.
+        const fit = Math.min(BOX_W / canvas.width, BOX_H / canvas.height);
+        const drawW = canvas.width * fit;
+        const drawH = canvas.height * fit;
+        const x = MARGIN_PT + (BOX_W - drawW) / 2;  // centre horizontally
+        const y = MARGIN_PT;                        // top-align
+
+        // Leaves shrunk below half of normal (width-fit) size read small —
+        // surface them as the densify / split-into-two-pages candidates.
+        const shrink = Math.min(1, (BOX_H / canvas.height) / (BOX_W / canvas.width));
+        if (shrink < 0.5) {
+          console.warn(`[pdf] leaf ${i + 1}/${leaves.length} shrunk to ${(shrink * 100).toFixed(0)}% (${Math.round(rect.width)}x${Math.round(rect.height)}css) — small text; densify or split.`);
         }
 
-        const pxPerCss = canvas.width / CAPTURE_W;       // device px per clone css px
-        const pxPerPt = canvas.width / PRINT_W;          // device px per output pt
-        const pagePx = PRINT_H * pxPerPt;                // page window in device px
-        const cuts = cutsCss.map((c) => c * pxPerCss);
-
-        let y = 0;
-        while (y < canvas.height - 1) {
-          const remaining = canvas.height - y;
-          let sliceH = Math.min(pagePx, remaining);
-          if (remaining > pagePx) {
-            // Snap to the deepest card bottom inside this page window; never
-            // shrink a page below 55% or gaps balloon the page count.
-            const limit = y + pagePx;
-            const floor = y + pagePx * 0.55;
-            for (let c = cuts.length - 1; c >= 0; c--) {
-              if (cuts[c] > floor && cuts[c] <= limit) { sliceH = cuts[c] - y; break; }
-            }
-          }
-          const slice = document.createElement('canvas');
-          slice.width = canvas.width;
-          slice.height = Math.ceil(sliceH);
-          const ctx = slice.getContext('2d')!;
-          ctx.fillStyle = '#ffffff';
-          ctx.fillRect(0, 0, slice.width, slice.height);
-          ctx.drawImage(canvas, 0, y, canvas.width, sliceH, 0, 0, canvas.width, sliceH);
-          if (!firstPage) pdf.addPage();
-          firstPage = false;
-          pdf.addImage(
-            slice.toDataURL('image/jpeg', 0.92), // jpeg — png balloons the file
-            'JPEG', MARGIN.left, MARGIN.top, PRINT_W, sliceH / pxPerPt
-          );
-          y += sliceH;
-        }
+        if (i > 0) pdf.addPage();
+        pdf.addImage(
+          canvas.toDataURL('image/jpeg', 0.92), // jpeg — png balloons the file
+          'JPEG', x, y, drawW, drawH, undefined, 'FAST'
+        );
+        pdf.setFontSize(8);
+        pdf.setTextColor(150);
+        pdf.text(`${i + 1} / ${leaves.length}`, A4.w - MARGIN_PT, A4.h - MARGIN_PT / 2, { align: 'right' });
       }
       pdf.save('Baby_Diaper_Category_Consumer_Understanding.pdf');
     } catch (err) {
