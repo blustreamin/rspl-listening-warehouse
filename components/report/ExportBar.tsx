@@ -73,6 +73,7 @@ export const ExportBar: React.FC<{ sections?: SectionOutput[] }> = ({ sections =
   // cover/TOC have no id and can never match.
   const TWO_PAGE_SECTIONS = new Set([
     'competitive_landscape', 'diaper_needs_fes', 'usage_occasions', 'decision_journey',
+    'features_benefits',
   ]);
   // Atomic booklet blocks a page cut must never bisect (the booklet's
   // break-inside:avoid card set) — spill cuts are validated against these.
