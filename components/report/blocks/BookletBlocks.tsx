@@ -561,14 +561,30 @@ const SEGMENT_META: Array<{ key: string; label: string; cls: string }> = [
 export const SegmentLensRow: React.FC<{ lens: any }> = ({ lens }) => {
   const list = arr<SegmentLensItem>(lens).filter((l) => l?.reading);
   if (!list.length) return null;
+  // EXACT key equality only. A substring/includes match (the prior bug) has
+  // 'mid_premium' matching the 'premium' key too — Array.find then returns
+  // whichever of the two appears first in the payload, silently rendering the
+  // mid-premium reading in the premium slot on roughly half of all sections.
   const readingFor = (key: string): string | undefined =>
-    list.find((l) => String(l.segment || '').toLowerCase().replace(/[\s-]/g, '_').includes(key.replace('_premium', '')))?.reading;
+    list.find((l) => String(l.segment || '').toLowerCase().replace(/[\s-]/g, '_') === key)?.reading;
+  const resolved = SEGMENT_META.map((m) => readingFor(m.key));
+  if (process.env.NODE_ENV !== 'production') {
+    for (let i = 0; i < resolved.length; i++) {
+      for (let j = i + 1; j < resolved.length; j++) {
+        if (resolved[i] && resolved[i] === resolved[j]) {
+          console.error(
+            `[SegmentLensRow] "${SEGMENT_META[i].key}" and "${SEGMENT_META[j].key}" resolved to the IDENTICAL reading — a tier is misattributed or the payload has a duplicate/missing segment.`
+          );
+        }
+      }
+    }
+  }
   return (
     <div className="bk-seglens">
       <div className="bk-seglens-kicker">Segment lens</div>
       <div className="bk-seglens-stack">
-        {SEGMENT_META.map((m) => {
-          const reading = readingFor(m.key);
+        {SEGMENT_META.map((m, i) => {
+          const reading = resolved[i];
           return (
             <div key={m.key} className={`bk-segrow ${m.cls}`}>
               <span className="bk-segrow-label">{m.label}</span>
