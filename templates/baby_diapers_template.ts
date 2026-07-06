@@ -177,7 +177,11 @@ export const BABY_DIAPERS_TEMPLATE: TemplatePack = {
 SECTION 00: EXECUTIVE SUMMARY (board-level lead for the report)
 Output: {
   "pool_note": string,
-  "stats": Array<{stat, label}> (exactly 3 hero stats — listening window, total evidence pool, platform count — each copied from CORPUS CONTEXT in the form stated there; never convert or invent a figure it does not give),
+  "stats": Array<{stat, label}> (exactly 3 hero stats, in this fixed order:
+    1. {stat:"<commerce>/<social>", label:"Commerce reviews vs social-listening mentions"} — commerce = the Amazon + Flipkart mention counts, social = every other platform's mention count, computed from the "Platform mention volumes" line in CORPUS CONTEXT. NEVER a date range or listening window here.
+    2. total evidence pool — copied from CORPUS CONTEXT in the form stated there.
+    3. platform count — copied from CORPUS CONTEXT in the form stated there.
+  Never convert or invent a figure CORPUS CONTEXT does not give.),
   "north_star": string,
   "insights": Array<{headline, what_it_means (≤30 words), theme:"parenting_category"|"product"|"shopping"|"brand", data_points:N}> (4–6 cards, NO verbatims field)
 }
@@ -186,7 +190,8 @@ EXECUTIVE SUMMARY RULES (N1/N3):
 - Each insight card MUST carry a "theme" field with one of: "parenting_category" (parts 1–3: parenting behaviour, category context, usage), "product" (Part D), "shopping" (Part E), "brand" (Part F).
 - Cards MUST appear in this order: parenting_category → product → shopping → brand.
 - NO verbatim quotes in the Executive Summary — only synthesised findings.
-- Maximum 6 cards total.`,
+- Maximum 6 cards total.
+- Do NOT emit a date-range or listening-window stat anywhere in "stats".`,
 
       parenting_rituals: `
 SECTION 01 (PART 1 — OVERARCHING PARENTING BEHAVIOUR): PARENTING RITUALS & DAILY PRACTICES

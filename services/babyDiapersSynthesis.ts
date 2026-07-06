@@ -265,6 +265,9 @@ const buildCorpusContext = (graph: EvidenceGraph): string => {
   const platformClause = pc.length
     ? ` across ${pc.length} platforms (${pc.slice(0, 8).map(p => p.platform).join(', ')})`
     : '';
+  const platformCountsLine = pc.length
+    ? `\n- Platform mention volumes (this corpus): ${pc.map(p => `${p.platform} ${p.count.toLocaleString('en-US')}`).join(', ')}.`
+    : '';
 
   // Prefer the aggregation's date range; else derive the span straight from the
   // events' timestamps (mock/seed and pre-aggregation graphs carry these but no
@@ -299,8 +302,8 @@ const buildCorpusContext = (graph: EvidenceGraph): string => {
     : '';
 
   return `CORPUS CONTEXT (LIVE — the ONLY corpus figures you may cite; never invent a record count, platform count, listening window or brand-mention total):
-- Total evidence base: ${total.toLocaleString('en-US')} deduplicated records${platformClause}.
-- Listening window: ${windowLine} (dated subset; timestamp depth varies by source).${brandLine}${lovingleLine}
+- Total evidence base: ${total.toLocaleString('en-US')} records${platformClause}.
+- Listening window: ${windowLine} (dated subset; timestamp depth varies by source).${platformCountsLine}${brandLine}${lovingleLine}
 Calibrate every data_points value and corpus_frequency PROPORTIONALLY to the live total above. If a figure is not stated here, describe it qualitatively — do not fabricate a number.`;
 };
 
