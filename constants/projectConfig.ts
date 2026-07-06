@@ -26,6 +26,13 @@ import { ProjectId } from '../types';
 //  To make an existing project registry-backed, remove it from MOCK_ALLOWED
 //  (or leave it out — that is already the default). To let a project use the
 //  demo corpus, add it to MOCK_ALLOWED.
+//
+//  ⚠ PROMOTION PREREQUISITE: registry-backed projects run the reconciliation
+//  guard (services/graphAssembly.ts), which requires the project's ingestion
+//  to be LOSSLESS (1 registered row -> 1 event). babyDiapersIngestion is; the
+//  adult-diapers and femcare ingestions still text-dedup and drop short rows,
+//  so promoting one of them without first making its ingestion lossless would
+//  abort every run at the guard.
 // ============================================================================
 
 export type DataMode = 'registry' | 'demo';

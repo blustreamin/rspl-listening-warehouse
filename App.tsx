@@ -6,6 +6,7 @@ import { ProviderSelector } from './components/ProviderSelector';
 import { persistEvidence, loadEvidence } from './lib/persistence';
 import { computeEvidenceHashKey } from './services/pipeline';
 import { isRunActive, getRunState } from './lib/runState';
+import { isRegistryBacked } from './constants/projectConfig';
 import { ProjectId, EvidenceGraph } from './types';
 
 const App: React.FC = () => {
@@ -160,7 +161,11 @@ const App: React.FC = () => {
               <div className="px-3 mb-3">
                    <div className="flex items-center gap-2">
                        <div className={`w-2 h-2 rounded-full ${activeEvidence ? 'bg-indigo-500 animate-pulse' : 'bg-emerald-500'}`}></div>
-                       <span className="text-xs">{activeEvidence ? 'Custom Data Active' : 'Mock Evidence Active'}</span>
+                       {/* Registry-backed projects have NO mock — an empty state
+                           just means the corpus assembles on the first Run. */}
+                       <span className="text-xs">{activeEvidence
+                         ? 'Custom Data Active'
+                         : isRegistryBacked(projectId) ? 'Awaiting first run' : 'Mock Evidence Active'}</span>
                    </div>
               </div>
               <ProviderSelector />

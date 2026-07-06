@@ -20,6 +20,7 @@ import { EvidenceGraph, IngestRequestV1, ProjectId, UploadedFile, FileSourceTag 
 import { generateAutoMapping } from './mappingService';
 import { ingestRawData } from './gemini';
 import { apiGet } from '../lib/api';
+import { isRegistryBacked } from '../constants/projectConfig';
 
 interface DatasetRow {
   id: string;
@@ -29,6 +30,19 @@ interface DatasetRow {
   row_count?: number;
   uploaded_at?: string;
 }
+
+// Registry source_tag -> the sourceTag bucket the deterministic ingestion
+// stamps on events (mirror of babyDiapersIngestion's mapping) — used by the
+// reconciliation guard to compare per-source expectations.
+const normalizeTag = (t?: string): string => {
+  const s = (t || '').toLowerCase();
+  if (s.includes('amazon')) return 'amazon';
+  if (s.includes('flipkart')) return 'flipkart';
+  if (s.includes('firstcry')) return 'firstcry';
+  if (s.includes('instagram')) return 'instagram';
+  if (s.includes('facebook')) return 'facebook';
+  return 'social';
+};
 
 /** Union of keys across a sample of rows — row 0 alone under-reports because
  *  XLSX parsing omits keys for blank cells. */
@@ -68,9 +82,9 @@ export async function assembleGraphFromRegistry(
   if (datasets.length === 0) return null;
 
   // UPLOAD ORDER, not registry order: the list endpoint returns uploaded_at
-  // DESC, but text-dedup in the deterministic ingestions is first-wins — the
-  // rebuild must iterate files in the same order Data Studio ingested them or
-  // cross-file duplicate texts flip their attribution. Stable id tiebreak.
+  // DESC. The ingest is lossless (no dedup) so order no longer changes
+  // attribution, but a stable order keeps event ids and aggregations
+  // deterministic across rebuilds. Stable id tiebreak.
   datasets.sort((a, b) =>
     (a.uploaded_at || '').localeCompare(b.uploaded_at || '') || a.id.localeCompare(b.id)
   );
@@ -139,11 +153,49 @@ export async function assembleGraphFromRegistry(
 
   const graph = await ingestRawData(request);
   if (!graph) return null;
+
+  // RECONCILIATION GUARD (registry-backed projects). The deterministic ingest
+  // is LOSSLESS — every registered row yields exactly one event — so the
+  // assembled count must reconcile to the registry's row_count sum, total AND
+  // per source bucket. A deficit means rows were silently lost (a filter
+  // regression, an unparsed blob) — the 05-Jul failure mode where 60,744 rows
+  // assembled into 35,254 events and a full paid run fired against the
+  // deficient corpus. Abort instead; never canonicalise a lossy assembly.
+  // This is deliberately NOT a platform allow-list: Awario legitimately
+  // yields YouTube/Vimeo/X mentions and 'awario' is a source, not a platform.
+  if (isRegistryBacked(projectId)) {
+    const TOLERANCE = 0.02; // metadata drift allowance; the 42% case is 20x this
+    const expectedByTag: Record<string, number> = {};
+    for (const d of datasets) {
+      const tag = normalizeTag(d.source_tag);
+      expectedByTag[tag] = (expectedByTag[tag] || 0) + (d.row_count || 0);
+    }
+    const gotByTag: Record<string, number> = {};
+    for (const e of graph.events || []) {
+      const tag = normalizeTag((e as any).sourceTag);
+      gotByTag[tag] = (gotByTag[tag] || 0) + 1;
+    }
+    const expectedTotal = Object.values(expectedByTag).reduce((s, n) => s + n, 0);
+    const gotTotal = graph.events?.length ?? 0;
+    const deficits: string[] = [];
+    if (expectedTotal > 0 && Math.abs(expectedTotal - gotTotal) > expectedTotal * TOLERANCE) {
+      deficits.push(`total ${gotTotal}/${expectedTotal}`);
+    }
+    for (const [tag, exp] of Object.entries(expectedByTag)) {
+      const got = gotByTag[tag] || 0;
+      if (exp > 0 && Math.abs(exp - got) > exp * TOLERANCE) deficits.push(`${tag} ${got}/${exp}`);
+    }
+    if (deficits.length > 0) {
+      log?.(`ABORT: assembled corpus does not reconcile to the dataset registry — events/registered rows: ${deficits.join(', ')}. Refusing to canonicalise a deficient corpus; no synthesis will run.`);
+      return null;
+    }
+  }
+
   (graph as any).__datasetIds = usedIds;
   // Provenance: this graph is registry-derived. The run only TRUSTS a graph as
   // its corpus when its __datasetIds match the current registry (mock-guard).
   (graph as any).__provenance = 'registry';
   const total = graph.events?.length ?? 0;
-  log?.(`Graph assembled: ${total.toLocaleString('en-US')} deduplicated events from ${inputs.length}/${datasets.length} datasets.`);
+  log?.(`Graph assembled: ${total.toLocaleString('en-US')} events from ${inputs.length}/${datasets.length} datasets (lossless — reconciled to the registry).`);
   return graph;
 }

@@ -1,17 +1,23 @@
 
 import { IngestRequestV1, EvidenceGraph, EvidenceEventV1 } from '../../types';
 
-// Stable hash for dedup across files
-const cyrb53 = (str: string, seed = 0) => {
-  let h1 = 0xdeadbeef ^ seed, h2 = 0x41c6ce57 ^ seed;
-  for (let i = 0, ch; i < str.length; i++) {
-    ch = str.charCodeAt(i);
-    h1 = Math.imul(h1 ^ ch, 2654435761);
-    h2 = Math.imul(h2 ^ ch, 1597334677);
+// Excel serial date (days since 1899-12-30, fraction = time of day). The
+// stored Apify/Awario blobs carry most dates this way (e.g. 43405.0001,
+// 46202.667); new Date(String(serial)) is Invalid, which is how 58k of 60k
+// rows silently lost their dates (datedCount 2,287, "2012 floor" = the oldest
+// parseable "Jan, 2013"-style string). Serials are accepted only in a
+// plausible mention-date window; anything else falls through to Date parsing.
+const EXCEL_EPOCH_MS = Date.UTC(1899, 11, 30);
+const parseRowDate = (v: string): Date | null => {
+  if (!v) return null;
+  if (/^\d+(\.\d+)?$/.test(v)) {
+    const n = parseFloat(v);
+    if (n >= 20000 && n <= 80000) {
+      return new Date(EXCEL_EPOCH_MS + Math.round(n * 86400000));
+    }
   }
-  h1 = Math.imul(h1 ^ (h1 >>> 16), 2246822507) ^ Math.imul(h2 ^ (h2 >>> 13), 3266489909);
-  h2 = Math.imul(h2 ^ (h2 >>> 16), 2246822507) ^ Math.imul(h1 ^ (h1 >>> 13), 3266489909);
-  return 4294967296 * (2097151 & h2) + (h1 >>> 0);
+  const d = new Date(v);
+  return isNaN(d.getTime()) ? null : d;
 };
 
 // INDIA BABY DIAPER BRAND LIST — hardcoded; new entrants require a code change.
@@ -83,12 +89,16 @@ const tagPack = (t: string): string | undefined => {
   return undefined;
 };
 
-// Deterministic ingestion for Baby Diapers — processes all rows, dedups by text.
+// Deterministic ingestion for Baby Diapers — LOSSLESS: every registered row
+// becomes exactly one event. No text-dedup and no length gate: "Value for
+// money" × hundreds are DISTINCT reviews (dropping them cost Flipkart 61% of
+// its rows on 05-Jul), and a 4-char "Good" still carries brand/rating/platform
+// volume. The registry row_count sum is therefore the reconciliation basis the
+// assembly guard checks against (services/graphAssembly.ts).
 export const babyDiapersIngestion = (request: IngestRequestV1): EvidenceGraph => {
   const events: EvidenceEventV1[] = [];
   const brandCounts: Record<string, number> = {};
   const ratings: number[] = [];
-  const seenTextHashes = new Set<number>();
 
   // Ingestion-panel aggregations (05 Jul rebuild) — computed here, once, at
   // graph-assembly time. The Data Foundation panel reads these; it never
@@ -110,21 +120,24 @@ export const babyDiapersIngestion = (request: IngestRequestV1): EvidenceGraph =>
 
     input.rows.forEach(row => {
       const raw = row.raw;
+      // A null/primitive raw has no fields at all — skipping it beats a
+      // TypeError mid-assembly; the reconciliation guard catches mass loss.
+      if (!raw || typeof raw !== 'object') return;
 
-      // TEXT
+      // TEXT — resolve the best available content but NEVER drop the row.
+      // 'Title' fallbacks matter: Awario X-post exports put the tweet text in
+      // Title with an empty Post Snippet (883 X rows in one file alone were
+      // silently vanishing here on 05-Jul).
       let text = getField(raw, fieldMap.text);
       if (!text || text.length < 5) {
-        for (const fb of ['Post Snippet', 'reviewDescription', 'review_text', 'text', 'caption', 'content', 'comment']) {
+        for (const fb of ['Post Snippet', 'reviewDescription', 'review_text', 'text', 'caption', 'content', 'comment', 'Title', 'title']) {
           const val = raw[fb];
           if (val && String(val).trim().length >= 5) { text = String(val).trim(); break; }
         }
       }
-      if (!text || text.length < 5) return;
+      if (!text) text = '';
 
       const cleanText = text.trim().toLowerCase();
-      const textHash = cyrb53(cleanText);
-      if (seenTextHashes.has(textHash)) return;
-      seenTextHashes.add(textHash);
       if (text.trim().length >= 10) verbatimCount++; // panel's usable-verbatim floor
 
       // BRAND
@@ -187,6 +200,7 @@ export const babyDiapersIngestion = (request: IngestRequestV1): EvidenceGraph =>
       else {
         const src = (getField(raw, fieldMap.platform) || '').toLowerCase();
         if (src.includes('youtube')) platformName = 'YouTube';
+        else if (src.includes('vimeo')) platformName = 'Vimeo';
         else if (src.includes('reddit')) platformName = 'Reddit';
         else if (src.includes('twitter') || src === 'x') platformName = 'Twitter/X';
         else if (src.includes('instagram')) platformName = 'Instagram';
@@ -204,21 +218,19 @@ export const babyDiapersIngestion = (request: IngestRequestV1): EvidenceGraph =>
         socialSourceCounts[platformName] = (socialSourceCounts[platformName] || 0) + 1;
       }
 
-      // DATE
+      // DATE — Excel-serial-aware (see parseRowDate above).
       const dateStr = getField(raw, fieldMap.createdAtISO);
       let createdAt = new Date().toISOString();
       if (dateStr) {
-        try {
-          const d = new Date(dateStr);
-          if (!isNaN(d.getTime())) {
-            createdAt = d.toISOString();
-            // Only genuinely dated records feed the collection-period line —
-            // the ingest-time default above would pollute the max.
-            datedCount++;
-            if (!dateMin || createdAt < dateMin) dateMin = createdAt;
-            if (!dateMax || createdAt > dateMax) dateMax = createdAt;
-          }
-        } catch { /* default */ }
+        const d = parseRowDate(dateStr);
+        if (d) {
+          createdAt = d.toISOString();
+          // Only genuinely dated records feed the collection-period line —
+          // the ingest-time default above would pollute the max.
+          datedCount++;
+          if (!dateMin || createdAt < dateMin) dateMin = createdAt;
+          if (!dateMax || createdAt > dateMax) dateMax = createdAt;
+        }
       }
 
       // STYLE + PACK tags (stashed in derived.tokens; kept as two independent axes)

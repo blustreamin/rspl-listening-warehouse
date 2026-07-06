@@ -427,6 +427,19 @@ export const ReportView: React.FC<Props> = ({ projectId, injectedEvidence, onEvi
           }
         }
       }
+    } catch (err: any) {
+      // A run must NEVER resolve 'complete' off an unexpected exception: the
+      // guard/abort paths above all return cleanly with failed>0, but a throw
+      // (e.g. a malformed blob row inside assembly) would otherwise reach the
+      // finally with failed=0 and record a falsely-successful run.
+      console.error(`[ReportView] Unexpected run error for ${projectId}:`, err);
+      if (alive()) {
+        setInspectorData(prev => ({
+          ...prev,
+          retryLog: [...prev.retryLog, `CRITICAL ABORT: unexpected run error — ${err?.message || err}. Run recorded as failed.`],
+        }));
+        reportRunProgress(resolvedCount, Math.max(1, targets.length - resolvedCount), undefined, pendingCount);
+      }
     } finally {
       // Natural end → complete (or partial_failed if any section FAILED);
       // an aborted loop → abandoned, recorded as partial_failed so the
