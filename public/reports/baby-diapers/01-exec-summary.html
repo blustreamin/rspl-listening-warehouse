@@ -1,0 +1,190 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Baby Diapers — Category Report · §01 Executive Summary</title>
+<style>
+:root{--ink:#0f2440;--ink2:#33475b;--muted:#6b7a8d;--line:#e3e8ef;--bg:#f6f8fb;--card:#fff;
+--brand:#1f5fbf;--brand2:#0d2a55;--accent:#f26a3d;--good:#2f9e6b;--purp:#8a5cc0;--amber:#c98a12;--teal:#1f8fb0;
+--radius:14px;--f:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;}
+*{box-sizing:border-box}body{font-family:var(--f);color:var(--ink);background:var(--bg);margin:0;line-height:1.55}
+.wrap{max-width:1180px;margin:0 auto;padding:32px 26px 90px}
+.kicker{font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--accent);font-weight:700}
+h1{font-size:30px;margin:6px 0 2px;letter-spacing:-.02em}
+.sub{font-size:15px;color:var(--ink2);font-weight:600;max-width:900px}
+.dl{float:right;display:inline-flex;align-items:center;gap:6px;font-size:11.5px;font-weight:700;color:var(--brand);border:1px solid #cfe0f6;background:#f2f8ff;border-radius:8px;padding:5px 10px;cursor:pointer;margin-top:4px}
+.sec-h{font-size:11px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.09em;margin:26px 0 10px;padding-bottom:6px;border-bottom:1px solid var(--line)}
+.pg{page-break-before:always}
+/* north star */
+.north{background:linear-gradient(135deg,#0d2a55,#1f5fbf);color:#fff;border-radius:16px;padding:20px 24px;margin-top:16px;position:relative}
+.north .lab{font-size:10.5px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:#9fc4f5}
+.north .stmt{font-size:19px;font-weight:700;line-height:1.4;margin-top:6px;letter-spacing:-.01em}
+.north .stmt b{color:#ffd27a}
+/* kpi band */
+.kpis{display:grid;grid-template-columns:repeat(6,1fr);gap:10px;margin-top:14px}
+@media(max-width:900px){.kpis{grid-template-columns:repeat(3,1fr)}}
+@media(max-width:520px){.kpis{grid-template-columns:repeat(2,1fr)}}
+.kpi{background:var(--card);border:1px solid var(--line);border-radius:11px;padding:12px 13px;text-align:center}
+.kpi .n{font-size:21px;font-weight:800;color:var(--brand2);line-height:1}
+.kpi .l{font-size:9.5px;color:var(--muted);margin-top:5px;line-height:1.25}
+.kpi.acc .n{color:var(--accent)}
+/* prose card */
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:16px 18px;margin-top:12px}
+.card p{margin:0 0 9px;font-size:13px;color:var(--ink2)}.card p:last-child{margin-bottom:0}
+.card p b{color:var(--ink)}
+.lead{font-size:13.5px}
+/* two-col */
+.cols2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+@media(max-width:800px){.cols2{grid-template-columns:1fr}}
+.block{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 16px}
+.block h4{margin:0 0 8px;font-size:13px;color:var(--brand2);letter-spacing:-.01em}
+.block .fact{font-size:12px;color:var(--ink2);margin:5px 0;padding-left:15px;position:relative;line-height:1.5}
+.block .fact::before{content:"▸";position:absolute;left:0;color:var(--accent);font-size:10px;top:2px}
+.block .fact b{color:var(--ink)}
+.tag{display:inline-block;font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.03em;border-radius:10px;padding:1px 6px;margin-left:4px}
+.tag.dir{background:#fdf3df;color:#8a5e08}
+/* need hierarchy */
+.hier{display:flex;gap:8px;margin-top:6px;flex-wrap:wrap}
+.hstep{flex:1;min-width:120px;border:1px solid var(--line);border-radius:10px;padding:10px 11px;background:#fff}
+.hstep .r{font-size:9px;font-weight:800;color:var(--muted)}
+.hstep .t{font-size:12px;font-weight:800;color:var(--ink);margin:2px 0}
+.hstep .m{font-size:10px;color:var(--muted)}
+.hstep.s1{border-top:3px solid var(--brand2)}.hstep.s2{border-top:3px solid var(--brand)}.hstep.s3{border-top:3px solid var(--accent)}.hstep.s4{border-top:3px solid var(--teal)}.hstep.s5{border-top:3px solid var(--purp)}
+/* sov bars */
+.sov{margin-top:4px}
+.sovrow{display:grid;grid-template-columns:96px 1fr 78px;gap:10px;align-items:center;margin:6px 0;font-size:12px}
+.sovrow .bar{height:16px;background:#eef2f7;border-radius:5px;overflow:hidden}.sovrow .bar i{display:block;height:100%;border-radius:5px}
+.sovrow .v{text-align:right;font-weight:800;color:var(--muted);font-size:11px}
+.b-giant i{background:var(--brand2)}.b-val i{background:var(--teal)}.b-gen i{background:#9db4d4}.b-lov i{background:var(--accent)}
+.lovpar{background:#fff6f2;border:1px solid #f6c9b6;border-left:4px solid var(--accent);border-radius:0 12px 12px 0;padding:14px 16px;margin-top:12px}
+.lovpar h4{margin:0 0 6px;color:#b23b32;font-size:13.5px}
+.lovpar .grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:8px}
+@media(max-width:620px){.lovpar .grid{grid-template-columns:repeat(2,1fr)}}
+.lovpar .g{background:#fff;border:1px solid #f0d5c9;border-radius:9px;padding:9px 10px;text-align:center}
+.lovpar .g .n{font-size:17px;font-weight:800;color:var(--accent)}.lovpar .g .l{font-size:9px;color:var(--muted);margin-top:3px;line-height:1.25}
+/* whitespace */
+.white{background:#0d2a55;color:#eaf2fc;border-radius:14px;padding:18px 22px;margin-top:12px}
+.white .lab{font-size:10.5px;font-weight:800;letter-spacing:.09em;text-transform:uppercase;color:#8fe0b6}
+.white .big{font-size:18px;font-weight:800;margin:6px 0;line-height:1.35;color:#fff}
+.white .big b{color:#ffd27a}
+.white p{font-size:12.5px;color:#c6d6ec;margin:6px 0 0}
+/* recommendations ladder */
+.recs{counter-reset:r;margin-top:6px}
+.rec{display:grid;grid-template-columns:34px 1fr;gap:12px;background:var(--card);border:1px solid var(--line);border-radius:11px;padding:12px 14px;margin:8px 0}
+.rec::before{counter-increment:r;content:counter(r);background:var(--brand2);color:#fff;width:28px;height:28px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:14px}
+.rec h4{margin:0 0 3px;font-size:13px;color:var(--brand2)}
+.rec p{margin:0;font-size:11.5px;color:var(--ink2);line-height:1.5}
+.rec p b{color:var(--ink)}
+.note{font-size:11px;color:var(--muted);background:#f3f6fa;border-radius:8px;padding:10px 13px;margin-top:16px;line-height:1.6}
+.xref{font-size:9.5px;color:var(--muted);font-style:italic}
+
+.rpt-top{display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--line);padding-bottom:10px;margin-bottom:8px;font-size:11px}.rpt-home{color:var(--brand2);font-weight:800;text-decoration:none;letter-spacing:-.01em}.rpt-sec{color:var(--muted);font-weight:700}.rpt-foot{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;border-top:1px solid var(--line);margin-top:26px;padding-top:14px;font-size:11px;color:var(--muted)}.rpt-foot b{color:var(--ink2)}.rpt-foot a{color:var(--brand);text-decoration:none;font-weight:700}
+.hero-img img{width:100%;border-radius:14px;display:block;margin:14px 0 2px;border:1px solid var(--line)}</style></head><body><div class="wrap">
+<div class="rpt-top"><a href="index.html" class="rpt-home">Baby Diapers — Category Report</a><span class="rpt-sec">Section 01 / 21</span></div>
+
+<div class="kicker">Baby Diapers · Category Report &nbsp;·&nbsp; Section 01 of 21</div>
+<h1>Executive Summary</h1>
+<div class="hero-img"><img src="assets/A01.jpg" alt="Skin-safety anxiety — the category's defining tension" onerror="this.onerror=null;this.style.display='none';this.closest('.hero-img,.hero,figure,.rpt-hero,.rpt-cover-img')?.remove()"></div>
+<p class="sub">Skin safety is the category's defining anxiety — and its single biggest switching lever. This summary distils the full 20-section report into the story that matters and what it means for Lovingle.</p>
+
+<div class="north">
+ <div class="lab">◆ The north star</div>
+ <div class="stmt">Indian diaper parents are intensely <b>skin-anxious caregivers</b> who choose, stay with, or abandon brands almost entirely on <b>rash and comfort evidence</b> — making skin safety the non-negotiable gateway to trial, loyalty, and recommendation.</div>
+</div>
+
+<div class="kpis">
+ <div class="kpi"><div class="n">31,600</div><div class="l">records analysed · 13 platforms · 2023–26</div></div>
+ <div class="kpi acc"><div class="n">81.2%</div><div class="l">of usage occasions are night — the anxiety anchor</div></div>
+ <div class="kpi"><div class="n">71.3%</div><div class="l">pant-style share of format mentions</div></div>
+ <div class="kpi"><div class="n">97%+</div><div class="l">of purchase conversations are online marketplace</div></div>
+ <div class="kpi acc"><div class="n">1,868</div><div class="l">rash mentions — the #1 switching trigger</div></div>
+ <div class="kpi"><div class="n">1%</div><div class="l">Lovingle share of voice (228 mentions)</div></div>
+</div>
+
+<div class="card">
+ <p class="lead">The Indian diaper parent is, overwhelmingly, a <b>mother</b> managing <b>overnight-protection anxiety</b>, shopping <b>online</b>, and treating <b>peer reviews as the decisive trust signal</b>. Two imperatives dominate and reinforce each other: <b>unbroken overnight sleep</b> and <b>rash-free skin</b>. A leak or a rash at 2am is not an inconvenience — it registers as both a product failure and a parental-identity failure, which is why skin performance drives loyalty and switching more than price does.</p>
+ <p>Against this backdrop, <b>Lovingle sits in a structurally advantaged softness position at marginal scale</b>: high quality perception among the few who try it, but awareness and rash-reassurance — not dissatisfaction — are the barriers holding it at 1% of voice while Huggies, MamyPoko and Pampers command a combined 76%.</p>
+</div>
+
+<div class="sec-h pg">1 · What the consumer needs &amp; does</div>
+
+<div class="cols2">
+ <div class="block"><h4>The need hierarchy is a functional–emotional knot</h4>
+ <div class="fact"><b>Softness</b> is table-stakes — the largest single driver (2,471 mentions); every other attribute is judged after it.</div>
+ <div class="fact"><b>Overnight absorbency</b> is the non-negotiable (81.2% of occasions); mass-tier products routinely fail it.</div>
+ <div class="fact"><b>Rash prevention</b> is the #1 switch reason (1,868); rash reads as <b>guilt</b>, not a defect — triggering instant brand abandonment.</div>
+ <div class="fact"><b>Fit &amp; leak-guard</b> (1,479) predicts daily trust; the <b>wetness indicator</b> carries outsized reassurance for first-timers.</div>
+ <div class="xref">Sources: Needs from Diapers, Babycare Needs, Vocabulary — skin-safety theme 41.7% vs performance 38.6%.</div>
+ </div>
+ <div class="block"><h4>Who decides, buys &amp; cares</h4>
+ <div class="fact"><b>Single-decider model:</b> the mother researches, selects <i>and</i> buys in 92.6% of role-cued voices; the father is <b>execute-only</b>.</div>
+ <div class="fact"><b>Fellow moms are the only real peer-influence layer</b> (2–2.3%) — WOM moves trial; MIL/grandparents shape norms, not daily care.</div>
+ <div class="fact"><b>First- vs second-time cohorts diverge:</b> first-timers reach rash-safety through <i>brand trust</i> (gate at trial); second-timers through <i>product memory</i> (gate at repeat, stickier).</div>
+ <div class="fact">The <b>nuclear, online Metro/Tier-1 mother</b> is the cleanest target — no elder to override her choice.</div>
+ <div class="xref">Sources: Shopper Roles, Family Roles, First vs Second-Time Moms.</div>
+ </div>
+</div>
+
+<div class="sec-h">The journey resets by lifestage — the same brand can win one stage and lose the next</div>
+<div class="hier">
+ <div class="hstep s1"><div class="r">&lt;3m Newborn</div><div class="t">Skin safety &amp; fit</div><div class="m">tape · 2–3h expectation</div></div>
+ <div class="hstep s2"><div class="r">3–8m Infant</div><div class="t">Absorption reliability</div><div class="m">night leak anxiety peaks</div></div>
+ <div class="hstep s3"><div class="r">8–12m Crawler</div><div class="t">Mobility &amp; fit-in-motion</div><div class="m">hard shift → pant-style</div></div>
+ <div class="hstep s4"><div class="r">12–18m Early Tod.</div><div class="t">Overnight endurance</div><div class="m">8–10h + size anxiety</div></div>
+ <div class="hstep s5"><div class="r">18–36m Toddler</div><div class="t">Value → potty-training</div><div class="m">churn, then category exit</div></div>
+</div>
+<div class="card" style="margin-top:10px"><p>Night dominates the day: the two night rituals (pre-sleep protection + the <b>morning skin-inspection "moment of truth"</b>) are the largest by far, and the morning diaper-off — dry sheet, rash-free skin — is where loyalty is renewed or a switch begins. <span class="xref">Sources: Needs by Lifestage, Parenting Rituals, Usage Occasions.</span></p></div>
+
+<div class="sec-h pg">2 · The market &amp; where Lovingle stands</div>
+
+<div class="cols2">
+ <div class="block"><h4>A three-brand category at the voice level</h4>
+ <div class="sov">
+ <div class="sovrow b-giant"><span>Huggies</span><div class="bar"><i style="width:100%"></i></div><span class="v">26% · 8,218</span></div>
+ <div class="sovrow b-giant"><span>MamyPoko</span><div class="bar"><i style="width:96%"></i></div><span class="v">25% · 7,881</span></div>
+ <div class="sovrow b-giant"><span>Pampers</span><div class="bar"><i style="width:95%"></i></div><span class="v">25% · 7,843</span></div>
+ <div class="sovrow b-val"><span>Little Angels</span><div class="bar"><i style="width:47%"></i></div><span class="v">12% · 3,902</span></div>
+ <div class="sovrow b-gen"><span>Generic/Other</span><div class="bar"><i style="width:38%"></i></div><span class="v">10% · 3,163</span></div>
+ <div class="sovrow b-lov"><span>Lovingle</span><div class="bar"><i style="width:3%"></i></div><span class="v">1% · 228</span></div>
+ </div>
+ <div class="fact" style="margin-top:8px">Three giants own <b>76%</b> of voice; Little Angels is the review-driven value niche.</div>
+ </div>
+ <div class="block"><h4>Switching is failure-led, not price-led</h4>
+ <div class="fact"><b>Rash onset and overnight leakage</b> are the near-universal switching triggers across <i>every</i> tier — price justifies repeat or downgrade, not first choice.</div>
+ <div class="fact"><b>Selection is review-led &amp; online:</b> ~48% of journeys begin with marketplace reviews, ~29% expert/HCP, ~11% word-of-mouth.</div>
+ <div class="fact">Share-of-voice on Amazon/Flipkart is not just a metric — it is the <b>de facto purchase-influence mechanism</b>. Star-rating credibility is structurally critical.</div>
+ <div class="xref">Sources: Competitive Landscape, Decision Journey, Channel Dynamics (Flipkart 57.1% / Amazon 35.8%).</div>
+ </div>
+</div>
+
+<div class="lovpar">
+ <h4>◆ The Lovingle paradox — the barrier is entirely pre-trial</h4>
+ <p style="font-size:12.5px;color:var(--ink2);margin:0">Among the few who try it, Lovingle performs — it earns the <b>highest softness score of any brand</b> and a solid trier rating. What holds it at 1% is <b>awareness and rash-reassurance before first use</b>, not the product experience. Everything blocking it happens at the gate; everything after the gate works.</p>
+ <div class="grid">
+ <div class="g"><div class="n">4.42</div><div class="l">softness — highest of all brands</div></div>
+ <div class="g"><div class="n">4.18</div><div class="l">mean trier rating <span class="tag dir">dir</span></div></div>
+ <div class="g"><div class="n">3.8</div><div class="l">skin-safety among triers <span class="tag dir">dir</span></div></div>
+ <div class="g"><div class="n">2.8</div><div class="l">availability — the weakest link</div></div>
+ </div>
+ <p style="font-size:11.5px;color:var(--muted);margin-top:9px">Barrier cluster: rash/skin-safety doubt (78) · low familiarity at 1% SoV (228) · fragrance-as-chemical-fear (34). Real, closable product flags surface on <b>fragrance</b> and <b>band design</b>. <span class="xref">Sources: Competitive Landscape, Lovingle Journey, Pricing Dynamics.</span></p>
+</div>
+
+<div class="sec-h pg">3 · The strategic opening &amp; what to do</div>
+
+<div class="white">
+ <div class="lab">◆ The whitespace</div>
+ <div class="big">No brand owns <b>credible, rash-free skin</b> in the mid-premium ₹399–699 corridor — and rash is the #1 avoidance reason (<b>45.7%</b> of avoidance mentions).</div>
+ <p>The gap is the width of the entire mid-premium price band: parents cannot verify skin-safety before purchase (no ingredient disclosure, rash discovered post-hoc), and no brand offers the clinical proof <i>or</i> the emotional "if a rash happens, here's why and what to do" reassurance. This is exactly where Lovingle already plays and already rates well — it is Lovingle's opening to convert latent product strength into share. <span class="xref" style="color:#9fc4f5">Sources: Needs from Diapers, Babycare Needs.</span></p>
+</div>
+
+<div class="sec-h">Implications for Lovingle</div>
+<div class="recs">
+ <div class="rec"><div><h4>Own rash-free skin in mid-premium</h4><p>Anchor a <b>clinically-credible skin-safety identity</b> with an emotional reassurance layer (guilt-absolution no competitor offers). This is the one position the category leaves open, and Lovingle's trier scores already support the claim.</p></div></div>
+ <div class="rec"><div><h4>Attack the pre-trial gate with borrowed credibility</h4><p>First-timers gate on <b>brand trust</b>, where 1% familiarity hurts most. Lead with paediatrician/derm endorsement and <b>fellow-mom word-of-mouth</b> — the only external influence layer that moves trial.</p></div></div>
+ <div class="rec"><div><h4>Close the two real product flags</h4><p><b>Fragrance</b> (reads as chemical/rash risk) and <b>band design</b> are the consistent trier complaints; both reinforce the rash barrier if left unaddressed. These are fixes, not repositioning.</p></div></div>
+ <div class="rec"><div><h4>Buy familiarity &amp; fix availability</h4><p>At 1% SoV and 2.8 availability, spend on <b>shortlist presence at the trigger moments</b> — incumbent-rash searches, price-curiosity, general-trade shelf — and close the reorder gap that currently caps repeat.</p></div></div>
+ <div class="rec"><div><h4>Target the single decider, win by cohort</h4><p>Aim at the <b>nuclear, online Metro/Tier-1 mother</b> (no elder to override). Buy credibility for first-timers; <b>earn memory</b> with second-timers — one rash-free experience makes them sticky, low-defection loyalists.</p></div></div>
+</div>
+
+<div class="note"><b>Basis &amp; confidence.</b> Built on 31,600 records across 13 platforms (2023–2026 listening window), rebuilt 05-Jul-2026. Findings on drivers, needs, competitive SoV and rituals are well-evidenced; <b>directional</b> where flagged — Lovingle's variant-level driver scores (below the 30-mention threshold), lifestage sub-stages (Middle/Late Toddler), and <b>regional</b> reads (SoV by state is not derivable at confidence; evidence concentrates in Maharashtra &amp; Tamil Nadu). Genuinely thin: father-as-primary-buyer journeys, Tier-2/semi-urban offline behaviour, and quick-commerce channel splits. Conversation volume ≠ market share. <span class="xref">This summary synthesises all 20 report sections; each claim traces to its section's evidence.</span></div>
+
+<div class="rpt-foot"><span>Baby Diapers — Category Report</span><span>Built by <b>Blustream</b> &nbsp;·&nbsp; Commissioned by <b>RSPL Limited</b></span><a href="index.html">← Contents</a></div>
+</div></body></html>

@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { ReportView } from './components/ReportView';
 import { DataStudio } from './components/DataStudio';
+import { ReportsLibrary } from './components/ReportsLibrary';
 import { ProviderSelector } from './components/ProviderSelector';
 import { loadEvidence } from './lib/persistence';
 import { isRunActive, getRunState } from './lib/runState';
@@ -10,7 +11,7 @@ import { ProjectId, EvidenceGraph } from './types';
 
 const App: React.FC = () => {
   const [projectId, setProjectId] = useState<ProjectId>('disposable-period-panties');
-  const [view, setView] = useState<'report' | 'data'>('report');
+  const [view, setView] = useState<'report' | 'data' | 'reports'>('report');
 
   // FIX: Namespace evidence by project to prevent leakage when switching contexts
   const [evidenceByProject, setEvidenceByProject] = useState<Record<string, EvidenceGraph>>({});
@@ -107,6 +108,15 @@ const App: React.FC = () => {
                         Data Studio
                     </button>
                  </li>
+                 <li>
+                    <button
+                        onClick={() => setView('reports')}
+                        className={`w-full text-left px-3 py-2 rounded text-sm transition-colors flex items-center gap-2 ${view === 'reports' ? 'bg-indigo-600 text-white' : 'hover:bg-slate-800'}`}
+                    >
+                        <svg className="w-4 h-4 opacity-70" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7h8m-8 4h8m-8 4h5M5 5a2 2 0 012-2h7l5 5v11a2 2 0 01-2 2H7a2 2 0 01-2-2V5z" /></svg>
+                        Report Library
+                    </button>
+                 </li>
               </ul>
            </div>
 
@@ -196,6 +206,7 @@ const App: React.FC = () => {
           {view === 'data' && (
              <DataStudio projectId={projectId} onDataIngested={handleDataIngested} />
           )}
+          {view === 'reports' && <ReportsLibrary />}
       </main>
 
     </div>

@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Baby Diapers — Category Report · §19 Features & Benefits</title>
+<style>
+:root{--ink:#0f2440;--ink2:#33475b;--muted:#6b7a8d;--line:#e3e8ef;--bg:#f6f8fb;--card:#fff;
+--brand:#1f5fbf;--brand2:#0d2a55;--accent:#f26a3d;
+--b1:#e2534b;--b2:#f0913c;--b3:#f2c744;--b4:#8fc06b;--b5:#3fae7a;--good:#2f9e6b;
+--radius:14px;--shadow:0 1px 2px rgba(16,36,64,.06),0 8px 24px rgba(16,36,64,.06);
+--f:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;}
+*{box-sizing:border-box}body{font-family:var(--f);color:var(--ink);background:var(--bg);margin:0;line-height:1.5}
+.wrap{max-width:1240px;margin:0 auto;padding:30px 22px 80px}
+.kicker{font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--accent);font-weight:700}
+h1{font-size:27px;margin:6px 0 4px;letter-spacing:-.02em}
+.lede{color:var(--ink2);max-width:900px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:20px;align-items:start;margin-top:18px}
+@media(max-width:1000px){.grid2{grid-template-columns:1fr}}
+.cmp{border:1px solid var(--line);border-radius:var(--radius);overflow:hidden;background:var(--card)}
+.cmp .hd{display:flex;align-items:center;gap:8px;padding:10px 14px;font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase}
+.cmp.before .hd{background:#fbeceb;color:#b23b32}.cmp.after .hd{background:#e9f6ef;color:#1f7a52}
+.cmp .bd{padding:18px}
+.densewall{font-size:12px;color:#556;line-height:1.7}.densewall p{margin:0 0 9px}.densewall b{color:#333}
+.float{display:inline-block;background:#fff3cd;color:#7a5b00;border-radius:4px;padding:0 4px;font-weight:700}
+.subtitle{font-size:16px;font-weight:700;color:var(--brand2);margin:0 0 4px}
+.framing{font-size:13px;color:var(--ink2);margin:0 0 14px;max-width:760px}
+.dl{float:right;display:inline-flex;align-items:center;gap:6px;font-size:11.5px;font-weight:700;color:var(--brand);border:1px solid #cfe0f6;background:#f2f8ff;border-radius:8px;padding:5px 10px;cursor:pointer}
+.slot{border:1.5px dashed #c3ccd8;border-radius:12px;padding:14px;color:#8494a6;font-size:12px;display:flex;align-items:center;gap:10px;background:repeating-linear-gradient(45deg,#fbfcfe,#fbfcfe 10px,#f4f7fb 10px,#f4f7fb 20px);margin-bottom:14px}
+.ico{width:24px;height:24px;border-radius:7px;background:#e8f0fb;display:inline-flex;align-items:center;justify-content:center;color:var(--brand);font-size:13px;flex-shrink:0}
+
+/* tier band */
+.tier{margin-bottom:14px}
+.tierhd{display:flex;align-items:center;gap:8px;font-size:11px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;margin-bottom:6px}
+.tierhd .dot{width:9px;height:9px;border-radius:50%}
+.t-must .dot{background:var(--b1)}.t-good .dot{background:var(--b3)}.t-del .dot{background:#8aa0bb}
+.t-must{color:#b23b32}.t-good{color:#a5791a}.t-del{color:#5f7086}
+.tierhd .desc{font-weight:600;color:var(--muted);text-transform:none;letter-spacing:0}
+
+/* feature row: name | volume bar | tags */
+.frow{display:grid;grid-template-columns:220px 1fr auto;gap:12px;align-items:center;padding:5px 0}
+.fname{font-size:12.5px;font-weight:700;color:var(--ink);display:flex;align-items:center;gap:7px}
+.hl{font-size:8.5px;font-weight:800;color:#fff;background:var(--accent);border-radius:20px;padding:2px 6px;letter-spacing:.03em}
+.vbar{position:relative;height:20px;background:#eef2f7;border-radius:6px;overflow:hidden}
+.vbar i{position:absolute;left:0;top:0;bottom:0;border-radius:6px}
+.vbar b{position:absolute;right:8px;line-height:20px;font-size:10.5px;font-weight:800;color:var(--ink)}
+.fi-must i{background:linear-gradient(90deg,#d0554d,#e88a83)}
+.fi-good i{background:linear-gradient(90deg,#e0a52c,#f0c97a)}
+.fi-del i{background:linear-gradient(90deg,#8aa0bb,#b8c6d8)}
+.ftag{font-size:10px;color:var(--muted);white-space:nowrap}
+.night{color:var(--brand)}
+
+.vb{background:#eef4fc;border-left:3px solid var(--brand);border-radius:0 10px 10px 0;padding:10px 13px;font-size:12.5px;color:var(--ink2);font-style:italic;margin-top:8px}
+.vb .attr{display:block;margin-top:6px;font-style:normal;font-size:11px;color:var(--muted);font-weight:600}
+
+/* lens strips */
+.lens{margin-top:14px}
+.lenshd{font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px}
+.lensrow{display:grid;grid-template-columns:110px 1fr;gap:10px;padding:6px 0;border-top:1px solid var(--line);font-size:11.5px}
+.lensrow:first-of-type{border-top:0}
+.lensrow .lk{font-weight:800;color:var(--ink);white-space:nowrap}
+.lensrow .lk small{display:block;font-weight:600;color:var(--muted);font-size:10px}
+.lensrow .lv{color:var(--ink2)}
+.note{font-size:11px;color:var(--muted);background:#f3f6fa;border-radius:8px;padding:8px 11px;margin-top:12px}
+.callbox{border:1px solid var(--line);border-left:4px solid var(--good);border-radius:0 10px 10px 0;padding:12px 15px;background:#fff;margin-top:14px}
+.callbox b{color:var(--good)}
+.analysis{background:#0d2a55;color:#dfeaf7;border-radius:var(--radius);padding:18px 20px;margin-top:16px;font-size:13px;line-height:1.7}
+.analysis h3{margin:0 0 8px;color:#7fb3f2;font-size:12px;letter-spacing:.08em;text-transform:uppercase}
+.analysis ul{margin:6px 0 0;padding-left:18px}.analysis li{margin:4px 0}
+.x{color:#ff9b8f;font-weight:700}.ok{color:#8fe0b6;font-weight:700}
+.rpt-top{display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--line);padding-bottom:10px;margin-bottom:8px;font-size:11px}.rpt-home{color:var(--brand2);font-weight:800;text-decoration:none;letter-spacing:-.01em}.rpt-sec{color:var(--muted);font-weight:700}.rpt-foot{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;border-top:1px solid var(--line);margin-top:26px;padding-top:14px;font-size:11px;color:var(--muted)}.rpt-foot b{color:var(--ink2)}.rpt-foot a{color:var(--brand);text-decoration:none;font-weight:700}</style></head><body><div class="wrap">
+<div class="rpt-top"><a href="index.html" class="rpt-home">Baby Diapers — Category Report</a><span class="rpt-sec">Section 19 / 21</span></div>
+
+<div class="kicker">Baby Diapers — Category Report &nbsp;·&nbsp; Section 19 of 21</div>
+<h1>Product Features &amp; Expected Benefits</h1>
+<p class="lede">A <b>feature-priority hierarchy</b> — must-haves vs good-to-haves vs delighters — where each feature carries a mention volume, a day/night tilt, and a lifestage. Two things are non-negotiable; everything else is earned.</p>
+
+      <div class="subtitle">Leakage-free nights and rash-safe skin are non-negotiable; everything else is earned.</div>
+      <p class="framing">Two features are the price of entry — fail either and the brand is abandoned regardless of price. <b>Overnight absorption</b> is the upgrade lever from mass to premium. Eco and design barely move the needle. Bar length = mention volume; ⚡ = headline driver; 🌙 = night-critical.</p>
+
+      <div class="tier t-must">
+        <div class="tierhd"><span class="dot"></span>Must-haves <span class="desc">— category entry; absence = abandonment</span></div>
+        <div class="frow fi-must"><span class="fname">Leakage protection <span class="hl">⚡ headline</span></span><div class="vbar"><i style="width:100%"></i><b>700</b></div><span class="ftag night">🌙 81% overnight</span></div>
+        <div class="frow fi-must"><span class="fname">Soft, rash-free inner <span class="hl">⚡ headline</span></span><div class="vbar"><i style="width:89%"></i><b>620</b></div><span class="ftag">softness +2,471 / rash −1,868</span></div>
+        <div class="frow fi-must"><span class="fname">No harsh chemicals / odour</span><div class="vbar"><i style="width:61%"></i><b>430</b></div><span class="ftag">45.7% of avoidance</span></div>
+        <div class="frow fi-must"><span class="fname">Secure fit &amp; tabs</span><div class="vbar"><i style="width:56%"></i><b>390</b></div><span class="ftag">drives leak &amp; rash</span></div>
+        <div class="frow fi-must"><span class="fname">Size-range adequacy</span><div class="vbar"><i style="width:25%"></i><b>175</b></div><span class="ftag">late-toddler switch trigger</span></div>
+      </div>
+
+      <div class="tier t-good">
+        <div class="tierhd"><span class="dot"></span>Good-to-haves <span class="desc">— convert consideration into loyalty</span></div>
+        <div class="frow fi-good"><span class="fname">Overnight absorption <span class="hl">⚡ headline</span></span><div class="vbar"><i style="width:51%"></i><b>358</b></div><span class="ftag night">🌙 mass→premium lever</span></div>
+        <div class="frow fi-good"><span class="fname">Dermatologist-tested</span><div class="vbar"><i style="width:23%"></i><b>160</b></div><span class="ftag">premium credibility cue</span></div>
+        <div class="frow fi-good"><span class="fname">Breathable outer</span><div class="vbar"><i style="width:9%"></i><b>64</b></div><span class="ftag">summer / daytime</span></div>
+        <div class="frow fi-good"><span class="fname">Disposal seal-strip</span><div class="vbar"><i style="width:8%"></i><b>55</b></div><span class="ftag">pant-style convenience</span></div>
+      </div>
+
+      <div class="tier t-del">
+        <div class="tierhd"><span class="dot"></span>Delighters <span class="desc">— pleasant, but don't move purchase</span></div>
+        <div class="frow fi-del"><span class="fname">Wetness indicator</span><div class="vbar"><i style="width:12%"></i><b>84</b></div><span class="ftag">can tip a star rating</span></div>
+        <div class="frow fi-del"><span class="fname">Eco / biodegradable</span><div class="vbar"><i style="width:7%"></i><b>48</b></div><span class="ftag">urban-premium only</span></div>
+        <div class="frow fi-del"><span class="fname">Design &amp; prints</span><div class="vbar"><i style="width:5%"></i><b>38</b></div><span class="ftag">no purchase weight</span></div>
+      </div>
+
+      <div class="vb">“Very soft and gentle — hasn't caused any rashes. Absorption keeps my baby dry for long hours, even overnight.”<span class="attr">— Mother · Mass · Amazon · Lovingle user</span></div>
+
+      <div class="lens">
+        <div class="lenshd">How the ladder shifts — by segment &amp; lifestage</div>
+        <div class="lensrow"><span class="lk">Mass</span><span class="lv">Leakage + basic softness <b>is</b> the whole feature set. Overnight/indicators not yet expected.</span></div>
+        <div class="lensrow"><span class="lk">Mid-premium</span><span class="lv">Must-haves are baseline; overnight absorption &amp; fit become the differentiators.</span></div>
+        <div class="lensrow"><span class="lk">Premium</span><span class="lv">Full ladder actively sought — breathability, derm-cert, indicator, overnight.</span></div>
+        <div class="lensrow"><span class="lk">Newborn <small>&lt;3m</small></span><span class="lv">Softness + chemical-safety dominate; tape-style fit precision valued.</span></div>
+        <div class="lensrow"><span class="lk">Crawler <small>8–12m</small></span><span class="lv">Leg-opening leak + elastic fit become the load-bearing demand (movement).</span></div>
+        <div class="lensrow"><span class="lk">Late toddler <small>24–36m</small></span><span class="lv">Waistband comfort, larger-size availability, pullability for potty transition.</span></div>
+      </div>
+
+      <div class="callbox"><b>Feature read →</b> Don't sell softness and leak-protection — those are table stakes; win them silently. <b>Overnight absorption is the credible upgrade story</b>, and rash-safety is the emotional core to prove, not the metric to quote.</div>
+
+      <div class="note">Bar = feature mention share of feature-mentioning reviews &amp; conversations (31,600 analysed, 2023–2026) · coverage 78% · full day/night + 6-lifestage notes per feature in the detail table · 2 of 5 verbatims were unverified and excluded per provenance rule.</div>
+
+<div class="rpt-foot"><span>Baby Diapers — Category Report</span><span>Built by <b>Blustream Marketing Solutions</b> &nbsp;·&nbsp; Commissioned by <b>RSPL Limited</b></span><a href="index.html">← Contents</a></div>
+</div></body></html>

@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Baby Diapers — Category Report · §15 Shopping Search Terms</title>
+<style>
+:root{--ink:#0f2440;--ink2:#33475b;--muted:#6b7a8d;--line:#e3e8ef;--bg:#f6f8fb;--card:#fff;
+--brand:#1f5fbf;--brand2:#0d2a55;--accent:#f26a3d;--good:#2f9e6b;--purp:#8a5cc0;--amber:#c98a12;
+--radius:14px;--f:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;}
+*{box-sizing:border-box}body{font-family:var(--f);color:var(--ink);background:var(--bg);margin:0;line-height:1.5}
+.wrap{max-width:1240px;margin:0 auto;padding:30px 22px 80px}
+.kicker{font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--accent);font-weight:700}
+h1{font-size:27px;margin:6px 0 4px;letter-spacing:-.02em}.lede{color:var(--ink2);max-width:960px}
+.grid2{display:grid;grid-template-columns:0.68fr 1.32fr;gap:20px;align-items:start;margin-top:18px}
+@media(max-width:1040px){.grid2{grid-template-columns:1fr}}
+.cmp{border:1px solid var(--line);border-radius:var(--radius);overflow:hidden;background:var(--card)}
+.cmp .hd{display:flex;align-items:center;gap:8px;padding:10px 14px;font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase}
+.cmp.before .hd{background:#fbeceb;color:#b23b32}.cmp.after .hd{background:#e9f6ef;color:#1f7a52}
+.cmp .bd{padding:18px}
+.densewall{font-size:12px;color:#556;line-height:1.7}.densewall p{margin:0 0 9px}.densewall b{color:#333}
+.strike{text-decoration:line-through;color:#c05a34}
+.subtitle{font-size:16px;font-weight:700;color:var(--brand2);margin:0 0 4px}
+.framing{font-size:13px;color:var(--ink2);margin:0 0 14px;max-width:860px}
+.dl{float:right;display:inline-flex;align-items:center;gap:6px;font-size:11.5px;font-weight:700;color:var(--brand);border:1px solid #cfe0f6;background:#f2f8ff;border-radius:8px;padding:5px 10px;cursor:pointer}
+.hdl{font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin:14px 0 7px}
+/* search cluster cards */
+.sc{border:1px solid var(--line);border-radius:11px;padding:12px 14px;margin-top:10px;border-left:4px solid var(--brand)}
+.sc.c1{border-left-color:var(--brand)}.sc.c2{border-left-color:var(--good)}.sc.c3{border-left-color:var(--purp)}.sc.c4{border-left-color:var(--accent)}.sc.c5{border-left-color:var(--amber)}
+.sch{display:grid;grid-template-columns:22px 1fr auto;gap:10px;align-items:center}
+.rk{width:22px;height:22px;border-radius:50%;color:#fff;font-weight:800;font-size:11px;display:flex;align-items:center;justify-content:center}
+.c1 .rk{background:var(--brand)}.c2 .rk{background:var(--good)}.c3 .rk{background:var(--purp)}.c4 .rk{background:var(--accent)}.c5 .rk{background:var(--amber)}
+.sct{font-weight:800;font-size:12.5px;color:var(--ink)}
+.scmeta{font-size:9.5px;color:var(--muted);font-weight:700;margin-top:1px}
+.scpct{font-size:20px;font-weight:800;line-height:1;text-align:right}
+.c1 .scpct{color:var(--brand)}.c2 .scpct{color:var(--good)}.c3 .scpct{color:var(--purp)}.c4 .scpct{color:var(--accent)}.c5 .scpct{color:var(--amber)}
+.scpct span{display:block;font-size:8.5px;font-weight:700;color:var(--muted);text-transform:uppercase}
+.scbar{height:8px;background:#eef2f7;border-radius:5px;overflow:hidden;margin:9px 0 9px}.scbar i{display:block;height:100%;border-radius:5px}
+.c1 .scbar i{background:var(--brand)}.c2 .scbar i{background:var(--good)}.c3 .scbar i{background:var(--purp)}.c4 .scbar i{background:var(--accent)}.c5 .scbar i{background:var(--amber)}
+.q{display:flex;flex-wrap:wrap;gap:5px}
+.q span{font-size:10px;font-weight:600;color:var(--ink2);background:#f4f7fb;border:1px solid #e3e8ef;border-radius:6px;padding:3px 8px}
+.q span::before{content:"⌕ ";color:var(--muted)}
+.scnote{font-size:10.5px;color:var(--muted);margin-top:8px}.scnote b{color:var(--ink2)}
+/* verbatims */
+.pair{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:6px}
+@media(max-width:620px){.pair{grid-template-columns:1fr}}
+.vb{border:1px solid var(--line);border-radius:10px;padding:11px 13px;font-size:11.5px;color:var(--ink2);line-height:1.55}
+.vb .vlab{font-size:9.5px;font-weight:800;text-transform:uppercase;letter-spacing:.05em;margin-bottom:5px}
+.vb.adv{border-left:4px solid var(--purp)}.vb.adv .vlab{color:var(--purp)}
+.vb.fail{border-left:4px solid var(--accent)}.vb.fail .vlab{color:var(--accent)}
+.vb cite{display:block;font-style:normal;font-size:9.5px;color:var(--muted);margin-top:6px}
+.callbox{border:1px solid var(--line);border-left:4px solid var(--good);border-radius:0 10px 10px 0;padding:12px 15px;background:#fff;margin-top:14px;font-size:12.5px;color:var(--ink2)}.callbox b{color:var(--good)}
+.wl{background:#fff4ef;border:1px solid #f5c7b4;border-radius:9px;padding:10px 13px;margin-top:12px;font-size:12px;color:#a3431f}.wl b{color:#c0431c}
+.note{font-size:11px;color:var(--muted);background:#f3f6fa;border-radius:8px;padding:8px 11px;margin-top:12px}
+.analysis{background:#0d2a55;color:#dfeaf7;border-radius:var(--radius);padding:18px 20px;margin-top:16px;font-size:13px;line-height:1.7}
+.analysis h3{margin:0 0 8px;color:#7fb3f2;font-size:12px;letter-spacing:.08em;text-transform:uppercase}
+.analysis ul{margin:6px 0 0;padding-left:18px}.analysis li{margin:5px 0}
+.x{color:#ff9b8f;font-weight:700}.ok{color:#8fe0b6;font-weight:700}
+.nk{background:#123a2a;border:1px solid #2f7a52;border-radius:9px;padding:6px 11px;margin:10px 0 0;font-size:11.5px;color:#c9f0da}.nk b{color:#8fe0b6}
+.rpt-top{display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--line);padding-bottom:10px;margin-bottom:8px;font-size:11px}.rpt-home{color:var(--brand2);font-weight:800;text-decoration:none;letter-spacing:-.01em}.rpt-sec{color:var(--muted);font-weight:700}.rpt-foot{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;border-top:1px solid var(--line);margin-top:26px;padding-top:14px;font-size:11px;color:var(--muted)}.rpt-foot b{color:var(--ink2)}.rpt-foot a{color:var(--brand);text-decoration:none;font-weight:700}</style></head><body><div class="wrap">
+<div class="rpt-top"><a href="index.html" class="rpt-home">Baby Diapers — Category Report</a><span class="rpt-sec">Section 15 / 21</span></div>
+
+<div class="kicker">Baby Diapers — Category Report &nbsp;·&nbsp; Section 15 of 21</div>
+<h1>Shopping Search Terms</h1>
+<p class="lede">How parents actually type their way to a diaper. Five intent clusters, ranked by share of categorised search signal, each shown with its <b>real query strings</b> from the corpus — the exact language to bid, title and optimise against. The ~12% long-tail (seasonal, daycare, occasion) that falls below the 5% threshold is dropped, not padded.</p>
+
+      <div class="subtitle">Need-state and weight-band signals dominate diaper search language.</div>
+      <p class="framing">Parents navigate the category on four hard anchors — <b>time-on-body</b> (overnight, 12-hour), <b>size by weight-band</b>, <b>brand comparison</b>, and <b>skin safety</b> — with <b>price-value</b> a persistent fifth. Overnight leads by a distance. Crucially, rash-safety search is where the category's most emotionally loaded intent lives — and where Lovingle's conversation is thinnest.</p>
+
+      <div class="hdl">Search intent — share of categorised search signal · with real query strings</div>
+
+      <div class="sc c1">
+        <div class="sch"><span class="rk">1</span><div><div class="sct">Overnight &amp; long-wear protection</div><div class="scmeta">680 signals · skews mid-premium &amp; premium pant · peaks summer/monsoon</div></div><div class="scpct">32%<span>share</span></div></div>
+        <div class="scbar"><i style="width:100%"></i></div>
+        <div class="q"><span>diaper for night use</span><span>12 hour diaper pants M size</span><span>night diaper no leakage</span><span>best diaper for sleeping baby</span><span>diaper for heavy wetter night</span><span>overnight diaper pants XL</span></div>
+        <div class="scnote"><b>Intent:</b> whole-night dryness = the parent's own sleep. The single biggest search anchor in the category.</div>
+      </div>
+
+      <div class="sc c2">
+        <div class="sch"><span class="rk">2</span><div><div class="sct">Size &amp; weight-band discovery</div><div class="scmeta">520 signals · dominant navigation mode · sizing inconsistency across brands noted</div></div><div class="scpct">26%<span>share</span></div></div>
+        <div class="scbar"><i style="width:81.3%"></i></div>
+        <div class="q"><span>baby diaper pants M size 7-12 kg</span><span>newborn diaper size under 5 kg</span><span>diaper XL size 12-17 kg</span><span>baby diaper size chart India</span><span>diaper pants L size best brand</span><span>diaper XXL size for toddler</span></div>
+        <div class="scnote"><b>Intent:</b> parents start at "newborn" and graduate through S/M/L/XL as the baby grows — weight-band is the true nav key, not brand.</div>
+      </div>
+
+      <div class="sc c3">
+        <div class="sch"><span class="rk">3</span><div><div class="sct">Brand comparison &amp; switching</div><div class="scmeta">360 signals · Huggies / Pampers / MamyPoko are the comparison anchors</div></div><div class="scpct">18%<span>share</span></div></div>
+        <div class="scbar"><i style="width:56.3%"></i></div>
+        <div class="q"><span>Huggies vs Pampers India</span><span>MamyPoko pants vs Huggies wonder pants</span><span>best diaper brand India 2024</span><span>Pampers vs Huggies for sensitive skin</span><span>Little Angels vs MamyPoko pants</span><span>which diaper is best for baby India</span></div>
+        <div class="scnote"><b>Intent:</b> two-to-three-brand comparison at the moment of purchase — a live bidding battleground Lovingle is currently absent from.</div>
+      </div>
+
+      <div class="sc c4">
+        <div class="sch"><span class="rk">4</span><div><div class="sct">Skin safety &amp; rash-free</div><div class="scmeta">280 signals · peaks Newborn &lt;3m &amp; Crawler 8-12m · brand trust forming</div></div><div class="scpct">14%<span>share</span></div></div>
+        <div class="scbar"><i style="width:43.8%"></i></div>
+        <div class="q"><span>rash free diaper for newborn</span><span>baby diaper pants sensitive skin</span><span>anti rash diaper pants India</span><span>diaper with aloe vera for sensitive skin</span><span>soft diaper no rash for baby</span><span>chemical free diaper for infant</span></div>
+        <div class="scnote"><b>Intent:</b> the most emotionally loaded search in the category — and precisely where Lovingle's conversation is thinnest. The whitespace.</div>
+      </div>
+
+      <div class="sc c5">
+        <div class="sch"><span class="rk">5</span><div><div class="sct">Value &amp; bulk-pack price</div><div class="scmeta">195 signals · ₹999 large-count packs dominate the intent</div></div><div class="scpct">10%<span>share</span></div></div>
+        <div class="scbar"><i style="width:31.3%"></i></div>
+        <div class="q"><span>baby diaper pants 90 pcs price</span><span>diaper pants bulk pack online</span><span>diaper pants under 500 rupees</span><span>value for money diaper India</span><span>affordable diaper pants for daily use</span><span>diaper pants combo pack discount</span></div>
+        <div class="scnote"><b>Intent:</b> pack-count &amp; per-diaper cost math — the ₹10–13 mid-premium wedge in search form.</div>
+      </div>
+
+      <div class="hdl">Search in the consumer's own words (real corpus)</div>
+      <div class="pair">
+        <div class="vb adv"><div class="vlab">▲ The comparison search, live</div>
+          "Comparing Huggies, pamper, mamy poko pants, cuddle, dabour, diapers. Little angel best for my baby… No leakage problem. Dry and comfortable. No rashes."
+          <cite>Flipkart · Little Angels user · Crawler 8-12m — brand-comparison intent, verbatim</cite></div>
+        <div class="vb fail"><div class="vlab">▼ The overnight promise, broken</div>
+          "At the top of the Pampers it was written that for all night it will work very well but trust me within 5 to 6 hours it starts leaking."
+          <cite>Flipkart · Pampers user · newborn — the pain that drives 32% of search</cite></div>
+      </div>
+
+      <div class="callbox"><b>Brand implication →</b> Two moves. <b>(1) Own the overnight anchor</b> — it's 32% of search and the failure verbatim shows premium brands are beatable on the exact promise they make. <b>(2) Claim the rash-free whitespace</b> — 14% of search, the most loaded intent, and the thinnest Lovingle conversation: a rash-free/sensitive-skin search push closes the aware-non-trier gap at the precise moment of intent. Bid the comparison terms (18%) so Lovingle appears in the two-brand shortlist it's currently missing from.</div>
+
+      <div class="wl"><b>⌕ SEO / PLA build-list:</b> the query chips above are real strings — hand them straight to the media team for keyword, listing-title, and PLA seeding. Size-band terms (26%) are the cheapest, highest-intent entry; overnight (32%) the highest-volume; rash-free (14%) the highest-margin whitespace.</div>
+
+      <div class="note"><b>Coverage 78%.</b> Basis: share of categorised shopping-search intent across Amazon, Flipkart &amp; FirstCry, 2023–2026. The ~12% long-tail (seasonal breathability, monsoon rash, daycare, occasion-linked) falls below the 5% threshold and is suppressed, not listed. Also thin: vernacular/voice queries (English-rendered corpus) and quick-commerce search (Blinkit/Zepto/Instamart not directly observable).</div>
+
+<div class="rpt-foot"><span>Baby Diapers — Category Report</span><span>Built by <b>Blustream Marketing Solutions</b> &nbsp;·&nbsp; Commissioned by <b>RSPL Limited</b></span><a href="index.html">← Contents</a></div>
+</div></body></html>

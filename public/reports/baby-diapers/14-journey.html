@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Baby Diapers — Category Report · §14 Decision Journey</title>
+<style>
+:root{--ink:#0f2440;--ink2:#33475b;--muted:#6b7a8d;--line:#e3e8ef;--bg:#f6f8fb;--card:#fff;
+--brand:#1f5fbf;--brand2:#0d2a55;--accent:#f26a3d;--good:#2f9e6b;
+--radius:14px;--shadow:0 1px 2px rgba(16,36,64,.06),0 8px 24px rgba(16,36,64,.06);
+--f:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;}
+*{box-sizing:border-box}body{font-family:var(--f);color:var(--ink);background:var(--bg);margin:0;line-height:1.5}
+.wrap{max-width:1240px;margin:0 auto;padding:30px 22px 80px}
+.kicker{font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--accent);font-weight:700}
+h1{font-size:27px;margin:6px 0 4px;letter-spacing:-.02em}.lede{color:var(--ink2);max-width:920px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:20px;align-items:start;margin-top:18px}
+@media(max-width:1000px){.grid2{grid-template-columns:1fr}}
+.cmp{border:1px solid var(--line);border-radius:var(--radius);overflow:hidden;background:var(--card)}
+.cmp .hd{display:flex;align-items:center;gap:8px;padding:10px 14px;font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase}
+.cmp.before .hd{background:#fbeceb;color:#b23b32}.cmp.after .hd{background:#e9f6ef;color:#1f7a52}
+.cmp .bd{padding:18px}
+.densewall{font-size:12px;color:#556;line-height:1.7}.densewall p{margin:0 0 9px}.densewall b{color:#333}
+.float{display:inline-block;background:#fff3cd;color:#7a5b00;border-radius:4px;padding:0 4px;font-weight:700}
+.subtitle{font-size:16px;font-weight:700;color:var(--brand2);margin:0 0 4px}
+.framing{font-size:13px;color:var(--ink2);margin:0 0 14px;max-width:760px}
+.dl{float:right;display:inline-flex;align-items:center;gap:6px;font-size:11.5px;font-weight:700;color:var(--brand);border:1px solid #cfe0f6;background:#f2f8ff;border-radius:8px;padding:5px 10px;cursor:pointer}
+.slot{border:1.5px dashed #c3ccd8;border-radius:12px;padding:14px;color:#8494a6;font-size:12px;display:flex;align-items:center;gap:10px;background:repeating-linear-gradient(45deg,#fbfcfe,#fbfcfe 10px,#f4f7fb 10px,#f4f7fb 20px);margin-bottom:14px}
+.ico{width:24px;height:24px;border-radius:7px;background:#e8f0fb;display:inline-flex;align-items:center;justify-content:center;color:var(--brand);font-size:13px;flex-shrink:0}
+.hdl{font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin:6px 0 4px}
+
+/* journey spine */
+.spine{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin:6px 0 4px;position:relative}
+.step{background:#f6f8fb;border:1px solid var(--line);border-radius:11px;padding:10px 9px;text-align:center;position:relative}
+.step .si{width:34px;height:34px;border-radius:9px;background:#e8f0fb;display:flex;align-items:center;justify-content:center;margin:0 auto 6px;font-size:16px}
+.step .stt{font-size:11px;font-weight:800;color:var(--brand2)}
+.step .sd{font-size:10px;color:var(--muted);margin-top:2px;line-height:1.35}
+.step .arw{position:absolute;right:-8px;top:50%;transform:translateY(-50%);color:#c3ccd8;font-size:14px;z-index:2}
+.step:last-child .arw{display:none}
+.reset{text-align:center;font-size:10.5px;color:var(--accent);font-weight:700;margin-top:2px}
+
+/* decision mode bars */
+.drow{display:grid;grid-template-columns:1fr 60px;gap:10px;align-items:center;padding:4px 0;font-size:11.5px}
+.dbar{position:relative;height:14px;background:#eef2f7;border-radius:4px;overflow:hidden}
+.dbar i{position:absolute;left:0;top:0;bottom:0;background:linear-gradient(90deg,#1f5fbf,#5a8fd6);border-radius:4px}
+.dbar b{position:absolute;right:5px;line-height:14px;font-size:9px;font-weight:800;color:var(--ink)}
+
+/* discovery trust ladder */
+.trow{display:grid;grid-template-columns:1fr 74px 54px;gap:8px;align-items:center;padding:5px 0;border-top:1px solid var(--line);font-size:11.5px}
+.trow:first-of-type{border-top:0}
+.tsrc{font-weight:600;color:var(--ink)}
+.tbar{position:relative;height:13px;background:#eef2f7;border-radius:4px;overflow:hidden}
+.tbar i{position:absolute;left:0;top:0;bottom:0;border-radius:4px}
+.tbar b{position:absolute;right:5px;line-height:13px;font-size:9px;font-weight:800;color:var(--ink)}
+.trust{font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.02em;padding:2px 6px;border-radius:20px;text-align:center}
+.t-hi{background:#e4f5ec;color:#1f7a52}.t-med{background:#fdeede;color:#a5581a}.t-lo{background:#f0eef3;color:#7a6a8a}
+.th i{background:linear-gradient(90deg,#3fae7a,#7fcaa3)}.tm i{background:linear-gradient(90deg,#f0913c,#f6b877)}.tl i{background:linear-gradient(90deg,#b8b0c4,#d2cbdb)}
+
+/* size table */
+.szt{width:100%;border-collapse:separate;border-spacing:0;font-size:11px;margin-top:4px}
+.szt th{background:var(--brand);color:#fff;text-align:left;padding:6px 9px;font-size:10px;letter-spacing:.03em;text-transform:uppercase}
+.szt th:first-child{border-radius:7px 0 0 0}.szt th:last-child{border-radius:0 7px 0 0}
+.szt td{padding:6px 9px;border-bottom:1px solid var(--line);color:var(--ink2);vertical-align:top}
+.szt td.sz{font-weight:800;color:var(--brand2);white-space:nowrap}
+.vb{background:#eef4fc;border-left:3px solid var(--brand);border-radius:0 10px 10px 0;padding:9px 12px;font-size:12px;color:var(--ink2);font-style:italic;margin-top:8px}
+.vb .attr{display:block;margin-top:5px;font-style:normal;font-size:10.5px;color:var(--muted);font-weight:600}
+.dm{background:#f6f2fb;border:1px solid #e5d8f2;border-radius:10px;padding:10px 13px;margin-top:12px;font-size:11.5px;color:var(--ink2)}
+.dm b{color:#6c3fb0}
+.callbox{border:1px solid var(--line);border-left:4px solid var(--good);border-radius:0 10px 10px 0;padding:12px 15px;background:#fff;margin-top:14px}
+.callbox b{color:var(--good)}
+.note{font-size:11px;color:var(--muted);background:#f3f6fa;border-radius:8px;padding:8px 11px;margin-top:12px}
+.analysis{background:#0d2a55;color:#dfeaf7;border-radius:var(--radius);padding:18px 20px;margin-top:16px;font-size:13px;line-height:1.7}
+.analysis h3{margin:0 0 8px;color:#7fb3f2;font-size:12px;letter-spacing:.08em;text-transform:uppercase}
+.analysis ul{margin:6px 0 0;padding-left:18px}.analysis li{margin:4px 0}
+.x{color:#ff9b8f;font-weight:700}.ok{color:#8fe0b6;font-weight:700}
+.leg{font-size:10.5px;color:var(--muted);margin-top:6px}
+.rpt-top{display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--line);padding-bottom:10px;margin-bottom:8px;font-size:11px}.rpt-home{color:var(--brand2);font-weight:800;text-decoration:none;letter-spacing:-.01em}.rpt-sec{color:var(--muted);font-weight:700}.rpt-foot{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;border-top:1px solid var(--line);margin-top:26px;padding-top:14px;font-size:11px;color:var(--muted)}.rpt-foot b{color:var(--ink2)}.rpt-foot a{color:var(--brand);text-decoration:none;font-weight:700}</style></head><body><div class="wrap">
+<div class="rpt-top"><a href="index.html" class="rpt-home">Baby Diapers — Category Report</a><span class="rpt-sec">Section 14 / 21</span></div>
+
+<div class="kicker">Baby Diapers — Category Report &nbsp;·&nbsp; Section 14 of 21</div>
+<h1>The Decision Journey</h1>
+<p class="lede">Triggers, discovery sources, decision modes, decision-maker, and size selection come together in a <b>4-stage journey spine</b>, a trust-ranked discovery ladder, and a per-lifestage size table. The core insight: it's <b>not a funnel — it's a rash-anxiety circuit that resets with every skin episode.</b></p>
+
+      <div class="subtitle">Skin-safety anxiety governs first choice; reviews seal the deal.</div>
+      <p class="framing">The mother holds the decisive vote at every stage. Doctors own maximum influence at newborn; online reviews take over by crawler. It's <b>not a linear funnel</b> — a rash episode resets the whole journey, which is why the first diaper experience is the highest-leverage moment in the category.</p>
+
+      <div class="hdl">The journey — a resetting circuit, not a funnel</div>
+      <div class="spine">
+        <div class="step"><div class="si">🔍</div><div class="stt">Discover</div><div class="sd">Hospital kit · doctor · reviews · peer WOM</div><span class="arw">→</span></div>
+        <div class="step"><div class="si">⚖️</div><div class="stt">Evaluate</div><div class="sd">Skin-safety proof first, overnight second</div><span class="arw">→</span></div>
+        <div class="step"><div class="si">🛒</div><div class="stt">Decide &amp; buy</div><div class="sd">Mother's verdict · online cart (97%)</div><span class="arw">↻</span></div>
+        <div class="step"><div class="si">🔁</div><div class="stt">Repeat / switch</div><div class="sd">Locked by no rash · broken by one rash</div></div>
+      </div>
+      <div class="reset">↻ A rash episode resets the circuit to Discover — trust is broken post-trial, not at awareness</div>
+
+      <div class="hdl" style="margin-top:14px">How brands get chosen — decision modes</div>
+      <div class="drow"><span>Online reviews / marketplace-led</span><div class="dbar"><i style="width:100%"></i><b>48%</b></div></div>
+      <div class="drow"><span>Expert / doctor-led (peaks at newborn)</span><div class="dbar"><i style="width:65%"></i><b>32%</b></div></div>
+      <div class="drow"><span>Peer word-of-mouth</span><div class="dbar"><i style="width:22%"></i><b>11%</b></div></div>
+      <div class="drow"><span>Influencer / social</span><div class="dbar"><i style="width:14%"></i><b>7%</b></div></div>
+
+      <div class="hdl" style="margin-top:12px">Discovery sources by trust</div>
+      <div class="trow th"><span class="tsrc">Online reviews / ratings</span><div class="tbar"><i style="width:100%"></i><b>1,243</b></div><span class="trust t-hi">high</span></div>
+      <div class="trow th"><span class="tsrc">Doctor / paediatrician</span><div class="tbar"><i style="width:60%"></i><b>740</b></div><span class="trust t-hi">high</span></div>
+      <div class="trow th"><span class="tsrc">Family &amp; friends WOM</span><div class="tbar"><i style="width:22%"></i><b>277</b></div><span class="trust t-hi">high</span></div>
+      <div class="trow th"><span class="tsrc">Hospital kit / nursing</span><div class="tbar"><i style="width:17%"></i><b>210</b></div><span class="trust t-hi">high</span></div>
+      <div class="trow tm"><span class="tsrc">YouTube creators</span><div class="tbar"><i style="width:14%"></i><b>174</b></div><span class="trust t-med">med</span></div>
+      <div class="trow tm"><span class="tsrc">Instagram parenting</span><div class="tbar"><i style="width:8%"></i><b>98</b></div><span class="trust t-med">med</span></div>
+      <div class="trow tl"><span class="tsrc">In-store / kirana</span><div class="tbar"><i style="width:5%"></i><b>62</b></div><span class="trust t-lo">low</span></div>
+
+      <div class="vb">“Tried many brands, nothing suited my baby. Someone recommended Pampers premium pants — soft like cotton, no rash. I just loved these.”<span class="attr">— Mother of infant · Premium · Flipkart — the WOM→trial→loyalty path in one line</span></div>
+
+      <div class="dm"><b>Who decides →</b> Mother owns the verdict in <b>92.6%</b> of role-identified mentions. Mother-in-law shapes the <i>first</i> newborn brand then cedes repeat authority; fathers research &amp; complete the online cart but rarely override the skin-safety veto; nannies hold daytime continuity in metro nuclear homes.</div>
+
+      <div class="hdl" style="margin-top:12px">Size selection by lifestage</div>
+      <table class="szt">
+        <tr><th style="width:64px">Size</th><th>Lifestage &amp; what shapes the choice</th></tr>
+        <tr><td class="sz">NB</td><td>Newborn &lt;3m — weight-based; hospital kit dictates first size; pant-style already 57.7% even here</td></tr>
+        <tr><td class="sz">S</td><td>Infant 3–8m — highest-volume band; densest reviews; fit complaints drive first switches</td></tr>
+        <tr><td class="sz">M</td><td>Crawler 8–12m → Walker 12–18m — movement cements pant-style; thigh fit = top complaint</td></tr>
+        <tr><td class="sz">L</td><td>Middle Toddler 18–24m — loyalty consolidates or breaks; overnight leakage intensifies</td></tr>
+        <tr><td class="sz">XL+</td><td>Late Toddler 24–36m — night-only use; large-size gaps in general trade push online</td></tr>
+      </table>
+
+      <div class="callbox"><b>Journey read →</b> Trust is built or broken on <b>post-trial skin outcomes</b>, not at awareness — so the first diaper experience (hospital kit, doctor referral, peer gift) is the whole game. For Lovingle: win a credible <b>doctor + peer-review</b> beachhead at newborn, because that's the highest-trust, highest-leverage entry — and it survives the rash-reset.</div>
+
+      <div class="note">% of mode-classified brand-selection journeys · discovery volumes = mention counts · 31,600 records analysed, 2023–2026 · coverage 78% · full trigger, journey-factor &amp; per-lifestage detail in the table.</div>
+
+<div class="rpt-foot"><span>Baby Diapers — Category Report</span><span>Built by <b>Blustream Marketing Solutions</b> &nbsp;·&nbsp; Commissioned by <b>RSPL Limited</b></span><a href="index.html">← Contents</a></div>
+</div></body></html>

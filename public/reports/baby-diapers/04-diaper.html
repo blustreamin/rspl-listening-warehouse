@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Baby Diapers — Category Report · §04 Diaper Needs (F/E/S)</title>
+<style>
+:root{--ink:#0f2440;--ink2:#33475b;--muted:#6b7a8d;--line:#e3e8ef;--bg:#f6f8fb;--card:#fff;
+--brand:#1f5fbf;--brand2:#0d2a55;--accent:#f26a3d;--met:#3fae7a;--part:#f0913c;--unmet:#e2534b;--good:#2f9e6b;
+--radius:14px;--shadow:0 1px 2px rgba(16,36,64,.06),0 8px 24px rgba(16,36,64,.06);
+--f:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;}
+*{box-sizing:border-box}body{font-family:var(--f);color:var(--ink);background:var(--bg);margin:0;line-height:1.5}
+.wrap{max-width:1240px;margin:0 auto;padding:30px 22px 80px}
+.kicker{font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--accent);font-weight:700}
+h1{font-size:27px;margin:6px 0 4px;letter-spacing:-.02em}.lede{color:var(--ink2);max-width:900px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:20px;align-items:start;margin-top:18px}
+@media(max-width:1000px){.grid2{grid-template-columns:1fr}}
+.cmp{border:1px solid var(--line);border-radius:var(--radius);overflow:hidden;background:var(--card)}
+.cmp .hd{display:flex;align-items:center;gap:8px;padding:10px 14px;font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase}
+.cmp.before .hd{background:#fbeceb;color:#b23b32}.cmp.after .hd{background:#e9f6ef;color:#1f7a52}
+.cmp .bd{padding:18px}
+.densewall{font-size:12px;color:#556;line-height:1.7}.densewall p{margin:0 0 9px}.densewall b{color:#333}
+.float{display:inline-block;background:#fff3cd;color:#7a5b00;border-radius:4px;padding:0 4px;font-weight:700}
+.subtitle{font-size:16px;font-weight:700;color:var(--brand2);margin:0 0 4px}
+.framing{font-size:13px;color:var(--ink2);margin:0 0 14px;max-width:760px}
+.dl{float:right;display:inline-flex;align-items:center;gap:6px;font-size:11.5px;font-weight:700;color:var(--brand);border:1px solid #cfe0f6;background:#f2f8ff;border-radius:8px;padding:5px 10px;cursor:pointer}
+.slot{border:1.5px dashed #c3ccd8;border-radius:12px;padding:14px;color:#8494a6;font-size:12px;display:flex;align-items:center;gap:10px;background:repeating-linear-gradient(45deg,#fbfcfe,#fbfcfe 10px,#f4f7fb 10px,#f4f7fb 20px);margin-bottom:14px}
+.ico{width:24px;height:24px;border-radius:7px;background:#e8f0fb;display:inline-flex;align-items:center;justify-content:center;color:var(--brand);font-size:13px;flex-shrink:0}
+.band{margin-bottom:12px}
+.bandhd{display:flex;align-items:center;gap:8px;font-size:11px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--brand2);margin-bottom:5px}
+.bandhd .bico{width:20px;height:20px;border-radius:6px;background:#e8f0fb;display:inline-flex;align-items:center;justify-content:center;font-size:11px}
+.nrow{display:grid;grid-template-columns:1fr 84px 108px;gap:10px;align-items:center;padding:5px 0;border-top:1px solid var(--line)}
+.nrow:first-of-type{border-top:0}
+.ntitle{font-size:12px;color:var(--ink);font-weight:600}
+.nbar{position:relative;height:16px;background:#eef2f7;border-radius:5px;overflow:hidden}
+.nbar i{position:absolute;left:0;top:0;bottom:0;background:linear-gradient(90deg,#1f5fbf,#5a8fd6);border-radius:5px}
+.nbar b{position:absolute;right:6px;line-height:16px;font-size:9.5px;font-weight:800;color:var(--ink)}
+.status{font-size:9.5px;font-weight:800;letter-spacing:.03em;text-transform:uppercase;padding:3px 8px;border-radius:20px;text-align:center;white-space:nowrap}
+.s-met{background:#e4f5ec;color:#1f7a52}.s-part{background:#fdeede;color:#a5581a}.s-unmet{background:#fbe6e4;color:#b23b32}
+.vb{background:#eef4fc;border-left:3px solid var(--brand);border-radius:0 10px 10px 0;padding:10px 13px;font-size:12.5px;color:var(--ink2);font-style:italic;margin-top:8px}
+.vb .attr{display:block;margin-top:6px;font-style:normal;font-size:11px;color:var(--muted);font-weight:600}
+.ws{border:1.5px solid #f2c9bd;background:linear-gradient(180deg,#fff8f5,#fff);border-radius:12px;padding:14px 16px;margin-top:14px}
+.wshd{font-size:12px;font-weight:800;letter-spacing:.04em;text-transform:uppercase;color:var(--accent);margin-bottom:8px;display:flex;align-items:center;gap:7px}
+.wsrow{display:grid;grid-template-columns:170px 1fr 54px;gap:10px;padding:6px 0;border-top:1px solid #f6ddd3;font-size:11.5px;align-items:start}
+.wsrow:first-of-type{border-top:0}
+.wsrow .wk{font-weight:800;color:var(--ink)}
+.wsrow .wb{font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.03em;color:#fff;border-radius:4px;padding:1px 5px;margin-right:5px}
+.b-f{background:#1f5fbf}.b-e{background:#8a5cc0}.b-s{background:#3f9e7a}
+.wsrow .wv{color:var(--ink2)}.wsrow .wn{font-weight:800;color:var(--accent);text-align:right;font-size:11px}
+.note{font-size:11px;color:var(--muted);background:#f3f6fa;border-radius:8px;padding:8px 11px;margin-top:12px}
+.callbox{border:1px solid var(--line);border-left:4px solid var(--good);border-radius:0 10px 10px 0;padding:12px 15px;background:#fff;margin-top:14px}
+.callbox b{color:var(--good)}
+.leg{display:flex;gap:14px;flex-wrap:wrap;font-size:10.5px;color:var(--muted);margin:8px 0 2px}
+.leg span{display:flex;align-items:center;gap:5px}.leg i{width:20px;height:8px;border-radius:3px;display:inline-block}
+.analysis{background:#0d2a55;color:#dfeaf7;border-radius:var(--radius);padding:18px 20px;margin-top:16px;font-size:13px;line-height:1.7}
+.analysis h3{margin:0 0 8px;color:#7fb3f2;font-size:12px;letter-spacing:.08em;text-transform:uppercase}
+.analysis ul{margin:6px 0 0;padding-left:18px}.analysis li{margin:4px 0}
+.x{color:#ff9b8f;font-weight:700}.ok{color:#8fe0b6;font-weight:700}
+.seg{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-top:10px}
+.segc{background:#f6f8fb;border:1px solid var(--line);border-radius:9px;padding:8px 10px;font-size:11px}
+.segc .st{font-size:9.5px;font-weight:800;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);margin-bottom:2px}
+.segc .sv{color:var(--ink2)}
+.rpt-top{display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--line);padding-bottom:10px;margin-bottom:8px;font-size:11px}.rpt-home{color:var(--brand2);font-weight:800;text-decoration:none;letter-spacing:-.01em}.rpt-sec{color:var(--muted);font-weight:700}.rpt-foot{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;border-top:1px solid var(--line);margin-top:26px;padding-top:14px;font-size:11px;color:var(--muted)}.rpt-foot b{color:var(--ink2)}.rpt-foot a{color:var(--brand);text-decoration:none;font-weight:700}</style></head><body><div class="wrap">
+<div class="rpt-top"><a href="index.html" class="rpt-home">Baby Diapers — Category Report</a><span class="rpt-sec">Section 04 / 21</span></div>
+
+<div class="kicker">Baby Diapers — Category Report &nbsp;·&nbsp; Section 04 of 21</div>
+<h1>Needs from Baby Diapers: Functional · Emotional · Social</h1>
+<p class="lede">Diaper needs read through a functional, emotional, and social lens, with a sharp commercial whitespace: the mid-premium ₹399–₹699 corridor where <b>no brand owns rash-free skin</b>.</p>
+
+      <div class="subtitle">Overnight dryness and rash-free skin dominate every need hierarchy.</div>
+      <p class="framing">Diaper needs stack tightly: overnight absorbency enables parental sleep, skin safety defines brand worth, fit earns daily trust — and rash is an <b>emotional guilt event</b>, not just a product failure. Bar = mention volume; chip = how well the market meets it.</p>
+
+      <div class="band"><div class="bandhd"><span class="bico">⚙️</span>Functional</div>
+        <div class="nrow"><span class="ntitle">Topsheet softness (table-stakes)</span><div class="nbar"><i style="width:100%"></i><b>830</b></div><span class="status s-met">met</span></div>
+        <div class="nrow"><span class="ntitle">Overnight absorbency</span><div class="nbar"><i style="width:87%"></i><b>720</b></div><span class="status s-part">partially met</span></div>
+        <div class="nrow"><span class="ntitle">Rash prevention</span><div class="nbar"><i style="width:75%"></i><b>620</b></div><span class="status s-part">partially met</span></div>
+        <div class="nrow"><span class="ntitle">Fit &amp; leak-guard</span><div class="nbar"><i style="width:58%"></i><b>480</b></div><span class="status s-part">partially met</span></div>
+        <div class="nrow"><span class="ntitle">Wetness indicator</span><div class="nbar"><i style="width:9%"></i><b>72</b></div><span class="status s-part">partially met</span></div>
+      </div>
+
+      <div class="band"><div class="bandhd"><span class="bico">💗</span>Emotional</div>
+        <div class="nrow"><span class="ntitle">Unbroken sleep = permission to rest</span><div class="nbar"><i style="width:65%"></i><b>540</b></div><span class="status s-part">partially met</span></div>
+        <div class="nrow"><span class="ntitle">Rash guilt = parental failure</span><div class="nbar"><i style="width:49%"></i><b>410</b></div><span class="status s-unmet">unmet</span></div>
+        <div class="nrow"><span class="ntitle">Choosing 'the best' = good mother</span><div class="nbar"><i style="width:37%"></i><b>310</b></div><span class="status s-part">partially met</span></div>
+        <div class="nrow"><span class="ntitle">Doctor validation resolves anxiety</span><div class="nbar"><i style="width:31%"></i><b>260</b></div><span class="status s-part">partially met</span></div>
+      </div>
+
+      <div class="band"><div class="bandhd"><span class="bico">👥</span>Social</div>
+        <div class="nrow"><span class="ntitle">Mom-group reviews = primary trust</span><div class="nbar"><i style="width:46%"></i><b>380</b></div><span class="status s-met">met</span></div>
+        <div class="nrow"><span class="ntitle">Brand as social signal</span><div class="nbar"><i style="width:25%"></i><b>210</b></div><span class="status s-part">partially met</span></div>
+        <div class="nrow"><span class="ntitle">Influencer / doctor currency</span><div class="nbar"><i style="width:20%"></i><b>165</b></div><span class="status s-part">partially met</span></div>
+      </div>
+
+      <div class="leg"><span><i style="background:#3fae7a"></i>met</span><span><i style="background:#f0913c"></i>partially met</span><span><i style="background:#e2534b"></i>unmet</span><span>bar = mention volume</span></div>
+
+      <div class="vb">“Rash guilt — very very worst product, full skin rash for my baby, not recommended.” &nbsp;vs&nbsp; “Keeps baby dry all night without leakage — highly recommended for peaceful sleep.”<span class="attr">— the emotional swing: failure = indictment, success = relief · Flipkart · Mass &amp; Premium</span></div>
+
+      <div class="ws">
+        <div class="wshd">◆ Whitespace — where Lovingle can win</div>
+        <div class="wsrow"><span class="wk"><span class="wb b-f">Func</span>Rash-free skin, mid-premium corridor</span><span class="wv"><b>The big one:</b> rash is #1 avoidance (45.7%) yet no ₹399–₹699 brand owns clinically-credible rash-prevention</span><span class="wn">520</span></div>
+        <div class="wsrow"><span class="wk"><span class="wb b-e">Emo</span>Post-rash guilt has no resolution</span><span class="wv">No mid-premium brand offers empathetic "if rash happens, here's why + what to do" reassurance</span><span class="wn">280</span></div>
+        <div class="wsrow"><span class="wk"><span class="wb b-s">Soc</span>Mid-premium lacks social proof</span><span class="wv">Thin review pools + no HCP endorsement vs premium's deep validation — inertia barrier</span><span class="wn">155</span></div>
+        <div class="wsrow"><span class="wk"><span class="wb b-f">Func</span>Breathability below premium</span><span class="wv">Mass/mid perceived plastic-heavy; summer heat-rash frustration unresolved</span><span class="wn">58</span></div>
+        <div class="wsrow"><span class="wk"><span class="wb b-f">Func</span>Wetness indicator absent mass/mid</span><span class="wv">Newborn/nuclear-household moms rely on it for change-timing confidence</span><span class="wn">62</span></div>
+      </div>
+
+      <div class="seg">
+        <div class="segc"><div class="st">Mass</div><div class="sv">Price-first; leakage accepted as trade-off; overnight need <b>least served</b></div></div>
+        <div class="segc"><div class="st">Mid-premium</div><div class="sv">Wants premium overnight at lower cost; <b>most active switcher</b> on rash/leak</div></div>
+        <div class="segc"><div class="st">Premium</div><div class="sv">Skin-safety = baseline; competes on prestige, doctor, softness</div></div>
+      </div>
+
+      <div class="callbox"><b>Needs read →</b> Softness is the only fully-met need — table stakes Lovingle already wins (4.42, highest). The prize is the <b>rash-free mid-premium corridor</b>: functional proof + emotional guilt-resolution + social validation, bundled. Own that trio and you convert trial to loyalty.</div>
+
+      <div class="note">Bar = need mention share of diaper-need mentions (31,600 analysed, 2023–2026) · coverage 82% · status from met/partial/unmet coding · full how-met-today + segment detail in the table.</div>
+
+<div class="rpt-foot"><span>Baby Diapers — Category Report</span><span>Built by <b>Blustream Marketing Solutions</b> &nbsp;·&nbsp; Commissioned by <b>RSPL Limited</b></span><a href="index.html">← Contents</a></div>
+</div></body></html>

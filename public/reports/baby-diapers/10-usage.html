@@ -1,0 +1,153 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Baby Diapers — Category Report · §10 Usage Occasions</title>
+<style>
+:root{--ink:#0f2440;--ink2:#33475b;--muted:#6b7a8d;--line:#e3e8ef;--bg:#f6f8fb;--card:#fff;
+--brand:#1f5fbf;--brand2:#0d2a55;--accent:#f26a3d;--good:#2f9e6b;
+--radius:14px;--shadow:0 1px 2px rgba(16,36,64,.06),0 8px 24px rgba(16,36,64,.06);
+--f:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;}
+*{box-sizing:border-box}body{font-family:var(--f);color:var(--ink);background:var(--bg);margin:0;line-height:1.5}
+.wrap{max-width:1240px;margin:0 auto;padding:30px 22px 80px}
+.kicker{font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--accent);font-weight:700}
+h1{font-size:27px;margin:6px 0 4px;letter-spacing:-.02em}.lede{color:var(--ink2);max-width:920px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:20px;align-items:start;margin-top:18px}
+@media(max-width:1000px){.grid2{grid-template-columns:1fr}}
+.cmp{border:1px solid var(--line);border-radius:var(--radius);overflow:hidden;background:var(--card)}
+.cmp .hd{display:flex;align-items:center;gap:8px;padding:10px 14px;font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase}
+.cmp.before .hd{background:#fbeceb;color:#b23b32}.cmp.after .hd{background:#e9f6ef;color:#1f7a52}
+.cmp .bd{padding:18px}
+.densewall{font-size:12px;color:#556;line-height:1.7}.densewall p{margin:0 0 9px}.densewall b{color:#333}
+.float{display:inline-block;background:#fff3cd;color:#7a5b00;border-radius:4px;padding:0 4px;font-weight:700}
+.subtitle{font-size:16px;font-weight:700;color:var(--brand2);margin:0 0 4px}
+.framing{font-size:13px;color:var(--ink2);margin:0 0 14px;max-width:760px}
+.dl{float:right;display:inline-flex;align-items:center;gap:6px;font-size:11.5px;font-weight:700;color:var(--brand);border:1px solid #cfe0f6;background:#f2f8ff;border-radius:8px;padding:5px 10px;cursor:pointer}
+.slot{border:1.5px dashed #c3ccd8;border-radius:12px;padding:14px;color:#8494a6;font-size:12px;display:flex;align-items:center;gap:10px;background:repeating-linear-gradient(45deg,#fbfcfe,#fbfcfe 10px,#f4f7fb 10px,#f4f7fb 20px);margin-bottom:14px}
+.ico{width:24px;height:24px;border-radius:7px;background:#e8f0fb;display:inline-flex;align-items:center;justify-content:center;color:var(--brand);font-size:13px;flex-shrink:0}
+.hdl{font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin:6px 0 4px}
+/* occasion rows */
+.orow{display:grid;grid-template-columns:130px 1fr 58px;gap:10px;align-items:center;padding:6px 0;border-top:1px solid var(--line)}
+.orow:first-of-type{border-top:0}
+.on{font-weight:800;font-size:12px;display:flex;align-items:center;gap:6px}.on .oi{font-size:14px}
+.obar{position:relative;height:20px;background:#eef2f7;border-radius:6px;overflow:hidden}
+.obar i{position:absolute;left:0;top:0;bottom:0;background:linear-gradient(90deg,var(--brand),#5a8fd6);border-radius:6px}
+.obar b{position:absolute;right:7px;line-height:20px;font-size:10px;font-weight:800;color:#fff}
+.osh{font-size:10px;color:var(--muted);text-align:right}
+/* format transition */
+.ft{display:grid;grid-template-columns:1fr auto 1fr;gap:10px;align-items:center;margin-top:4px}
+.ftbox{background:#f6f8fb;border:1px solid var(--line);border-radius:10px;padding:9px 11px;text-align:center}
+.ftbox .fn{font-weight:800;font-size:12px;color:var(--brand2)}.ftbox .fp{font-size:15px;font-weight:800;color:var(--brand);margin-top:2px}
+.ftbox .fs{font-size:9.5px;color:var(--muted);margin-top:1px}
+.ftarr{text-align:center;font-size:11px;color:var(--accent);font-weight:700}
+/* seasonality sparkline */
+.spark{display:flex;align-items:flex-end;gap:3px;height:56px;padding:6px 2px 0;border-bottom:1px solid var(--line)}
+.spark i{flex:1;background:linear-gradient(180deg,#5a8fd6,#1f5fbf);border-radius:2px 2px 0 0;min-height:4px}
+.sparkx{display:flex;gap:3px;font-size:8px;color:var(--muted);margin-top:2px}.sparkx span{flex:1;text-align:center}
+.seasnote{font-size:10.5px;color:#a5581a;background:#fdf4e8;border:1px solid #f2ddb8;border-radius:8px;padding:7px 10px;margin-top:8px}
+.seasnote b{color:#8a4a12}
+.seg{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-top:12px}
+.segc{background:#f6f8fb;border:1px solid var(--line);border-radius:9px;padding:8px 10px;font-size:11px}
+.segc .st{font-size:9.5px;font-weight:800;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);margin-bottom:2px}.segc .sv{color:var(--ink2)}.segc .sv b{color:var(--brand)}
+.vb{background:#eef4fc;border-left:3px solid var(--brand);border-radius:0 10px 10px 0;padding:9px 12px;font-size:12px;color:var(--ink2);font-style:italic;margin-top:8px}
+.vb .attr{display:block;margin-top:5px;font-style:normal;font-size:10.5px;color:var(--muted);font-weight:600}
+.callbox{border:1px solid var(--line);border-left:4px solid var(--good);border-radius:0 10px 10px 0;padding:12px 15px;background:#fff;margin-top:14px}
+.callbox b{color:var(--good)}
+.note{font-size:11px;color:var(--muted);background:#f3f6fa;border-radius:8px;padding:8px 11px;margin-top:12px}
+.analysis{background:#0d2a55;color:#dfeaf7;border-radius:var(--radius);padding:18px 20px;margin-top:16px;font-size:13px;line-height:1.7}
+.analysis h3{margin:0 0 8px;color:#7fb3f2;font-size:12px;letter-spacing:.08em;text-transform:uppercase}
+.analysis ul{margin:6px 0 0;padding-left:18px}.analysis li{margin:4px 0}
+.x{color:#ff9b8f;font-weight:700}.ok{color:#8fe0b6;font-weight:700}.hon{color:#c9a6f0;font-weight:700}
+.av{display:grid;grid-template-columns:1fr 46px;gap:8px;align-items:center;font-size:11.5px;padding:3px 0}
+.avb{position:relative;height:12px;background:#eef2f7;border-radius:4px;overflow:hidden}.avb i{position:absolute;left:0;top:0;bottom:0;background:linear-gradient(90deg,#e2534b,#ef8f7f);border-radius:4px}.avb b{position:absolute;right:4px;line-height:12px;font-size:8.5px;font-weight:800;color:#fff}
+/* night-stakes callout */
+.stakes{border:1px solid #f2c9bd;border-left:4px solid var(--accent);background:linear-gradient(180deg,#fff8f5,#fff);border-radius:0 10px 10px 0;padding:10px 13px;margin-top:10px;font-size:11.5px;color:var(--ink2)}
+.stakes b{color:var(--accent)}
+/* occasion x format matrix */
+.oxf{width:100%;border-collapse:separate;border-spacing:0;font-size:11px;margin-top:4px}
+.oxf th{background:var(--brand2);color:#fff;padding:5px 8px;font-size:9.5px;letter-spacing:.02em;text-transform:uppercase;text-align:center}
+.oxf th:first-child{text-align:left;border-radius:7px 0 0 0}.oxf th:last-child{border-radius:0 7px 0 0}
+.oxf th.w{text-align:left}
+.oxf td{padding:5px 8px;border-bottom:1px solid var(--line);text-align:center}
+.oxf td.ol{text-align:left;font-weight:700;color:var(--ink);white-space:nowrap}
+.oxf td.w{text-align:left;color:var(--ink2);font-size:10.5px}
+.oxf td.hi{color:#1f7a52;font-weight:800;letter-spacing:1px}
+.oxf td.md{color:#a5581a;letter-spacing:1px}
+.oxf td.lo{color:#c3ccd8;letter-spacing:1px}
+/* region strip */
+.rstrip{display:grid;grid-template-columns:repeat(5,1fr);gap:6px}
+.rc{background:#f6f8fb;border:1px solid var(--line);border-radius:9px;padding:7px 8px}
+.rc .rn{font-size:10px;font-weight:800;color:var(--brand2);text-transform:uppercase;letter-spacing:.03em;margin-bottom:2px}
+.rc .rv{font-size:10px;color:var(--ink2);line-height:1.35}
+@media(max-width:520px){.rstrip{grid-template-columns:1fr 1fr}}
+.rpt-top{display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--line);padding-bottom:10px;margin-bottom:8px;font-size:11px}.rpt-home{color:var(--brand2);font-weight:800;text-decoration:none;letter-spacing:-.01em}.rpt-sec{color:var(--muted);font-weight:700}.rpt-foot{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;border-top:1px solid var(--line);margin-top:26px;padding-top:14px;font-size:11px;color:var(--muted)}.rpt-foot b{color:var(--ink2)}.rpt-foot a{color:var(--brand);text-decoration:none;font-weight:700}</style></head><body><div class="wrap">
+<div class="rpt-top"><a href="index.html" class="rpt-home">Baby Diapers — Category Report</a><span class="rpt-sec">Section 10 / 21</span></div>
+
+<div class="kicker">Baby Diapers — Category Report &nbsp;·&nbsp; Section 10 of 21</div>
+<h1>Usage Occasions &amp; Patterns</h1>
+<p class="lede">Occasions, format patterns, seasonality, and avoidance — with segment &amp; lifestage splits. The <b>seasonality graph is labelled honestly</b>: it's shown as <b>conversation volume, not sales</b> — which resolves the "looks opposite to retail" contradiction, because the two measure different things. Region lens retained.</p>
+
+      <div class="subtitle">Night is the dominant occasion; daytime cloth use remains structurally persistent.</div>
+      <p class="framing">Overnight anchors the whole category — it's why disposables get adopted at all. Daytime stays cloth for cost and skin-safety, especially in mass and joint households. Format is <b>developmental</b>: tape at birth → pant by crawler, across every segment.</p>
+
+      <div class="hdl">Occasions — by share of occasion mentions</div>
+      <div class="orow"><span class="on"><span class="oi">🌙</span>Night &amp; sleep</span><div class="obar"><i style="width:100%"></i><b>780 · ~60%</b></div><span class="osh">89.7% premium trigger</span></div>
+      <div class="orow"><span class="on"><span class="oi">🏠</span>Daytime home</span><div class="obar"><i style="width:27%"></i><b>210</b></div><span class="osh">cloth stronghold</span></div>
+      <div class="orow"><span class="on"><span class="oi">🧳</span>Travel</span><div class="obar"><i style="width:18%"></i><b>138</b></div><span class="osh">⭐ trial gateway</span></div>
+      <div class="orow"><span class="on"><span class="oi">🎉</span>Festive / outings</span><div class="obar"><i style="width:7%"></i><b>52</b></div><span class="osh">situational</span></div>
+      <div class="orow"><span class="on"><span class="oi">🏫</span>Daycare</span><div class="obar"><i style="width:5%"></i><b>42</b></div><span class="osh">rising, urban</span></div>
+
+      <div class="stakes">🌙 <b>Why night is everything:</b> a 2am leak isn't an inconvenience — parents describe it as a crisis. Overnight is where the brand is <b>won or abandoned in a single failure</b>, which is what makes it the category's highest-stakes emotional moment, not merely its biggest occasion.</div>
+
+      <div class="hdl" style="margin-top:14px">Which format wins each occasion</div>
+      <table class="oxf">
+        <tr><th>Occasion</th><th>Pant</th><th>Cloth</th><th>Tape</th><th class="w">Winner</th></tr>
+        <tr><td class="ol">🌙 Night</td><td class="hi">●●●</td><td class="lo">○</td><td class="md">●</td><td class="w">Pant — leak-free hold</td></tr>
+        <tr><td class="ol">🏠 Day-home</td><td class="md">●</td><td class="hi">●●●</td><td class="lo">○</td><td class="w">Cloth — cost + skin</td></tr>
+        <tr><td class="ol">🧳 Travel</td><td class="hi">●●●</td><td class="lo">○</td><td class="lo">○</td><td class="w">Pant — no lie-down change</td></tr>
+        <tr><td class="ol">🏫 Daycare</td><td class="hi">●●●</td><td class="lo">○</td><td class="lo">○</td><td class="w">Pant — caregiver speed</td></tr>
+        <tr><td class="ol">👶 Newborn</td><td class="md">●●</td><td class="md">●●</td><td class="hi">●●●</td><td class="w">Tape — precise fit</td></tr>
+      </table>
+      <div style="font-size:10px;color:var(--muted);margin-top:3px">● = dominant · fill = relative use within occasion</div>
+
+      <div class="hdl" style="margin-top:14px">Format transition — the developmental switch</div>
+      <div class="ft">
+        <div class="ftbox"><div class="fn">Tape</div><div class="fp">6.4%</div><div class="fs">newborn · premium niche</div></div>
+        <div class="ftarr">→ at Crawler 8–12m →<br><span style="color:var(--muted);font-weight:600">mobility forces it</span></div>
+        <div class="ftbox"><div class="fn">Pant</div><div class="fp">71.3%</div><div class="fs">88.6% of mid-premium</div></div>
+      </div>
+      <div style="font-size:10.5px;color:var(--muted);margin-top:4px">Cloth/langot holds <b>18.8%</b> (daytime, mass, joint families) · reusables 3.5% (urban premium, SuperBottoms)</div>
+
+      <div class="hdl" style="margin-top:14px">Seasonality — conversation volume by month</div>
+      <div class="spark">
+        <i style="height:52%"></i><i style="height:58%"></i><i style="height:57%"></i><i style="height:55%"></i><i style="height:47%"></i><i style="height:51%"></i><i style="height:66%"></i><i style="height:63%"></i><i style="height:65%"></i><i style="height:79%"></i><i style="height:70%"></i><i style="height:73%"></i>
+      </div>
+      <div class="sparkx"><span>J</span><span>F</span><span>M</span><span>A</span><span>M</span><span>J</span><span>J</span><span>A</span><span>S</span><span>O</span><span>N</span><span>D</span></div>
+      <div class="seasnote">⚠ <b>This is conversation volume, not sales.</b> The Oct–Jan peak reflects festival gifting + winter leak-anxiety <i>discussion</i> — which is why it reads opposite to retail sales curves (they measure different things). Presented as a talk-intensity signal, not a demand forecast. <b>Region:</b> Maharashtra drives Oct &amp; Jun spikes; Tamil Nadu a late-monsoon Jun–Jul surge.</div>
+
+      <div class="seg">
+        <div class="segc"><div class="st">Mass</div><div class="sv"><b>Night-only</b> disposable; cloth by day; travel = rare day use</div></div>
+        <div class="segc"><div class="st">Mid-premium</div><div class="sv">Night + travel; selective day cloth; <b>88.6% pant</b></div></div>
+        <div class="segc"><div class="st">Premium</div><div class="sv"><b>All occasions</b> incl. daytime — skin-safety reassurance</div></div>
+      </div>
+
+      <div class="hdl" style="margin-top:12px">Region lens — occasion texture by geography</div>
+      <div class="rstrip">
+        <div class="rc"><div class="rn">North</div><div class="rv">Winter leak-anxiety spike (Nov–Jan); stronger tape at newborn</div></div>
+        <div class="rc"><div class="rn">West</div><div class="rv">49% of voice; monsoon cloth-drying → disposable switch (Jun–Jul)</div></div>
+        <div class="rc"><div class="rn">South</div><div class="rv">Year-round breathability; summer heat-rash intensity peak</div></div>
+        <div class="rc"><div class="rn">East</div><div class="rv">Thin; mass cloth-primary, daytime disposable avoidance</div></div>
+        <div class="rc"><div class="rn">Central</div><div class="rv">Thinnest; disposables ≈ travel &amp; special occasions only</div></div>
+      </div>
+
+      <div class="hdl" style="margin-top:12px">Avoidance — when disposables get set aside</div>
+      <div class="av"><span>Rash episode → cloth / nappy-free</span><div class="avb"><i style="width:100%"></i><b>520</b></div></div>
+      <div class="av"><span>Intentional nappy-free air time (premium)</span><div class="avb"><i style="width:32%"></i><b>168</b></div></div>
+      <div class="av"><span>Cost limits all-day use (mass)</span><div class="avb"><i style="width:16%"></i><b>85</b></div></div>
+
+      <div class="vb">“Daytime only cotton cloth, and at night this diaper is a miracle at reasonable price — after delivery it helps like a mother.”<span class="attr">— Postpartum mother · Newborn &lt;3m · Mid-premium · Flipkart — the night/day split in one voice</span></div>
+
+      <div class="callbox"><b>Occasion read →</b> Night is the beachhead — win overnight and you earn the household. The real growth vector is <b>converting the daytime-cloth occasion</b>: a diaper credibly skin-safe enough for all-day wear (breathable, rash-proof) unlocks the 18.8% cloth still holds — exactly Lovingle's softness+skin strength.</div>
+
+      <div class="note">% of occasion-classified (1,306) / format-classified (1,797) records · 31,600 analysed, 2023–2026 · coverage 78% · daycare &amp; festive directional (&lt;15 records) · full region &amp; lifestage detail in the table.</div>
+
+<div class="rpt-foot"><span>Baby Diapers — Category Report</span><span>Built by <b>Blustream Marketing Solutions</b> &nbsp;·&nbsp; Commissioned by <b>RSPL Limited</b></span><a href="index.html">← Contents</a></div>
+</div></body></html>

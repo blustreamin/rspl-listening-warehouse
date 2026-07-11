@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Baby Diapers — Category Report · §16 Channel Dynamics</title>
+<style>
+:root{--ink:#0f2440;--ink2:#33475b;--muted:#6b7a8d;--line:#e3e8ef;--bg:#f6f8fb;--card:#fff;
+--brand:#1f5fbf;--brand2:#0d2a55;--accent:#f26a3d;--good:#2f9e6b;--plan:#1f5fbf;--urg:#f26a3d;
+--radius:14px;--shadow:0 1px 2px rgba(16,36,64,.06),0 8px 24px rgba(16,36,64,.06);
+--f:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;}
+*{box-sizing:border-box}body{font-family:var(--f);color:var(--ink);background:var(--bg);margin:0;line-height:1.5}
+.wrap{max-width:1240px;margin:0 auto;padding:30px 22px 80px}
+.kicker{font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--accent);font-weight:700}
+h1{font-size:27px;margin:6px 0 4px;letter-spacing:-.02em}.lede{color:var(--ink2);max-width:920px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:20px;align-items:start;margin-top:18px}
+@media(max-width:1000px){.grid2{grid-template-columns:1fr}}
+.cmp{border:1px solid var(--line);border-radius:var(--radius);overflow:hidden;background:var(--card)}
+.cmp .hd{display:flex;align-items:center;gap:8px;padding:10px 14px;font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase}
+.cmp.before .hd{background:#fbeceb;color:#b23b32}.cmp.after .hd{background:#e9f6ef;color:#1f7a52}
+.cmp .bd{padding:18px}
+.densewall{font-size:12px;color:#556;line-height:1.7}.densewall p{margin:0 0 9px}.densewall b{color:#333}
+.float{display:inline-block;background:#fff3cd;color:#7a5b00;border-radius:4px;padding:0 4px;font-weight:700}
+.subtitle{font-size:16px;font-weight:700;color:var(--brand2);margin:0 0 4px}
+.framing{font-size:13px;color:var(--ink2);margin:0 0 14px;max-width:760px}
+.dl{float:right;display:inline-flex;align-items:center;gap:6px;font-size:11.5px;font-weight:700;color:var(--brand);border:1px solid #cfe0f6;background:#f2f8ff;border-radius:8px;padding:5px 10px;cursor:pointer}
+.slot{border:1.5px dashed #c3ccd8;border-radius:12px;padding:14px;color:#8494a6;font-size:12px;display:flex;align-items:center;gap:10px;background:repeating-linear-gradient(45deg,#fbfcfe,#fbfcfe 10px,#f4f7fb 10px,#f4f7fb 20px);margin-bottom:14px}
+.ico{width:24px;height:24px;border-radius:7px;background:#e8f0fb;display:inline-flex;align-items:center;justify-content:center;color:var(--brand);font-size:13px;flex-shrink:0}
+
+/* channel rank rows */
+.hdl{font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin:6px 0 4px}
+.crow{display:grid;grid-template-columns:158px 1fr 92px;gap:10px;align-items:center;padding:7px 0;border-top:1px solid var(--line)}
+.crow:first-of-type{border-top:0}
+.cn{font-weight:800;font-size:12px;display:flex;align-items:center;gap:6px}
+.cn .rk{width:18px;height:18px;border-radius:50%;background:var(--brand2);color:#fff;font-size:10px;font-weight:800;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0}
+.cn small{display:block;font-weight:600;color:var(--muted);font-size:9.5px;margin-top:1px}
+.cbar{position:relative;height:22px;background:#eef2f7;border-radius:6px;overflow:hidden}
+.cbar i{position:absolute;left:0;top:0;bottom:0;background:linear-gradient(90deg,var(--brand),#5a8fd6);border-radius:6px}
+.cbar b{position:absolute;line-height:22px;font-size:10.5px;font-weight:800;color:var(--ink)}
+.cbar b.inb{right:7px;color:#fff}.cbar b.outb{left:calc(var(--w) + 6px)}
+.updot{display:inline-flex;align-items:center;gap:4px;font-size:9.5px;font-weight:800;text-transform:uppercase;letter-spacing:.02em;padding:3px 8px;border-radius:20px;white-space:nowrap}
+.u-plan{background:#e7effb;color:#1f5fbf}.u-urg{background:#fdece4;color:#c9522a}.u-mix{background:#f0ecf9;color:#6c3fb0}
+
+.vb{background:#eef4fc;border-left:3px solid var(--brand);border-radius:0 10px 10px 0;padding:9px 12px;font-size:12px;color:var(--ink2);font-style:italic;margin-top:8px}
+.vb .attr{display:block;margin-top:5px;font-style:normal;font-size:10.5px;color:var(--muted);font-weight:600}
+
+/* choice drivers mini-bars */
+.drow{display:grid;grid-template-columns:1fr 70px;gap:10px;align-items:center;padding:4px 0;font-size:11.5px}
+.dbar{position:relative;height:13px;background:#eef2f7;border-radius:4px;overflow:hidden}
+.dbar i{position:absolute;left:0;top:0;bottom:0;background:linear-gradient(90deg,#3fae7a,#7fcaa3);border-radius:4px}
+.dbar b{position:absolute;right:5px;line-height:13px;font-size:9px;font-weight:800;color:var(--ink)}
+
+.seg{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-top:12px}
+.segc{background:#f6f8fb;border:1px solid var(--line);border-radius:9px;padding:8px 10px;font-size:11px}
+.segc .st{font-size:9.5px;font-weight:800;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);margin-bottom:2px}
+.segc .sv{color:var(--ink2)}.segc .sv b{color:var(--brand)}
+
+/* insufficient-signal honesty box */
+.insuff{border:1.5px dashed #cbb9de;background:#faf7fd;border-radius:12px;padding:12px 15px;margin-top:14px}
+.insuff .ih{font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.04em;color:#6c3fb0;margin-bottom:6px;display:flex;align-items:center;gap:7px}
+.insuff ul{margin:0;padding-left:16px;font-size:11.5px;color:var(--ink2)}
+.insuff li{margin:3px 0}
+.callbox{border:1px solid var(--line);border-left:4px solid var(--good);border-radius:0 10px 10px 0;padding:12px 15px;background:#fff;margin-top:14px}
+.callbox b{color:var(--good)}
+.note{font-size:11px;color:var(--muted);background:#f3f6fa;border-radius:8px;padding:8px 11px;margin-top:12px}
+.leg{display:flex;gap:14px;flex-wrap:wrap;font-size:10.5px;color:var(--muted);margin:8px 0 2px}
+.leg span{display:flex;align-items:center;gap:5px}.leg i{width:16px;height:9px;border-radius:3px;display:inline-block}
+.analysis{background:#0d2a55;color:#dfeaf7;border-radius:var(--radius);padding:18px 20px;margin-top:16px;font-size:13px;line-height:1.7}
+.analysis h3{margin:0 0 8px;color:#7fb3f2;font-size:12px;letter-spacing:.08em;text-transform:uppercase}
+.analysis ul{margin:6px 0 0;padding-left:18px}.analysis li{margin:4px 0}
+.x{color:#ff9b8f;font-weight:700}.ok{color:#8fe0b6;font-weight:700}.hon{color:#c9a6f0;font-weight:700}
+.rpt-top{display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--line);padding-bottom:10px;margin-bottom:8px;font-size:11px}.rpt-home{color:var(--brand2);font-weight:800;text-decoration:none;letter-spacing:-.01em}.rpt-sec{color:var(--muted);font-weight:700}.rpt-foot{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;border-top:1px solid var(--line);margin-top:26px;padding-top:14px;font-size:11px;color:var(--muted)}.rpt-foot b{color:var(--ink2)}.rpt-foot a{color:var(--brand);text-decoration:none;font-weight:700}</style></head><body><div class="wrap">
+<div class="rpt-top"><a href="index.html" class="rpt-home">Baby Diapers — Category Report</a><span class="rpt-sec">Section 16 / 21</span></div>
+
+<div class="kicker">Baby Diapers — Category Report &nbsp;·&nbsp; Section 16 of 21</div>
+<h1>Purchase Channels &amp; Choice Drivers</h1>
+<p class="lede">This section maps channel rank/%, urgency-vs-planned per channel, and channel × SKU / frequency splits. The strong story — <b>online is a 97% near-monopoly</b> — becomes genuinely visual with per-channel urgency tags. But the SKU-split asks <b>exceed what the data can support</b>, so they are marked honestly as insufficient signal rather than invented. Showing where the evidence ends is the professional answer.</p>
+
+      <div class="subtitle">Online marketplaces dominate; quick-commerce and pharmacy serve urgent gap-fills.</div>
+      <p class="framing">This is a <b>near-monopoly</b>: Amazon + Flipkart take 97% of channel-named purchase mentions across every segment and lifestage. Everything else is a thin urgency valve. Bar = share of channel mentions; the tag shows whether each channel is a <b>planned</b> or <b>urgent</b> purchase.</p>
+
+      <div class="hdl">Channel rank &amp; role — by share of channel-named mentions</div>
+      <div class="crow"><span class="cn"><span class="rk">1</span>E-commerce<small>Amazon / Flipkart</small></span><div class="cbar"><i style="width:97%"></i><b class="inb">97%</b></div><span class="updot u-plan">◆ 64% planned</span></div>
+      <div class="crow"><span class="cn"><span class="rk">2</span>Quick-commerce<small>Blinkit / Zepto</small></span><div class="cbar"><i style="width:6%;--w:6%"></i><b class="outb" style="--w:6%">62 mentions</b></div><span class="updot u-urg">⚡ urgent</span></div>
+      <div class="crow"><span class="cn"><span class="rk">3</span>Pharmacy / Chemist<small>HCP trial point</small></span><div class="cbar"><i style="width:5%;--w:5%"></i><b class="outb" style="--w:5%">48</b></div><span class="updot u-urg">⚡ urgent</span></div>
+      <div class="crow"><span class="cn"><span class="rk">4</span>Kirana / GT<small>sachet proximity</small></span><div class="cbar"><i style="width:4%;--w:4%"></i><b class="outb" style="--w:4%">38</b></div><span class="updot u-urg">⚡ urgent</span></div>
+      <div class="crow"><span class="cn"><span class="rk">5</span>Modern Trade<small>DMart bulk</small></span><div class="cbar"><i style="width:3%;--w:3%"></i><b class="outb" style="--w:3%">29</b></div><span class="updot u-plan">◆ planned</span></div>
+      <div class="crow"><span class="cn"><span class="rk">6</span>D2C<small>brand site / subs</small></span><div class="cbar"><i style="width:2.5%;--w:2.5%"></i><b class="outb" style="--w:2.5%">26</b></div><span class="updot u-plan">◆ planned</span></div>
+      <div class="leg"><span><i style="background:#1f5fbf"></i>planned</span><span><i style="background:#f26a3d"></i>urgent</span><span>bar = share of channel-named mentions (1,023 records)</span></div>
+
+      <div class="hdl" style="margin-top:14px">What drives the channel choice</div>
+      <div class="drow"><span>Price-value within pack tier</span><div class="dbar"><i style="width:100%"></i><b>680</b></div></div>
+      <div class="drow"><span>Speed &amp; immediacy of delivery</span><div class="dbar"><i style="width:75%"></i><b>510</b></div></div>
+      <div class="drow"><span>Platform &amp; fulfilment trust</span><div class="dbar"><i style="width:56%"></i><b>380</b></div></div>
+      <div class="drow"><span>Pack-size &amp; stock reliability</span><div class="dbar"><i style="width:43%"></i><b>290</b></div></div>
+      <div class="drow"><span>Loyalty offers &amp; subscriptions</span><div class="dbar"><i style="width:23%"></i><b>155</b></div></div>
+
+      <div class="vb">“Best rash-free diapers… fast delivery by Amazon.” &nbsp;·&nbsp; “Ordered Huggies, got Comfy — trusted Flipkart, huge disappointment.”<span class="attr">— delivery speed lifts scores; wrong-fulfilment tanks them even when the diaper is fine</span></div>
+
+      <div class="seg">
+        <div class="segc"><div class="st">Mass</div><div class="sv"><b>93%</b> online + kirana sachets (cash-flow)</div></div>
+        <div class="segc"><div class="st">Mid-premium</div><div class="sv"><b>98.6%</b> — most channel-loyal cohort</div></div>
+        <div class="segc"><div class="st">Premium</div><div class="sv"><b>97.2%</b> + quick-commerce urgency</div></div>
+      </div>
+
+      <div class="hdl" style="margin-top:14px">Pack &amp; SKU signal — directional read</div>
+      <div class="drow"><span>₹999-tier large packs — premium share of price-band mentions</span><div class="dbar"><i style="width:90%;background:linear-gradient(90deg,#1f5fbf,#5a8fd6)"></i><b>90%</b></div></div>
+      <div class="drow"><span>Pant-style — share of format mentions</span><div class="dbar"><i style="width:82%;background:linear-gradient(90deg,#1f5fbf,#5a8fd6)"></i><b>82%</b></div></div>
+      <div class="drow"><span>Mid-premium reorder cadence</span><div class="dbar"><i style="width:60%;background:linear-gradient(90deg,#8a5cc0,#b592d8)"></i><b>~mo</b></div></div>
+      <div style="font-size:10.5px;color:var(--muted);margin-top:5px;font-style:italic">Directional — pack-band read from 68 price-tokened records; reorder cadence inferred from modal large-count SKU. Full SKU-level frequency &amp; pack-laddering (₹99→₹399→single) unlock when RSPL's own transaction data is joined to this listening layer — a natural next phase.</div>
+
+      <div class="callbox"><b>Channel read →</b> Winning the channel <i>is</i> winning the review page — 97% of purchases route through Amazon/Flipkart, so ratings, stock reliability and pack availability on-platform are category drivers as powerful as the product. Quick-commerce is the one emerging urgency play worth a metro pilot.</div>
+
+      <div class="note">Basis: 1,023 channel-coded records of 31,600 (2023–2026) · urgency from 126 lexically-coded records · pack-band from 68 records · coverage 78% · full per-channel role, frequency notes &amp; lifestage shifts in the detail table. SKU-keyed asks marked insufficient above per the no-fabrication rule.</div>
+
+<div class="rpt-foot"><span>Baby Diapers — Category Report</span><span>Built by <b>Blustream Marketing Solutions</b> &nbsp;·&nbsp; Commissioned by <b>RSPL Limited</b></span><a href="index.html">← Contents</a></div>
+</div></body></html>

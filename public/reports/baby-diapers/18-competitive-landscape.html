@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Baby Diapers — Category Report · §18 Competitive Landscape</title>
+<style>
+:root{--ink:#0f2440;--ink2:#33475b;--muted:#6b7a8d;--line:#e3e8ef;--bg:#f6f8fb;--card:#fff;
+--brand:#1f5fbf;--brand2:#0d2a55;--accent:#f26a3d;--good:#2f9e6b;
+--h1:#e2534b;--h2:#ef8f4f;--h3:#f2c744;--h4:#9fca6e;--h5:#3fae7a; /* heat ramp low→high */
+--radius:14px;--shadow:0 1px 2px rgba(16,36,64,.06),0 8px 24px rgba(16,36,64,.06);
+--f:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;}
+*{box-sizing:border-box}body{font-family:var(--f);color:var(--ink);background:var(--bg);margin:0;line-height:1.5}
+.wrap{max-width:1240px;margin:0 auto;padding:30px 22px 80px}
+.kicker{font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--accent);font-weight:700}
+h1{font-size:27px;margin:6px 0 4px;letter-spacing:-.02em}
+.lede{color:var(--ink2);max-width:900px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:20px;align-items:start;margin-top:18px}
+@media(max-width:1000px){.grid2{grid-template-columns:1fr}}
+.cmp{border:1px solid var(--line);border-radius:var(--radius);overflow:hidden;background:var(--card)}
+.cmp .hd{display:flex;align-items:center;gap:8px;padding:10px 14px;font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase}
+.cmp.before .hd{background:#fbeceb;color:#b23b32}.cmp.after .hd{background:#e9f6ef;color:#1f7a52}
+.cmp .bd{padding:18px}
+.densewall{font-size:12px;color:#556;line-height:1.7}.densewall p{margin:0 0 9px}.densewall b{color:#333}
+.float{display:inline-block;background:#fff3cd;color:#7a5b00;border-radius:4px;padding:0 4px;font-weight:700}
+.subtitle{font-size:16px;font-weight:700;color:var(--brand2);margin:0 0 4px}
+.framing{font-size:13px;color:var(--ink2);margin:0 0 14px;max-width:760px}
+.dl{float:right;display:inline-flex;align-items:center;gap:6px;font-size:11.5px;font-weight:700;color:var(--brand);border:1px solid #cfe0f6;background:#f2f8ff;border-radius:8px;padding:5px 10px;cursor:pointer}
+.slot{border:1.5px dashed #c3ccd8;border-radius:12px;padding:14px;color:#8494a6;font-size:12px;display:flex;align-items:center;gap:10px;background:repeating-linear-gradient(45deg,#fbfcfe,#fbfcfe 10px,#f4f7fb 10px,#f4f7fb 20px);margin-bottom:14px}
+.ico{width:24px;height:24px;border-radius:7px;background:#e8f0fb;display:inline-flex;align-items:center;justify-content:center;color:var(--brand);font-size:13px;flex-shrink:0}
+
+/* SOV ladder */
+.hdl{font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin:6px 0 4px}
+.brow{display:grid;grid-template-columns:150px 1fr 76px;gap:10px;align-items:center;padding:6px 0;border-top:1px solid var(--line)}
+.brow:first-of-type{border-top:0}
+.bn{font-weight:800;font-size:12.5px;display:flex;align-items:center}
+.logo{width:20px;height:20px;border-radius:5px;background:#eef1f5;margin-right:7px;display:inline-flex;align-items:center;justify-content:center;font-size:9px;color:#9aa7b5;font-weight:700}
+.tag{font-size:8.5px;font-weight:800;padding:1px 5px;border-radius:20px;margin-left:5px;text-transform:uppercase}
+.tag.prem{background:#efe6fb;color:#6c3fb0}.tag.mid{background:#e2eefb;color:#2b6cb0}.tag.mass{background:#eaf5ea;color:#3f8a3f}
+.sovbar{position:relative;height:20px;background:#eef2f7;border-radius:6px;overflow:hidden}
+.sovbar i{position:absolute;left:0;top:0;bottom:0;background:linear-gradient(90deg,var(--brand),#5a8fd6);border-radius:6px}
+.sovbar.lov i{background:linear-gradient(90deg,#f26a3d,#f6a072)}
+.sovbar b{position:absolute;right:7px;line-height:20px;font-size:10.5px;font-weight:800;color:var(--ink)}
+.stars{--pct:0;display:inline-block;font-size:12px;line-height:1;position:relative;letter-spacing:1px}
+.stars::before{content:"★★★★★";color:#dfe4ea}.stars::after{content:"★★★★★";color:#f2b807;position:absolute;left:0;top:0;width:var(--pct);overflow:hidden}
+.srating{font-size:10px;color:var(--muted);font-weight:700;margin-left:3px}
+
+/* driver heatmap */
+.heat{width:100%;border-collapse:separate;border-spacing:3px;font-size:10.5px;margin-top:4px}
+.heat th{font-size:9px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.02em;padding:2px;text-align:center;vertical-align:bottom}
+.heat th.rl{text-align:left;width:96px}
+.heat td{text-align:center;color:#fff;font-weight:800;border-radius:5px;padding:5px 0;width:44px}
+.heat td.rl{color:var(--ink);background:none;text-align:left;font-weight:800;font-size:11px}
+.heat td.rl small{display:block;font-weight:600;color:var(--muted);font-size:9px}
+.hx1{background:#e2534b}.hx2{background:#ef8f4f}.hx3{background:#f2c744;color:#5a4a00}.hx4{background:#9fca6e;color:#274d16}.hx5{background:#3fae7a}
+.heatleg{font-size:10px;color:var(--muted);margin-top:6px;display:flex;align-items:center;gap:8px}
+.heatleg .ramp{display:flex;gap:2px}.heatleg .ramp i{width:16px;height:9px;display:inline-block;border-radius:2px}
+
+.vb{background:#eef4fc;border-left:3px solid var(--brand);border-radius:0 10px 10px 0;padding:9px 12px;font-size:12px;color:var(--ink2);font-style:italic;margin-top:8px}
+.vb .attr{display:block;margin-top:5px;font-style:normal;font-size:10.5px;color:var(--muted);font-weight:600}
+.callbox{border:1px solid var(--line);border-left:4px solid var(--good);border-radius:0 10px 10px 0;padding:12px 15px;background:#fff;margin-top:14px}
+.callbox b{color:var(--good)}
+.note{font-size:11px;color:var(--muted);background:#f3f6fa;border-radius:8px;padding:8px 11px;margin-top:12px}
+.analysis{background:#0d2a55;color:#dfeaf7;border-radius:var(--radius);padding:18px 20px;margin-top:16px;font-size:13px;line-height:1.7}
+.analysis h3{margin:0 0 8px;color:#7fb3f2;font-size:12px;letter-spacing:.08em;text-transform:uppercase}
+.analysis ul{margin:6px 0 0;padding-left:18px}.analysis li{margin:4px 0}
+.x{color:#ff9b8f;font-weight:700}.ok{color:#8fe0b6;font-weight:700}
+.tsr{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-top:10px}
+.tsc{background:#f6f8fb;border:1px solid var(--line);border-radius:9px;padding:8px 10px}
+.tsc .tt{font-size:9.5px;font-weight:800;text-transform:uppercase;letter-spacing:.04em;color:var(--muted)}
+.tsc .tv{font-size:11px;color:var(--ink2);margin-top:3px}
+.tsc .tv b{color:var(--ink)}
+.rpt-top{display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--line);padding-bottom:10px;margin-bottom:8px;font-size:11px}.rpt-home{color:var(--brand2);font-weight:800;text-decoration:none;letter-spacing:-.01em}.rpt-sec{color:var(--muted);font-weight:700}.rpt-foot{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;border-top:1px solid var(--line);margin-top:26px;padding-top:14px;font-size:11px;color:var(--muted)}.rpt-foot b{color:var(--ink2)}.rpt-foot a{color:var(--brand);text-decoration:none;font-weight:700}</style></head><body><div class="wrap">
+<div class="rpt-top"><a href="index.html" class="rpt-home">Baby Diapers — Category Report</a><span class="rpt-sec">Section 18 / 21</span></div>
+
+<div class="kicker">Baby Diapers — Category Report &nbsp;·&nbsp; Section 18 of 21</div>
+<h1>Competitive Landscape — Brand &amp; Driver</h1>
+<p class="lede">Eleven brands, each with SOV, rating, 7 driver scores, and trial/repeat/switch triples. The 7-driver grid is presented as a <b>colour heatmap</b> readable in one glance, not shrunk prose.</p>
+
+      <div class="subtitle">Three giants own 76% of voice; skin safety drives all switching.</div>
+      <p class="framing">A functionally three-brand category. Switching is <b>failure-led, not price-led</b> — leakage and rash trigger nearly every change. Lovingle is highest-rated (4.2) but its 1% footprint means its skin-safety proof is still thin.</p>
+
+      <div class="hdl">Share of voice &amp; rating — upfront</div>
+      <div class="brow"><span class="bn"><span class="logo">H</span>Huggies<span class="tag prem">prem</span></span><div class="sovbar"><i style="width:100%"></i><b>26%</b></div><span><span class="stars" style="--pct:80%"></span><span class="srating">4.0</span></span></div>
+      <div class="brow"><span class="bn"><span class="logo">M</span>MamyPoko<span class="tag mid">mid</span></span><div class="sovbar"><i style="width:96%"></i><b>25%</b></div><span><span class="stars" style="--pct:76%"></span><span class="srating">3.8</span></span></div>
+      <div class="brow"><span class="bn"><span class="logo">P</span>Pampers<span class="tag prem">prem</span></span><div class="sovbar"><i style="width:96%"></i><b>25%</b></div><span><span class="stars" style="--pct:78%"></span><span class="srating">3.9</span></span></div>
+      <div class="brow"><span class="bn"><span class="logo">LA</span>Little Angels<span class="tag mass">mass</span></span><div class="sovbar"><i style="width:46%"></i><b>12%</b></div><span><span class="stars" style="--pct:80%"></span><span class="srating">4.0</span></span></div>
+      <div class="brow"><span class="bn"><span class="logo">L</span>Lovingle<span class="tag mid">mid</span></span><div class="sovbar lov"><i style="width:6%"></i><b>1%</b></div><span><span class="stars" style="--pct:84%"></span><span class="srating">4.2</span></span></div>
+
+      <div class="hdl" style="margin-top:14px">Performance on category drivers — heatmap (0–5)</div>
+      <table class="heat">
+        <tr><th class="rl">Brand</th><th>Soft</th><th>O'night<br>absorb</th><th>Rash<br>safe</th><th>Leak</th><th>Fit</th><th>Value</th><th>Avail</th></tr>
+        <tr><td class="rl">Huggies<small>premium</small></td><td class="hx5">4.5</td><td class="hx5">4.7</td><td class="hx4">4.2</td><td class="hx2">3.3</td><td class="hx3">3.7</td><td class="hx4">4.3</td><td class="hx5">4.5</td></tr>
+        <tr><td class="rl">Pampers<small>premium</small></td><td class="hx4">4.3</td><td class="hx4">4.2</td><td class="hx3">3.6</td><td class="hx1">2.7</td><td class="hx2">3.1</td><td class="hx4">3.9</td><td class="hx5">4.5</td></tr>
+        <tr><td class="rl">MamyPoko<small>mid</small></td><td class="hx4">4.2</td><td class="hx2">3.1</td><td class="hx2">3.1</td><td class="hx1">2.4</td><td class="hx1">2.9</td><td class="hx4">4.1</td><td class="hx4">4.3</td></tr>
+        <tr><td class="rl">Little Angels<small>mass</small></td><td class="hx4">4.3</td><td class="hx3">3.8</td><td class="hx2">3.0</td><td class="hx1">2.5</td><td class="hx1">2.9</td><td class="hx4">4.1</td><td class="hx3">3.8</td></tr>
+        <tr><td class="rl">Lovingle<small>mid · directional</small></td><td class="hx5">4.4</td><td class="hx3">3.5</td><td class="hx3">3.8</td><td class="hx2">3.2</td><td class="hx3">3.4</td><td class="hx3">3.7</td><td class="hx1">2.8</td></tr>
+      </table>
+      <div class="heatleg"><span>weak</span><span class="ramp"><i style="background:#e2534b"></i><i style="background:#ef8f4f"></i><i style="background:#f2c744"></i><i style="background:#9fca6e"></i><i style="background:#3fae7a"></i></span><span>strong</span><span style="margin-left:auto">source: Amazon / Flipkart / FirstCry R&amp;R</span></div>
+
+      <div class="tsr">
+        <div class="tsc"><div class="tt">Trial trigger (top)</div><div class="tv"><b>Softness rep</b> &amp; pediatrician rec — 38% / 32%</div></div>
+        <div class="tsc"><div class="tt">Repeat driver</div><div class="tv"><b>Consistent dryness, no rash</b> — 45%</div></div>
+        <div class="tsc"><div class="tt">#1 switch trigger</div><div class="tv"><b>Leakage 41–52%</b>, then rash — every tier</div></div>
+      </div>
+
+      <div class="vb">“Tried all other brands — they don't last the night compared to Pampers.” <span class="attr">— Mother of toddler · Premium · Flipkart · Pampers user</span></div>
+
+      <div class="callbox"><b>Landscape read →</b> Everyone is weak on <b>leak protection</b> (no brand above 3.3) — the category's shared failure and the universal switch trigger. Lovingle's heatmap shows a credible skin-safety + softness profile; its one red cell is <b>availability (2.8)</b>, a distribution fix, not a product one.</div>
+
+      <div class="note">SOV = share of brand mentions across 13 platforms, 2023–2026 · ratings &amp; driver scores from Amazon/Flipkart/FirstCry reviews · Lovingle cells &lt;30 mentions = directional · coverage 78% · full trial/repeat/switch % + brand cues per brand in the detail rows below.</div>
+
+<div class="rpt-foot"><span>Baby Diapers — Category Report</span><span>Built by <b>Blustream Marketing Solutions</b> &nbsp;·&nbsp; Commissioned by <b>RSPL Limited</b></span><a href="index.html">← Contents</a></div>
+</div></body></html>

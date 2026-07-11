@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Baby Diapers — Category Report · §02 Data Foundation & Methodology</title>
+<style>
+:root{--ink:#0f2440;--ink2:#33475b;--muted:#6b7a8d;--line:#e3e8ef;--bg:#f6f8fb;--card:#fff;
+--brand:#1f5fbf;--brand2:#0d2a55;--accent:#f26a3d;--good:#2f9e6b;--amber:#c98a12;--red:#d0503f;
+--radius:14px;--f:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;}
+*{box-sizing:border-box}body{font-family:var(--f);color:var(--ink);background:var(--bg);margin:0;line-height:1.5}
+.wrap{max-width:1240px;margin:0 auto;padding:30px 22px 80px}
+.kicker{font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--accent);font-weight:700}
+h1{font-size:27px;margin:6px 0 4px;letter-spacing:-.02em}.lede{color:var(--ink2);max-width:960px}
+.grid2{display:grid;grid-template-columns:0.66fr 1.34fr;gap:20px;align-items:start;margin-top:18px}
+@media(max-width:1040px){.grid2{grid-template-columns:1fr}}
+.cmp{border:1px solid var(--line);border-radius:var(--radius);overflow:hidden;background:var(--card)}
+.cmp .hd{display:flex;align-items:center;gap:8px;padding:10px 14px;font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase}
+.cmp.before .hd{background:#fbeceb;color:#b23b32}.cmp.after .hd{background:#e9f6ef;color:#1f7a52}
+.cmp .bd{padding:18px}
+.densewall{font-size:12px;color:#556;line-height:1.7}.densewall p{margin:0 0 9px}.densewall b{color:#333}
+.subtitle{font-size:16px;font-weight:700;color:var(--brand2);margin:0 0 4px}
+.framing{font-size:13px;color:var(--ink2);margin:0 0 14px;max-width:860px}
+.dl{float:right;display:inline-flex;align-items:center;gap:6px;font-size:11.5px;font-weight:700;color:var(--brand);border:1px solid #cfe0f6;background:#f2f8ff;border-radius:8px;padding:5px 10px;cursor:pointer}
+.hdl{font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin:14px 0 7px}
+.sigs{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+@media(max-width:620px){.sigs{grid-template-columns:1fr 1fr}}
+.sig{border:1px solid var(--line);border-radius:10px;padding:10px 11px;background:#fff}
+.sig .big{font-size:19px;font-weight:800;color:var(--brand2);line-height:1}
+.sig .cap{font-size:10px;color:var(--ink2);margin-top:4px;line-height:1.3}
+.sig .sub{font-size:9px;color:var(--muted);margin-top:2px}
+/* source mix + brand mix stacked bars */
+.stack{display:flex;height:26px;border-radius:8px;overflow:hidden;border:1px solid var(--line)}
+.stack .seg{display:flex;align-items:center;justify-content:center;color:#fff;font-size:9.5px;font-weight:800;white-space:nowrap;overflow:hidden}
+.legend{font-size:10px;color:var(--muted);margin-top:6px}
+/* completeness matrix */
+.cm{border:1px solid var(--line);border-radius:11px;overflow:hidden;margin-top:2px}
+.cmrow{display:grid;grid-template-columns:150px 1fr 150px;gap:0;border-top:1px solid var(--line);font-size:11px;align-items:center}
+.cmrow:first-child{border-top:none}
+.cmrow.head{background:#f3f6fa;font-size:9.5px;font-weight:800;text-transform:uppercase;letter-spacing:.04em;color:var(--muted)}
+.cmrow>div{padding:7px 10px}
+.dim{font-weight:700;color:var(--ink)}
+.cbarwrap{display:flex;align-items:center;gap:8px}
+.cbar{flex:1;height:9px;background:#eef2f7;border-radius:5px;overflow:hidden}.cbar i{display:block;height:100%;border-radius:5px}
+.cpct{font-size:10.5px;font-weight:800;width:76px;color:var(--ink2)}
+.hi i{background:var(--good)}.mid i{background:var(--brand)}.dir i{background:var(--amber)}.thin i{background:var(--red)}
+.conf{font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.03em;border-radius:20px;padding:2px 8px;white-space:nowrap;display:inline-block}
+.conf.hi{background:#e9f6ef;color:#1f7a52}.conf.mid{background:#eaf1fb;color:#1f5fbf}.conf.dir{background:#fdf3df;color:#8a5e08}.conf.thin{background:#fbe7e3;color:#b23b32}
+.use{font-size:10px;color:var(--muted)}
+.brandbar{display:flex;height:24px;border-radius:7px;overflow:hidden;border:1px solid var(--line)}
+.brandbar .b{display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:800;color:#fff;white-space:nowrap;overflow:hidden}
+.warnlab{display:inline-block;font-size:9.5px;font-weight:800;color:var(--accent);background:#fdeee8;border:1px solid #f5c7b4;border-radius:5px;padding:1px 7px;margin-left:6px}
+.tiers{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:2px}
+@media(max-width:620px){.tiers{grid-template-columns:1fr 1fr}}
+.tier{border:1px solid var(--line);border-radius:9px;padding:9px 10px;font-size:10.5px}
+.tier .th{font-size:9.5px;font-weight:800;text-transform:uppercase;letter-spacing:.03em;margin-bottom:3px}
+.tier.hi{border-left:4px solid var(--good)}.tier.hi .th{color:var(--good)}
+.tier.mid{border-left:4px solid var(--brand)}.tier.mid .th{color:var(--brand)}
+.tier.dir{border-left:4px solid var(--amber)}.tier.dir .th{color:#8a5e08}
+.tier.thin{border-left:4px solid var(--red)}.tier.thin .th{color:var(--red)}
+.excl{font-size:11px;color:var(--ink2);background:#f7f9fc;border:1px solid var(--line);border-radius:9px;padding:10px 12px;margin-top:2px}
+.excl b{color:var(--ink)}
+.rebuild{border:1px solid #f0d59a;background:#fdf6e6;border-radius:9px;padding:11px 13px;margin-top:12px;font-size:11.5px;color:#7a5b08}.rebuild b{color:#8a5e08}
+.note{font-size:11px;color:var(--muted);background:#f3f6fa;border-radius:8px;padding:8px 11px;margin-top:12px}
+.analysis{background:#0d2a55;color:#dfeaf7;border-radius:var(--radius);padding:18px 20px;margin-top:16px;font-size:13px;line-height:1.7}
+.analysis h3{margin:0 0 8px;color:#7fb3f2;font-size:12px;letter-spacing:.08em;text-transform:uppercase}
+.analysis ul{margin:6px 0 0;padding-left:18px}.analysis li{margin:5px 0}
+.x{color:#ff9b8f;font-weight:700}.ok{color:#8fe0b6;font-weight:700}
+.rpt-top{display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--line);padding-bottom:10px;margin-bottom:8px;font-size:11px}.rpt-home{color:var(--brand2);font-weight:800;text-decoration:none;letter-spacing:-.01em}.rpt-sec{color:var(--muted);font-weight:700}.rpt-foot{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;border-top:1px solid var(--line);margin-top:26px;padding-top:14px;font-size:11px;color:var(--muted)}.rpt-foot b{color:var(--ink2)}.rpt-foot a{color:var(--brand);text-decoration:none;font-weight:700}</style></head><body><div class="wrap">
+<div class="rpt-top"><a href="index.html" class="rpt-home">Baby Diapers — Category Report</a><span class="rpt-sec">Section 02 / 21</span></div>
+
+<div class="kicker">Baby Diapers — Category Report &nbsp;·&nbsp; Section 02 of 21</div>
+<h1>Data Foundation &amp; Methodology</h1>
+<p class="lede">This section's job is <b>honesty</b> — what the 31,600-record corpus can and cannot support. It turns a wall of caveats into a <b>signal-completeness matrix</b>: for every analytical cut, what share of records actually carries that cue, with a confidence tier. It makes the trust boundary a picture, so no one over-reads a 2.6%-coverage lifestage cut as if it were the whole base.</p>
+
+      <div class="subtitle">E-commerce reviews dominate; the Lovingle signal is small but real.</div>
+      <p class="framing">This is <b>observed consumer expression, not a projectable sample</b>. Brand-mention shares are <b>conversation volume, not market share</b>; platform mix reflects the review ecosystem, not purchase reality. Rating- and driver-level reads are robust; demographic, geographic and lifestage cuts are <b>directional</b> — the matrix below shows exactly how thin each is.</p>
+
+      <div class="hdl">The corpus at a glance</div>
+      <div class="sigs">
+        <div class="sig"><div class="big">31,600</div><div class="cap">India-gated records</div><div class="sub">13 platforms · 36-month window</div></div>
+        <div class="sig"><div class="big">92.9%</div><div class="cap">are e-commerce reviews</div><div class="sub">Flipkart 57.1% + Amazon 35.8%</div></div>
+        <div class="sig"><div class="big">3.81</div><div class="cap">mean rating</div><div class="sub">across 29,333 rated commerce events</div></div>
+        <div class="sig"><div class="big">228 <span style="font-size:11px;color:var(--amber)">·1%</span></div><div class="cap">Lovingle mentions</div><div class="sub">real but thin → directional</div></div>
+      </div>
+
+      <div class="hdl">Where the 31,600 records come from</div>
+      <div class="stack">
+        <div class="seg" style="width:57.1%;background:#1f5fbf">Flipkart 57.1%</div>
+        <div class="seg" style="width:35.8%;background:#3f7fd0">Amazon 35.8%</div>
+        <div class="seg" style="width:7.1%;background:#9db4d4">Social + community 7.1%</div>
+      </div>
+      <div class="legend">Social/community = YouTube 4.8% · Instagram 1.3% · FirstCry, Facebook, Vimeo 0.3% each · Reddit/Quora/Parentune/Indusladies/Indiaparenting/X (&lt;15 each).</div>
+
+      <div class="hdl">Signal completeness — what share of records actually carries each cue</div>
+      <div class="cm">
+        <div class="cmrow head"><div>Analytical cut</div><div>Coverage of the 31,600</div><div>Confidence</div></div>
+        <div class="cmrow"><div class="dim">Rating / commerce</div><div class="cbarwrap hi"><div class="cbar"><i style="width:92.8%"></i></div><span class="cpct">29,333 · 92.8%</span></div><div><span class="conf hi">High</span></div></div>
+        <div class="cmrow"><div class="dim">Dated (seasonality)</div><div class="cbarwrap hi"><div class="cbar"><i style="width:59.1%"></i></div><span class="cpct">18,683 · 59.1%</span></div><div><span class="conf hi">High</span></div></div>
+        <div class="cmrow"><div class="dim">Category drivers</div><div class="cbarwrap hi"><div class="cbar"><i style="width:38.3%"></i></div><span class="cpct">12,107 · 38.3%</span></div><div><span class="conf hi">High</span></div></div>
+        <div class="cmrow"><div class="dim">Journey mode</div><div class="cbarwrap mid"><div class="cbar"><i style="width:8.1%"></i></div><span class="cpct">2,571 · 8.1%</span></div><div><span class="conf mid">Moderate</span></div></div>
+        <div class="cmrow"><div class="dim">Diaper format</div><div class="cbarwrap dir"><div class="cbar"><i style="width:5.7%"></i></div><span class="cpct">1,797 · 5.7%</span></div><div><span class="conf dir">Directional</span></div></div>
+        <div class="cmrow"><div class="dim">Caregiver role</div><div class="cbarwrap dir"><div class="cbar"><i style="width:5.0%"></i></div><span class="cpct">1,591 · 5.0%</span></div><div><span class="conf dir">Directional</span></div></div>
+        <div class="cmrow"><div class="dim">Usage occasion</div><div class="cbarwrap dir"><div class="cbar"><i style="width:4.1%"></i></div><span class="cpct">1,306 · 4.1%</span></div><div><span class="conf dir">Directional</span></div></div>
+        <div class="cmrow"><div class="dim">Geography (state)</div><div class="cbarwrap dir"><div class="cbar"><i style="width:3.6%"></i></div><span class="cpct">1,136 · 3.6%</span></div><div><span class="conf dir">Directional</span></div></div>
+        <div class="cmrow"><div class="dim">Purchase channel</div><div class="cbarwrap dir"><div class="cbar"><i style="width:3.2%"></i></div><span class="cpct">1,023 · 3.2%</span></div><div><span class="conf dir">Directional</span></div></div>
+        <div class="cmrow"><div class="dim">Lifestage (baby age)</div><div class="cbarwrap dir"><div class="cbar"><i style="width:2.6%"></i></div><span class="cpct">828 · 2.6%</span></div><div><span class="conf dir">Directional</span></div></div>
+        <div class="cmrow"><div class="dim">Parity (1st vs 2nd)</div><div class="cbarwrap thin"><div class="cbar"><i style="width:1.5%"></i></div><span class="cpct">97 · 0.3%</span></div><div><span class="conf thin">Thin</span></div></div>
+        <div class="cmrow"><div class="dim">Pack-band label</div><div class="cbarwrap thin"><div class="cbar"><i style="width:1%"></i></div><span class="cpct">68 · 0.2%</span></div><div><span class="conf thin">Thin</span></div></div>
+      </div>
+      <div class="note" style="margin-top:8px">Bars are the honest denominator: a "night = 81.2% of occasions" read rests on the 4.1% of records (1,306) that name an occasion — real and directional, not the whole base. High-confidence cuts (rating, drivers, dated) carry the weight; sub-6% cuts are read as directional and labelled so wherever they appear.</div>
+
+      <div class="hdl">Brand mentions <span class="warnlab">conversation volume — NOT market share</span></div>
+      <div class="brandbar">
+        <div class="b" style="width:26%;background:#0d2a55">Huggies 26%</div>
+        <div class="b" style="width:25%;background:#1f5fbf">MamyPoko 25%</div>
+        <div class="b" style="width:25%;background:#3f7fd0">Pampers 25%</div>
+        <div class="b" style="width:12%;background:#6f9bd8">Little Angels 12%</div>
+        <div class="b" style="width:10%;background:#9db4d4">Generic 10%</div>
+        <div class="b" style="width:2%;background:#f26a3d" title="Lovingle 228 (1%)"></div>
+      </div>
+      <div class="legend">Lovingle 228 (1%) · SuperBottoms 121 · Himalaya 69 · Bumtum 63 · Babyhug 45 · Supples 31. Reflects who is <b>talked about online</b>, not who sells most.</div>
+
+      <div class="hdl">Confidence tiers</div>
+      <div class="tiers">
+        <div class="tier hi"><div class="th">High</div>E-commerce review insights — 29,333 rated events, mean 3.81.</div>
+        <div class="tier mid"><div class="th">Moderate</div>Social &amp; community — 2,267 records (YT, IG, FB, FirstCry, Vimeo).</div>
+        <div class="tier dir"><div class="th">Low / thin</div>Lovingle-specific driver scoring — 228 mentions; only Softness (38) near threshold.</div>
+        <div class="tier thin"><div class="th">Insufficient</div>SKU / variant / true purchase-frequency — no SKU key on schema.</div>
+      </div>
+
+      <div class="hdl">What was deliberately excluded</div>
+      <div class="excl"><b>Dropped by gate:</b> non-India records 30,553 · pre-window records 18,761 · unresolvable-geo (NON_IN 694, UNKNOWN_GLOBAL 11,098). &nbsp; <b>Out of scope:</b> WhatsApp groups (encrypted) · closed Facebook groups (best-effort manual only) · General Trade / offline (structurally absent from a review-based corpus).</div>
+
+      <div class="rebuild"><b>⟳ Read-across note:</b> the corpus was <b>rebuilt on 05 Jul 2026</b> — clean re-ingestion, trimmed window, challenger brands added (SuperBottoms, Babyhug, Dabur, R for Rabbit). Counts, shares and denominators changed <b>by design</b> and are <b>not comparable</b> with pre-rebuild report editions.</div>
+
+      <div class="note"><b>Coverage 82%.</b> Stated thin: Central/East India geo, father &amp; extended-family voices (&lt;30 recs each), General Trade behaviour, Lovingle driver scores (no cell clears 30 except Softness), SKU/variant analysis (blocked), Middle-Toddler 18–24m (42 recs), vernacular text (language field hardcoded at ingestion), quick-commerce (8 recs), reusables (63 recs). No verbatims — this section reports the base, not consumer voice.</div>
+
+<div class="rpt-foot"><span>Baby Diapers — Category Report</span><span>Built by <b>Blustream Marketing Solutions</b> &nbsp;·&nbsp; Commissioned by <b>RSPL Limited</b></span><a href="index.html">← Contents</a></div>
+</div></body></html>

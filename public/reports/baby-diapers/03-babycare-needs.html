@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Baby Diapers — Category Report · §03 Category Needs (Babycare)</title>
+<style>
+:root{--ink:#0f2440;--ink2:#33475b;--muted:#6b7a8d;--line:#e3e8ef;--bg:#f6f8fb;--card:#fff;
+--brand:#1f5fbf;--brand2:#0d2a55;--accent:#f26a3d;--good:#2f9e6b;--amber:#c98a12;--purp:#8a5cc0;--teal:#1f8fb0;
+--radius:14px;--f:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;}
+*{box-sizing:border-box}body{font-family:var(--f);color:var(--ink);background:var(--bg);margin:0;line-height:1.55}
+.wrap{max-width:1180px;margin:0 auto;padding:24px 24px 80px}
+.rpt-top{display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--line);padding-bottom:10px;margin-bottom:8px;font-size:11px}
+.rpt-home{color:var(--brand2);font-weight:800;text-decoration:none;letter-spacing:-.01em}.rpt-sec{color:var(--muted);font-weight:700}
+.kicker{font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--accent);font-weight:700}
+h1{font-size:28px;margin:6px 0 4px;letter-spacing:-.02em}.lede{color:var(--ink2);max-width:960px;font-size:13.5px}
+.subtitle{font-size:16px;font-weight:700;color:var(--brand2);margin:16px 0 4px}
+.framing{font-size:13px;color:var(--ink2);max-width:960px;margin:0 0 10px}
+.hdl{font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin:18px 0 8px}
+/* bands */
+.band{border:1px solid var(--line);border-radius:12px;overflow:hidden;margin-bottom:12px;background:var(--card)}
+.bandhd{display:flex;align-items:center;gap:9px;padding:10px 15px;font-size:13px;font-weight:800;color:#fff}
+.b-f .bandhd{background:var(--brand2)}.b-e .bandhd{background:var(--accent)}.b-s .bandhd{background:var(--teal)}
+.bandhd .sub{font-weight:500;font-size:10.5px;opacity:.85;margin-left:auto}
+.nrow{display:grid;grid-template-columns:250px 1fr 96px;gap:12px;align-items:center;padding:9px 15px;border-top:1px solid var(--line)}
+.ntitle{font-size:12px;font-weight:700;color:var(--ink)}
+.nbarwrap{height:11px;background:#eef2f7;border-radius:6px;overflow:hidden}.nbar{height:100%;border-radius:6px}
+.b-f .nbar{background:var(--brand)}.b-e .nbar{background:var(--accent)}.b-s .nbar{background:var(--teal)}
+.nmeta{display:flex;align-items:center;gap:7px;justify-content:flex-end}
+.nvol{font-size:11px;font-weight:800;color:var(--muted)}
+.chip{font-size:8.5px;font-weight:800;text-transform:uppercase;letter-spacing:.03em;border-radius:10px;padding:2px 7px}
+.s-met{background:#e9f6ef;color:#1f7a52}.s-part{background:#fdf3df;color:#8a5e08}.s-unmet{background:#fdecea;color:#b23b32}
+/* whitespace */
+.ws{background:#0d2a55;color:#eaf2fc;border-radius:14px;padding:16px 20px;margin-top:8px}
+.wshd{font-size:12px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:#8fe0b6;margin-bottom:4px}
+.wsi{font-size:12.5px;color:#c6d6ec;margin:0 0 10px}
+.wsrow{display:grid;grid-template-columns:1fr 62px;gap:10px;align-items:center;padding:8px 0;border-top:1px solid rgba(255,255,255,.12)}
+.wsrow .wt{font-size:12px;color:#eaf2fc}.wsrow .wt b{color:#fff}.wsrow .wt .bnd{font-size:9px;color:#8fb4e6;font-weight:700;text-transform:uppercase;letter-spacing:.04em;margin-left:6px}
+.wsrow .wv{text-align:right;font-weight:800;color:#ffd27a;font-size:13px}
+.wsrow.big{border-top:none}.wsrow.big .wt{font-size:13px}
+/* verbatims */
+.pair{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:6px}
+@media(max-width:620px){.pair{grid-template-columns:1fr}}
+.vb{border:1px solid var(--line);border-radius:10px;padding:11px 13px;font-size:11.5px;color:var(--ink2);line-height:1.55;background:var(--card)}
+.vb .vlab{font-size:9.5px;font-weight:800;text-transform:uppercase;letter-spacing:.05em;margin-bottom:5px}
+.vb.adv{border-left:4px solid var(--good)}.vb.adv .vlab{color:var(--good)}
+.vb.fail{border-left:4px solid var(--accent)}.vb.fail .vlab{color:var(--accent)}
+.vb cite{display:block;font-style:normal;font-size:9.5px;color:var(--muted);margin-top:6px}
+.callbox{border:1px solid var(--line);border-left:4px solid var(--good);border-radius:0 10px 10px 0;padding:12px 15px;background:var(--card);margin-top:14px;font-size:12.5px;color:var(--ink2)}.callbox b{color:var(--good)}
+.note{font-size:11px;color:var(--muted);background:#f3f6fa;border-radius:8px;padding:9px 12px;margin-top:12px;line-height:1.6}
+.rpt-foot{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;border-top:1px solid var(--line);margin-top:26px;padding-top:14px;font-size:11px;color:var(--muted)}
+.rpt-foot b{color:var(--ink2)}.rpt-foot a{color:var(--brand);text-decoration:none;font-weight:700}
+.hero-img img{width:100%;border-radius:14px;display:block;margin:14px 0 2px;border:1px solid var(--line)}</style></head><body><div class="wrap">
+<div class="rpt-top"><a href="index.html" class="rpt-home">Baby Diapers — Category Report</a><span class="rpt-sec">Section 03 / 21</span></div>
+<div class="kicker">Baby Diapers · Category Report &nbsp;·&nbsp; Section 03 of 21</div>
+<h1>Category Needs — Babycare (Functional · Emotional · Social)</h1>
+<div class="hero-img"><img src="assets/A04.jpg" alt="Skin safety and unbroken sleep dominate babycare" onerror="this.onerror=null;this.style.display='none';this.closest('.hero-img,.hero,figure,.rpt-hero,.rpt-cover-img')?.remove()"></div>
+<p class="lede">The wider babycare need-space the diaper decision sits inside. Needs are read across three bands — <b>functional</b>, <b>emotional</b>, <b>social</b> — each rated on how well the category meets it today, with the genuinely unmet gaps promoted to a commercial whitespace panel.</p>
+
+<div class="subtitle">Skin safety and unbroken sleep dominate every babycare conversation.</div>
+<p class="framing">The need-space is a <b>functional–emotional knot</b>: parents need unbroken overnight sleep <i>and</i> rash-free skin, and the two reinforce each other — a leak or rash at 2am is at once a product failure and a parental-identity failure. Stakes run highest for first-time mothers in nuclear homes, who lack the joint-family buffer and compensate with obsessive review-reading and HCP validation — making peer trust the decisive purchase signal. The category's growth ceiling is less about availability than about <b>trust, transparency and skin-safety credibility</b>.</p>
+
+<div class="band b-f">
+ <div class="bandhd">⚙️ Functional<span class="sub">what the product must physically do</span></div>
+ <div class="nrow"><div class="ntitle">Unbroken overnight sleep</div><div class="nbarwrap"><div class="nbar" style="width:100%"></div></div><div class="nmeta"><span class="nvol">820</span><span class="chip s-part">Partial</span></div></div>
+ <div class="nrow"><div class="ntitle">Rash-free skin (hygiene baseline)</div><div class="nbarwrap"><div class="nbar" style="width:83%"></div></div><div class="nmeta"><span class="nvol">680</span><span class="chip s-part">Partial</span></div></div>
+ <div class="nrow"><div class="ntitle">Leak-proof, day &amp; night</div><div class="nbarwrap"><div class="nbar" style="width:71%"></div></div><div class="nmeta"><span class="nvol">580</span><span class="chip s-part">Partial</span></div></div>
+ <div class="nrow"><div class="ntitle">Soft, breathable materials</div><div class="nbarwrap"><div class="nbar" style="width:51%"></div></div><div class="nmeta"><span class="nvol">420</span><span class="chip s-met">Met</span></div></div>
+ <div class="nrow"><div class="ntitle">Correct fit across fast weight changes</div><div class="nbarwrap"><div class="nbar" style="width:38%"></div></div><div class="nmeta"><span class="nvol">310</span><span class="chip s-part">Partial</span></div></div>
+</div>
+
+<div class="band b-e">
+ <div class="bandhd">💗 Emotional<span class="sub">what the parent needs to feel</span></div>
+ <div class="nrow"><div class="ntitle">Relief from vigilance fatigue</div><div class="nbarwrap"><div class="nbar" style="width:56%"></div></div><div class="nmeta"><span class="nvol">460</span><span class="chip s-part">Partial</span></div></div>
+ <div class="nrow"><div class="ntitle">Sleep-deprivation reshapes loyalty</div><div class="nbarwrap"><div class="nbar" style="width:48%"></div></div><div class="nmeta"><span class="nvol">390</span><span class="chip s-part">Partial</span></div></div>
+ <div class="nrow"><div class="ntitle">First-timers seek expert permission</div><div class="nbarwrap"><div class="nbar" style="width:26%"></div></div><div class="nmeta"><span class="nvol">215</span><span class="chip s-part">Partial</span></div></div>
+ <div class="nrow"><div class="ntitle">Mother's own self-care (guilt-laden)</div><div class="nbarwrap"><div class="nbar" style="width:12%"></div></div><div class="nmeta"><span class="nvol">95</span><span class="chip s-unmet">Unmet</span></div></div>
+</div>
+
+<div class="band b-s">
+ <div class="bandhd">👥 Social<span class="sub">how the choice plays with others</span></div>
+ <div class="nrow"><div class="ntitle">Peer validation &gt; advertising (~60% of selection)</div><div class="nbarwrap"><div class="nbar" style="width:60%"></div></div><div class="nmeta"><span class="nvol">490</span><span class="chip s-met">Met</span></div></div>
+ <div class="nrow"><div class="ntitle">Milestones trigger public reassessment</div><div class="nbarwrap"><div class="nbar" style="width:23%"></div></div><div class="nmeta"><span class="nvol">185</span><span class="chip s-met">Met</span></div></div>
+ <div class="nrow"><div class="ntitle">Joint-family competing authorities</div><div class="nbarwrap"><div class="nbar" style="width:15%"></div></div><div class="nmeta"><span class="nvol">125</span><span class="chip s-part">Partial</span></div></div>
+ <div class="nrow"><div class="ntitle">Fathers = buyers, not yet carers</div><div class="nbarwrap"><div class="nbar" style="width:8%"></div></div><div class="nmeta"><span class="nvol">68</span><span class="chip s-part">Partial</span></div></div>
+</div>
+
+<div class="hdl">Commercial whitespace — the genuinely unmet needs</div>
+<div class="ws">
+ <div class="wshd">◆ Whitespace — the open category opportunity</div>
+ <p class="wsi">Where the category leaves parents unserved today — ranked by conversation volume. The first is the width of the entire budget/mid-premium corridor.</p>
+ <div class="wsrow big"><div class="wt"><b>No credible skin-safety proof for budget disposable brands</b> — parents can't verify skin-safety before buying; rash is discovered post-purchase.<span class="bnd">functional</span></div><div class="wv">520</div></div>
+ <div class="wsrow"><div class="wt"><b>Overnight absorption without bulk or heat</b> — current SKUs solve leakage but not the thermal/bulk discomfort that breaks sleep in Indian summers.<span class="bnd">functional</span></div><div class="wv">340</div></div>
+ <div class="wsrow"><div class="wt"><b>No judgment-free space for caregiving doubt</b> — nuclear first-timers lack a trusted advisor; communities feel judgmental.<span class="bnd">emotional</span></div><div class="wv">160</div></div>
+ <div class="wsrow"><div class="wt"><b>Fragrance conflict for sensitive skin</b> — scented products irritate; unscented options are neither labelled nor accessible.<span class="bnd">functional</span></div><div class="wv">130</div></div>
+ <div class="wsrow"><div class="wt"><b>Traditional × modern care left unguided</b> — oil massage, turmeric and premium diapers coexist with no brand guidance on interaction.<span class="bnd">social</span></div><div class="wv">88</div></div>
+</div>
+
+<div class="hdl">The knot, in real voices (corpus)</div>
+<div class="pair">
+ <div class="vb adv"><div class="vlab">▲ The knot resolved — sleep + skin together</div>
+ "As a mother I'm always concerned for my baby's rash-free skin, hygiene and good sleep. But now I'm free from all worries… it keeps my baby's skin dry and comfortable the whole night and gives good leakage protection, so my baby sleeps comfortably longer."
+ <cite>Amazon · Pampers user, premium — overnight dryness = the emotional payoff</cite></div>
+ <div class="vb fail"><div class="vlab">▼ The unmet baseline — budget skin-safety doubt</div>
+ "Not much good quality. After 3 hours the diaper becomes heavy and the skin gets wet. Not much worthy."
+ <cite>Flipkart · Little Angels user, mass — the 520-mention gap, in one line</cite></div>
+</div>
+
+<div class="callbox"><b>Brand implication →</b> The category's growth ceiling is <b>credibility, not availability</b>. The largest unmet need — <b>no trustworthy skin-safety proof in the budget/mid-premium corridor (520 mentions)</b> — is an open lane: whoever pairs genuine clinical proof with an <i>emotional</i> reassurance layer (the guilt-absolution no brand offers after a rash) can own the mid-premium skin-safety position that no incumbent has claimed.</div>
+
+<div class="note"><b>Coverage 76%.</b> Basis: reviews &amp; conversations referencing babycare needs beyond diaper attributes (sleep, skin, hygiene, feeding, development, family roles). Volumes are real mention counts; met-status is a directional read of how well the category serves each need. Thin: feeding &amp; nutrition, motor-development products, bathing/grooming beyond rash, regional home-remedy practice, and father-specific needs.</div>
+
+<div class="rpt-foot"><span>Baby Diapers — Category Report</span><span>Built by <b>Blustream</b> &nbsp;·&nbsp; Commissioned by <b>RSPL Limited</b></span><a href="index.html">← Contents</a></div>
+</div></body></html>
