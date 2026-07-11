@@ -28,8 +28,9 @@ import {
     BehaviouralRenderer, 
     EcosystemRenderer, 
     DeepDiveRenderer, 
-    VisualsRenderer 
+    VisualsRenderer
 } from '../SectionRenderer';
+import { BabyDiaperDivider } from './blocks/BookletChrome';  // N-20 — §05 divider leaf
 // NOTE: Baby-diapers sections now route to the F3 warm-premium renderers in
 // ./LovingleSections (imported below). The legacy ./BabyDiapersRenderer atoms are
 // retained in-repo as a pre-F3 reference but are no longer wired here.
@@ -2929,9 +2930,15 @@ export const ModernSectionRenderer: React.FC<Props> = ({ data, projectId }) => {
     if (isWarmBaby && Component) {
         return (
             <SafeSectionBoundary title={data.title}>
-                <div className="mb-12 lv-section">
-                    <Component data={normalizedData} section={data} />
-                </div>
+                <>
+                    {/* N-20 — full-bleed "Baby Diapers" divider leaf precedes §05
+                        (diaper_needs_fes); it is a sibling top-level .lv-section-break
+                        so ExportBar paginates it as its own A4 page. */}
+                    {data.sectionId === 'diaper_needs_fes' && <BabyDiaperDivider />}
+                    <div className="mb-12 lv-section">
+                        <Component data={normalizedData} section={data} />
+                    </div>
+                </>
             </SafeSectionBoundary>
         );
     }

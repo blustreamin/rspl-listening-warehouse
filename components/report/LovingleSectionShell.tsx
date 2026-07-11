@@ -66,21 +66,18 @@ export const LovingleSectionShell: React.FC<ShellProps> = ({
       <div className="lv-sheet">
         <SectionHeaderBar secNum={secNum} title={title} part={sectionPart(section?.sectionId)} />
 
-        {/* QA fix 5 — no chips/badges under section titles: only the data-point
-            count as plain grey text. */}
-        {totalDataPoints > 0 && (
-          <div className="bk-headmeta">
-            <span className="bk-datapoints">{dp} data points</span>
-          </div>
-        )}
-
         {standfirst && <p className="lv-standfirst" style={{ marginBottom: 18 }}>{standfirst}</p>}
 
         <div className="lv-grid">{children}</div>
 
+        {/* N-08 — the section's data-point count is now a standard footnote
+            line above the footer, not a badge under the section title. */}
+        {totalDataPoints > 0 && (
+          <p className="bk-section-footnote">Evidence base for this section: {dp} data points across the corpus.</p>
+        )}
+
         {/* The evidence band (source pills · triangulation line · disclaimer)
-            is unrouted — screen, print and PDF share this DOM. The data-point
-            count under the section title is the surviving evidence cue. */}
+            is unrouted — screen, print and PDF share this DOM. */}
         <BookletFooter secNum={secNum} />
       </div>
     </div>

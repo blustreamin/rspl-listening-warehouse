@@ -89,6 +89,23 @@ const confClass = (c?: ConfidenceLevel): string =>
 const confLabel = (c?: ConfidenceLevel): string =>
   c === 'HIGH' ? 'High' : c === 'MED' ? 'Medium' : 'Low';
 
+// ── N-12 · BatteryMeter — 5-step magnitude indicator beside ranked % values ──
+// Lives in the shared lib (LovingleBlocks) so both the booklet blocks and the
+// carried lv- components (ChannelFlow) can use it without a circular import;
+// BookletBlocks re-exports it. Colour-graded by magnitude via bk-battery-*.
+export const BatteryMeter: React.FC<{ pct?: number; steps?: number; title?: string }> = ({ pct, steps = 5, title }) => {
+  if (typeof pct !== 'number' || !isFinite(pct)) return null;
+  const p = Math.max(0, Math.min(100, pct));
+  const filled = p <= 0 ? 0 : Math.max(1, Math.min(steps, Math.round((p / 100) * steps)));
+  const level = filled <= 1 ? 'lo' : filled <= Math.ceil(steps * 0.6) ? 'mid' : 'hi';
+  return (
+    <span className={`bk-battery bk-battery-${level}`} role="img"
+      aria-label={`${Math.round(p)} percent`} title={title || `${Math.round(p)}%`}>
+      {Array.from({ length: steps }, (_, i) => <i key={i} className={i < filled ? 'bk-battery-on' : ''} />)}
+    </span>
+  );
+};
+
 // ── ZoneHead ─────────────────────────────────────────────────────────────────
 
 export const ZoneHead: React.FC<{ title: string; sub?: string }> = ({ title, sub }) => (
@@ -952,13 +969,15 @@ const BRAND_COLORS: Record<string, string> = {
 };
 const brandColor = (name?: string): string => BRAND_COLORS[(name || '').toLowerCase().trim()] || 'var(--ink-3)';
 
-export const CrossBrandBars: React.FC<{ brands: BrandContent[] }> = ({ brands }) => {
+export const CrossBrandBars: React.FC<{ brands: BrandContent[]; maxDrivers?: number }> = ({ brands, maxDrivers = 6 }) => {
   const list = asArray<BrandContent>(brands).filter((b) => asArray(b.attribute_scale).length);
   if (list.length < 2) return null;
-  const attrs: string[] = [];
+  const allAttrs: string[] = [];
   list.forEach((b) => asArray<any>(b.attribute_scale).forEach((a) => {
-    if (a?.attribute && !attrs.includes(a.attribute)) attrs.push(a.attribute);
+    if (a?.attribute && !allAttrs.includes(a.attribute)) allAttrs.push(a.attribute);
   }));
+  // N-43 — declutter: cap to the first `maxDrivers` (default 6) driver axes.
+  const attrs = allAttrs.slice(0, maxDrivers);
   if (!attrs.length) return null;
   const scoreOf = (b: BrandContent, attr: string): number | null => {
     const a = asArray<any>(b.attribute_scale).find((x) => x.attribute === attr);
@@ -1189,6 +1208,8 @@ const ChannelNodeCard: React.FC<{ n: ChannelNode }> = ({ n }) => (
     <div className="lv-flow-head">
       <span className="lv-flow-name">{n.node}</span>
       {typeof n.share === 'number' && <span className="lv-flow-share">{n.share}%</span>}
+      {/* N-12 — battery magnitude indicator beside the ranked channel share */}
+      {typeof n.share === 'number' && <BatteryMeter pct={n.share} title={`${n.share}% channel share`} />}
     </div>
     {typeof n.share === 'number' && <div className="lv-flow-bar"><span style={{ width: `${clamp(n.share)}%` }} /></div>}
     {n.maps_to_pack && <div className="lv-flow-pack">{sanitiseConsumerText(n.maps_to_pack)}</div>}

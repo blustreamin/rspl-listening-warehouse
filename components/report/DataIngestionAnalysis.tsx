@@ -51,7 +51,7 @@ export interface IngestLedger {
 // ── live derivation ──────────────────────────────────────────────────────────
 
 interface DatasetMeta { name?: string; source_tag?: string; row_count?: number; uploaded_at?: string; }
-interface GraphStats { event_count: number; generated_at?: string; aggregations: Record<string, any>; }
+interface GraphStats { event_count: number; dataset_count?: number; generated_at?: string; aggregations: Record<string, any>; }
 
 const fmt = (n: number): string => n.toLocaleString('en-US');
 const pct1 = (part: number, total: number): number => (total > 0 ? Math.round((part / total) * 1000) / 10 : 0);
@@ -125,9 +125,15 @@ const buildRegistryLedger = (datasets: DatasetMeta[]): IngestLedger => {
 
 /** Full ledger — datasets registry + the latest evidence graph's aggregations. */
 const buildLiveLedger = (datasets: DatasetMeta[], stats: GraphStats): IngestLedger => {
-  const { files, rawRows, uploadLine } = registryBits(datasets);
+  // V-03 — the footnote no longer cites the raw ingestion registry (files /
+  // uploaded rows — the "80 files · 143,372" leak). It cites the ASSEMBLED
+  // graph's canonical dataset set + deduplicated events. `uploadLine` (the
+  // upload window, not a count) still drives the neutral period banner.
+  const { uploadLine } = registryBits(datasets);
   const agg = stats.aggregations || {};
   const total = stats.event_count || 0;
+  const canonicalDatasets = typeof stats.dataset_count === 'number' && stats.dataset_count > 0
+    ? stats.dataset_count : undefined;
 
   // Top 8 platforms + a bucketed tail — the ingestion fallback can mint
   // long-tail platform names, which must not flood the breakdown box.
@@ -203,7 +209,7 @@ const buildLiveLedger = (datasets: DatasetMeta[], stats: GraphStats): IngestLedg
     geoNote: geo.length
       ? `Blended from author-location tags, post locations and place references in text; geo-identifiable subset (${fmt(geoTotal)} mentions).`
       : undefined,
-    footnote: `Computed live from the ingestion registry (${files} files · ${fmt(rawRows)} uploaded records) and the deduplicated evidence graph (${fmt(total)} events${stats.generated_at ? `, assembled ${fmtDay(stats.generated_at)}` : ''}). Social listening reflects brand/category chatter; the India consumer voice is carried by the e-commerce reviews and owned social. Geographic coverage is approximate — rolled up to state level over the geo-identifiable subset.`,
+    footnote: `Computed live from the assembled evidence graph — ${canonicalDatasets ? `${fmt(canonicalDatasets)} dataset${canonicalDatasets === 1 ? '' : 's'} · ` : ''}${fmt(total)} deduplicated data points${stats.generated_at ? `, assembled ${fmtDay(stats.generated_at)}` : ''}. Social listening reflects brand/category chatter; the India consumer voice is carried by the e-commerce reviews and owned social. Geographic coverage is approximate — rolled up to state level over the geo-identifiable subset.`,
   };
 };
 
@@ -217,8 +223,12 @@ const useLiveIngestLedger = (enabled: boolean, projectId = 'baby-diapers'): Inge
     // return — so the ledger renders identically with zero network.
     const share = getShareSnapshot();
     if (share) {
+      const sg = share.evidenceGraph as any;
       setLedger(buildLiveLedger(share.datasets, {
         event_count: share.evidenceGraph.event_count,
+        // V-03 — canonical dataset set from the snapshot graph (falls back to
+        // the snapshot's bundled dataset list, which IS that canonical set).
+        dataset_count: Array.isArray(sg.dataset_ids) ? sg.dataset_ids.length : share.datasets.length,
         generated_at: share.evidenceGraph.generated_at,
         aggregations: share.evidenceGraph.aggregations || {},
       }));
@@ -238,9 +248,11 @@ const useLiveIngestLedger = (enabled: boolean, projectId = 'baby-diapers'): Inge
         if (r?.stats) {
           stats = r.stats as GraphStats;
         } else if (r?.graph && Array.isArray(r.graph.events) && r.graph.events.length > 0) {
-          // Deployed API predates ?stats=1 — same figures off the full payload.
+          // Deployed API predates ?stats=1 — same figures off the full payload;
+          // canonical dataset count comes from the graph row meta (V-03).
           stats = {
             event_count: r.graph.events.length,
+            dataset_count: Array.isArray(r?.meta?.dataset_ids) ? r.meta.dataset_ids.length : undefined,
             generated_at: r.graph.generatedAtISO,
             aggregations: r.graph.aggregations || {},
           };

@@ -101,6 +101,26 @@ export const BookletCover: React.FC = () => (
   </div>
 );
 
+// ── BabyDiaperDivider (N-20) ─────────────────────────────────────────────────
+// Full-bleed navy section-divider slide announcing the shift from general
+// parenting behaviour (Part 1) to the diaper category itself. Rendered as its
+// OWN top-level `.lv-section-break` leaf (no id → single-page contain) so it
+// paginates as its own A4 page in the PDF, immediately before §05.
+export const BabyDiaperDivider: React.FC = () => (
+  <div className="lv-section-break bk-divider-page">
+    <div className="bk-divider">
+      <span className="bk-divider-accent" aria-hidden="true" />
+      <span className="bk-divider-kicker">The category in focus</span>
+      <h2 className="bk-divider-title">Baby Diapers</h2>
+      <span className="bk-divider-rule" aria-hidden="true" />
+      <p className="bk-divider-sub">
+        From parenting behaviour to the diaper itself — needs, journey, usage,
+        features, shopping, brand and price.
+      </p>
+    </div>
+  </div>
+);
+
 // ── BookletTOC ───────────────────────────────────────────────────────────────
 // Single-column, strict reading-order contents (booklet convention). Each main
 // heading is a full-width navy band (number block left, heading in white caps);
