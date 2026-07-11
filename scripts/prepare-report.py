@@ -37,8 +37,11 @@ Usage
 from __future__ import annotations
 
 import argparse
+import importlib
+import json
 import os
 import re
+import shutil
 import sys
 from pathlib import Path
 
@@ -464,9 +467,10 @@ def scrub_section(text: str, num: str, toc_title: str, unmatched: list) -> str:
     text = text.replace("always-visible ", "")
     text = strip_section_xrefs(text)  # drop stale prototype "(§NN)"/"(Section NN)" cross-refs
     text = relabel_callbox(text)
-    # chrome + images
+    # v1 chrome (rpt-top/rpt-foot) — kept as the anchor the v2 nav stage replaces.
+    # The v1 onerror image-degrade hack is intentionally gone (v2 images exist and
+    # are injected by report_media with explicit dimensions).
     text = inject_chrome(text, num)
-    text = add_img_onerror(text)
     text = collapse_blank_runs(text)
     return text
 
@@ -480,7 +484,7 @@ def scrub_cover(text: str) -> str:
         "wired per the asset inventory; competitor logos are composited from real "
         "brand files (never generated). Data is frozen;",
         "<b>Note on the data.</b> Data is frozen;")
-    return add_img_onerror(text)
+    return text  # v2: the divider image is swapped to a real asset by report_media
 
 
 # ===========================================================================
@@ -497,7 +501,9 @@ MARKER_PATTERNS = {
     "prototype": re.compile(r"prototype", re.I),
     "redesign": re.compile(r"redesign", re.I),
     "density#": re.compile(r"density\s*#", re.I),
-    "download-btn": re.compile(r"<button", re.I),
+    # dead scaffold download buttons only — the v2 nav Contents toggle
+    # (<button class="rnav-toc">) is legitimate chrome and allowlisted.
+    "download-btn": re.compile(r"<button(?![^>]*\brnav-)", re.I),
     "Balanced model": re.compile(r"Balanced model", re.I),
     "always-visible": re.compile(r"always-visible", re.I),
     "draft verbatim": re.compile(r"draft verbatim", re.I),
@@ -529,6 +535,19 @@ def image_srcs(text: str) -> list[tuple[str, bool]]:
     return out
 
 
+def local_refs(text: str) -> list[str]:
+    """Every local (non-remote, non-data) src/href — images, css, js, html — for
+    resolution against the emitted bundle."""
+    out = []
+    for r in re.findall(r'(?:src|href)="([^"]+)"', text, re.I):
+        if r.startswith(("http://", "https://", "//", "#", "mailto:", "data:")):
+            continue
+        r = r.split("#")[0].split("?")[0]
+        if r:
+            out.append(r)
+    return out
+
+
 def bs4_residual_scaffold(text: str) -> list[str]:
     """bs4 cross-check: any residual scaffold class / element in the DOM."""
     if not HAVE_BS4:
@@ -542,9 +561,128 @@ def bs4_residual_scaffold(text: str) -> list[str]:
             hits.append(f".{cls}")
     if soup.select(".cmp.before, .cmp.after, .mini.before, .mini.after"):
         hits.append("before/after panel")
-    if soup.find("button"):
+    dead_btns = [b for b in soup.find_all("button")
+                 if not any(c.startswith("rnav") for c in (b.get("class") or []))]
+    if dead_btns:
         hits.append("<button>")
     return hits
+
+
+# ===========================================================================
+#  v2 orchestration — media / nav / immersion / print stages live in sub-agent
+#  modules loaded defensively so this orchestrator still runs the v1 scrub if a
+#  module is absent. Each stage is a pure fn(html, ctx) -> html. See CONTRACT.md.
+# ===========================================================================
+SCRIPT_DIR = Path(__file__).resolve().parent
+REPORT_ASSETS = SCRIPT_DIR / "report-assets"
+ASSETS_MAP_PATH = SCRIPT_DIR / "assets-map.json"
+SHARED_INCLUDES = ("report.css", "report.js", "print.css", "immersion.css", "immersion.js")
+HEAD_TAGS = (
+    '<link rel="stylesheet" href="report.css"/>'
+    '<link rel="stylesheet" href="immersion.css"/>'
+    '<link rel="stylesheet" href="print.css" media="print"/>'
+    '<script src="report.js" defer></script>'
+    '<script src="immersion.js" defer></script>'
+)
+_STAGE_ORDER = (
+    ("report_media", "inject_media"),
+    ("report_nav", "inject_chrome"),
+    ("report_immersion", "inject_section"),
+)
+_stage_cache: dict = {}
+
+
+def _load_stage(modname: str, fnname: str):
+    key = (modname, fnname)
+    if key in _stage_cache:
+        return _stage_cache[key]
+    fn = None
+    try:
+        if str(SCRIPT_DIR) not in sys.path:
+            sys.path.insert(0, str(SCRIPT_DIR))
+        m = importlib.import_module(modname)
+        importlib.reload(m)  # pick up sub-agent edits between runs
+        fn = getattr(m, fnname, None)
+    except Exception as e:  # module not written yet / import error
+        print(f"  (v2 stage {modname}.{fnname} unavailable: {e})", file=sys.stderr)
+    _stage_cache[key] = fn
+    return fn
+
+
+def inject_head_includes(text: str) -> str:
+    if 'href="report.css"' in text:
+        return text
+    return text.replace("</head>", HEAD_TAGS + "</head>", 1)
+
+
+def apply_v2_stages(text: str, ctx: dict, warns: list) -> str:
+    for modname, fnname in _STAGE_ORDER:
+        fn = _load_stage(modname, fnname)
+        if not fn:
+            continue
+        try:
+            out = fn(text, ctx)
+            if isinstance(out, str) and out:
+                text = out
+            else:
+                warns.append(f"{modname}.{fnname} returned non-str on {ctx['target']}")
+        except Exception as e:
+            warns.append(f"{modname}.{fnname} FAILED on {ctx['target']}: {e}")
+    return inject_head_includes(text)
+
+
+def load_assets_map() -> dict:
+    if ASSETS_MAP_PATH.exists():
+        try:
+            return json.loads(ASSETS_MAP_PATH.read_text(encoding="utf-8"))
+        except Exception as e:
+            print(f"  WARN: assets-map.json unreadable: {e}", file=sys.stderr)
+    return {}
+
+
+def _sanitize_shared(text: str) -> str:
+    """Strip internal multi-agent build authorship from shipped css/js comments so
+    the client bundle's view-source carries no "Agent N (ROLE)" process leak.
+    Agent source files under report-assets/ are left untouched."""
+    text = re.sub(r"\s*—\s*Agent \d+ \([^)]*\)", "", text)   # "report.css — Agent 2 (NAV & FOOTER)" -> "report.css"
+    text = re.sub(r"\(Agent \d+'s ", "(", text)               # "(Agent 3's print.html…" -> "(print.html…"
+    text = re.sub(r"\bAgent \d+\b", "the report build", text)  # any remaining "Agent N"
+    return text
+
+
+def copy_shared_assets(out: Path) -> int:
+    for f in SHARED_INCLUDES:
+        p = REPORT_ASSETS / f
+        if p.exists():
+            (out / f).write_text(_sanitize_shared(p.read_text(encoding="utf-8")), encoding="utf-8")
+    src_assets = REPORT_ASSETS / "assets"
+    n = 0
+    if src_assets.is_dir():
+        (out / "assets").mkdir(exist_ok=True)
+        for a in sorted(src_assets.iterdir()):
+            if a.is_file() and not a.name.startswith("."):
+                shutil.copy2(a, out / "assets" / a.name)
+                n += 1
+    return n
+
+
+def dir_size_bytes(d: Path) -> int:
+    return sum(f.stat().st_size for f in d.rglob("*") if f.is_file())
+
+
+def section_meta() -> list[dict]:
+    return [{"num": num, "target": tgt, "title": toc} for (_s, tgt, num, toc) in SECTIONS]
+
+
+COVER_META = {"num": "cover", "target": COVER[1], "title": "Contents"}
+
+
+def build_ctx(num, target, toc_title, is_cover, sec_meta, prev, nxt, assets_map) -> dict:
+    return {
+        "num": num, "target": target, "toc_title": toc_title, "is_cover": is_cover,
+        "sections": sec_meta, "prev": prev, "next": nxt,
+        "assets_map": assets_map, "assets_dir": "assets",
+    }
 
 
 # ===========================================================================
@@ -564,80 +702,122 @@ def main() -> int:
         return 2
     out.mkdir(parents=True, exist_ok=True)
 
+    assets_map = load_assets_map()
+    sec_meta = section_meta()
+    warns: list = []
     unmatched_scrubs: list = []
-    written: list[tuple[str, str, str]] = []  # (target, title, num)
+    written: list[tuple[str, str, str]] = []      # (target, title, num)
+    emitted_for_print: list[dict] = []
 
+    # cover
     cover_text = scrub_cover((src / COVER[0]).read_text(encoding="utf-8"))
-    (out / COVER[1]).write_text(cover_text, encoding="utf-8")
+    cover_ctx = build_ctx("cover", COVER[1], REPORT_LABEL, True, sec_meta,
+                          None, (sec_meta[0] if sec_meta else None), assets_map)
+    cover_final = apply_v2_stages(cover_text, cover_ctx, warns)
+    (out / COVER[1]).write_text(cover_final, encoding="utf-8")
     written.append((COVER[1], "Cover", "—"))
+    emitted_for_print.append({"num": "cover", "target": COVER[1], "title": "Cover", "html": cover_final})
 
-    for src_name, tgt_name, num, toc in SECTIONS:
+    # sections
+    for i, (src_name, tgt_name, num, toc) in enumerate(SECTIONS):
         p = src / src_name
         if not p.exists():
             print(f"ERROR: missing source: {src_name}", file=sys.stderr)
             return 2
         scrubbed = scrub_section(p.read_text(encoding="utf-8"), num, toc, unmatched_scrubs)
-        (out / tgt_name).write_text(scrubbed, encoding="utf-8")
-        tm = re.search(r"<title>(.*?)</title>", scrubbed, re.DOTALL)
+        prev = COVER_META if i == 0 else sec_meta[i - 1]
+        nxt = sec_meta[i + 1] if i + 1 < len(sec_meta) else None
+        ctx = build_ctx(num, tgt_name, toc, False, sec_meta, prev, nxt, assets_map)
+        final = apply_v2_stages(scrubbed, ctx, warns)
+        (out / tgt_name).write_text(final, encoding="utf-8")
+        tm = re.search(r"<title>(.*?)</title>", final, re.DOTALL)
         written.append((tgt_name, tm.group(1) if tm else "", num))
+        emitted_for_print.append({"num": num, "target": tgt_name, "title": toc, "html": final})
+
+    # shared includes (css/js) + optimized assets → bundle
+    n_assets = copy_shared_assets(out)
+
+    # print.html (Agent 3 generator)
+    ptext = ""
+    gen = _load_stage("report_print", "generate_print_html")
+    if gen:
+        try:
+            ph = gen(emitted_for_print, {"sections": sec_meta, "assets_map": assets_map})
+            if isinstance(ph, str) and ph:
+                (out / "print.html").write_text(ph, encoding="utf-8")
+                ptext = ph
+            else:
+                warns.append("generate_print_html returned empty")
+        except Exception as e:
+            warns.append(f"generate_print_html FAILED: {e}")
 
     # ---- verification -----------------------------------------------------
     existing = {p.name for p in out.glob("*.html")}
-    total_markers = total_broken = total_bs4 = 0
+    total_markers = total_broken = total_unresolved = total_bs4 = 0
 
-    print("\n" + "=" * 104)
+    print("\n" + "=" * 112)
     print(f"VERIFICATION — {out}")
-    print("=" * 104)
-    print(f"{'file':38} {'markers':8} {'links':6} {'bs4':4} title")
-    print("-" * 104)
+    print("=" * 112)
+    print(f"{'file':38} {'mark':5} {'html':5} {'refs':5} {'bs4':4} title")
+    print("-" * 112)
     for tgt_name, title, num in written:
         text = (out / tgt_name).read_text(encoding="utf-8")
         markers = scan_markers(text)
-        # stale prototype section cross-refs = any §NN outside <title>, or "(Section NN)"
         body_nt = re.sub(r"<title>.*?</title>", "", text, flags=re.DOTALL)
         markers["section-xref"] = len(re.findall(r"§\d+", body_nt)) + len(re.findall(r"\(Section \d+\)", body_nt))
         mcount = sum(markers.values())
         broken = [h for h in internal_links(text) if h.endswith(".html") and h not in existing]
+        unresolved = [r for r in local_refs(text) if not (out / r).exists()]
         bs4hits = bs4_residual_scaffold(text)
-        total_markers += mcount
-        total_broken += len(broken)
-        total_bs4 += len(bs4hits)
-        flag = "" if (mcount == 0 and not broken and not bs4hits) else "  <-- CHECK"
-        print(f"{tgt_name:38} {mcount:<8} {len(broken):<6} {len(bs4hits):<4} {title[:40]}{flag}")
+        total_markers += mcount; total_broken += len(broken)
+        total_unresolved += len(unresolved); total_bs4 += len(bs4hits)
+        flag = "" if (mcount == 0 and not broken and not unresolved and not bs4hits) else "  <-- CHECK"
+        print(f"{tgt_name:38} {mcount:<5} {len(broken):<5} {len(unresolved):<5} {len(bs4hits):<4} {title[:34]}{flag}")
         if mcount:
             print(f"{'':38} markers: { {k: v for k, v in markers.items() if v} }")
         if broken:
-            print(f"{'':38} broken: {broken}")
+            print(f"{'':38} broken-html: {broken}")
+        if unresolved:
+            print(f"{'':38} unresolved-ref: {sorted(set(unresolved))[:8]}")
         if bs4hits:
             print(f"{'':38} bs4-residual: {bs4hits}")
 
-    cover_links = [h for h in internal_links(cover_text) if h.endswith(".html")]
-    toc_missing = [h for h in cover_links if h not in existing]
+    cover_links = set(h for h in internal_links(cover_final) if h.endswith(".html"))
+    expected_targets = {tgt for (_s, tgt, _n, _t) in SECTIONS}
+    toc_missing = sorted(expected_targets - cover_links)
 
-    print("-" * 104)
-    for tgt_name, _, _ in written:
-        text = (out / tgt_name).read_text(encoding="utf-8")
-        for src_i, has_oe in image_srcs(text):
-            if not has_oe:
-                print(f"IMG WITHOUT ONERROR: {tgt_name} -> {src_i}")
+    assets_dir = out / "assets"
+    assets_mb = dir_size_bytes(assets_dir) / (1024 * 1024) if assets_dir.is_dir() else 0.0
+    css_js_ok = sum(1 for f in SHARED_INCLUDES if (out / f).exists())
+    print_h1 = ptext.count("<h1") if ptext else 0
+
+    print("-" * 112)
+    if warns:
+        print("STAGE WARNINGS (must be 0):")
+        for w in warns:
+            print(f"   ⚠ {w}")
     if unmatched_scrubs:
-        print("UNMATCHED INLINE SCRUBS (survey string drifted — inspect source):")
+        print("UNMATCHED INLINE SCRUBS:")
         for num, frag in unmatched_scrubs:
             print(f"   §{num}: {frag}…")
 
-    print("-" * 104)
-    print(f"files written         : {len(written)} (1 cover + {len(SECTIONS)} sections)")
-    print(f"total scaffold markers: {total_markers}  (must be 0)")
-    print(f"total broken links    : {total_broken}  (must be 0)")
-    print(f"bs4 residual scaffold : {total_bs4}  (must be 0)")
-    print(f"unmatched inline scrubs: {len(unmatched_scrubs)}  (must be 0)")
-    print(f"cover TOC links       : {len(cover_links)} (expect {TOTAL_SECTIONS}); missing: {toc_missing or 'none'}")
-    print(f"bs4 verification      : {'available' if HAVE_BS4 else 'UNAVAILABLE (regex-only)'}")
-    ok = (total_markers == 0 and total_broken == 0 and total_bs4 == 0
-          and not toc_missing and not unmatched_scrubs
-          and len(cover_links) == TOTAL_SECTIONS)
-    print(f"RESULT                : {'PASS ✅' if ok else 'FAIL ❌'}")
-    print("=" * 104)
+    print("-" * 112)
+    print(f"files written          : {len(written)} html (1 cover + {len(SECTIONS)} sections)"
+          f" + {'print.html' if ptext else 'NO print.html ❌'}")
+    print(f"shared bundle assets   : {n_assets} in assets/  ·  {css_js_ok}/{len(SHARED_INCLUDES)} css/js present")
+    print(f"total scaffold markers : {total_markers}  (must be 0)")
+    print(f"broken html links      : {total_broken}  (must be 0)")
+    print(f"unresolved img/css/js  : {total_unresolved}  (must be 0)")
+    print(f"bs4 residual scaffold  : {total_bs4}  (must be 0)")
+    print(f"cover → all 21 sections: {'yes' if not toc_missing else 'MISSING ' + str(toc_missing)}")
+    print(f"assets/ size           : {assets_mb:.2f} MB  (must be ≤ 8.0)")
+    print(f"print.html h1 blocks   : {print_h1}  (expect ≥ {TOTAL_SECTIONS})")
+    print(f"stage warnings         : {len(warns)}  (must be 0)")
+    ok = (total_markers == 0 and total_broken == 0 and total_unresolved == 0 and total_bs4 == 0
+          and not toc_missing and not unmatched_scrubs and not warns
+          and assets_mb <= 8.0 and bool(ptext) and print_h1 >= TOTAL_SECTIONS)
+    print(f"RESULT                 : {'PASS ✅' if ok else 'FAIL ❌'}")
+    print("=" * 112)
     return 0 if ok else 1
 
 

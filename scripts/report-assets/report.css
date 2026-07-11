@@ -1,0 +1,302 @@
+/* ==========================================================================
+   report.css — Agent 2 (NAVIGATION & FOOTER)
+   RSPL "Baby Diapers — Category Report" v2 bundle.
+
+   Styles the sticky section nav, reading-progress bar, the § Contents overlay,
+   and the rebuilt footer. Loaded via a <head> include on every emitted page
+   (added by the main thread), AFTER each page's inline <style>. Uses the shared
+   design tokens (var(--brand2) etc.) with hard-coded fallbacks so it is correct
+   even on a page that defines a smaller token set (e.g. the cover).
+
+   Design tokens: navy #0D2A55 · blue #1F5FBF · coral #F26A3D · off-white #F6F8FB
+   · card #FFFFFF · line #E3E8EF. No external fonts / CDNs. McKinsey-grade:
+   restraint over theatrics — coral is used sparingly (progress fill + accents).
+   Fresh class names (rnav/rfoot/rtoc) so nothing inherits the dead inline
+   .rpt-top/.rpt-foot rules left in each page's <style>.
+   ========================================================================== */
+
+/* ---- Sticky section nav ------------------------------------------------- */
+.rnav{
+  position:sticky;
+  top:0;
+  z-index:60;
+  display:flex;
+  align-items:center;
+  gap:10px;
+  /* break out of .wrap's 24px inline padding so the bar background spans the
+     full content column, while its contents stay aligned to the text inset */
+  margin:0 -24px 8px;
+  padding:9px 24px 10px;
+  background:rgba(246,248,251,.86);
+  -webkit-backdrop-filter:saturate(1.6) blur(10px);
+  backdrop-filter:saturate(1.6) blur(10px);
+  border-bottom:1px solid var(--line,#E3E8EF);
+  font-size:11px;
+}
+@supports not ((-webkit-backdrop-filter:blur(1px)) or (backdrop-filter:blur(1px))){
+  .rnav{background:#f6f8fb}
+}
+
+/* Prev / Next arrows (two stacked lines: direction + truncated title) */
+.rnav-arrow{
+  display:flex;
+  flex-direction:column;
+  gap:1px;
+  flex:0 0 auto;
+  max-width:230px;
+  min-width:0;
+  padding:4px 9px;
+  border-radius:9px;
+  text-decoration:none;
+  color:var(--ink2,#33475b);
+  border:1px solid transparent;
+  transition:background .12s ease,border-color .12s ease;
+}
+.rnav-arrow:hover{background:var(--card,#fff);border-color:var(--line,#E3E8EF)}
+.rnav-next{text-align:right;align-items:flex-end}
+.rnav-dir{
+  font-size:9.5px;
+  font-weight:800;
+  letter-spacing:.06em;
+  text-transform:uppercase;
+  color:var(--brand,#1F5FBF);
+}
+.rnav-ttl{
+  font-size:12px;
+  font-weight:700;
+  color:var(--brand2,#0D2A55);
+  max-width:210px;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+.rnav-arrow.is-disabled{opacity:.34;pointer-events:none;cursor:default}
+.rnav-arrow.is-disabled .rnav-ttl{color:var(--muted,#6b7a8d)}
+
+/* Center cluster: § Contents button + Section NN / 21 */
+.rnav-mid{
+  flex:1 1 auto;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:12px;
+  min-width:0;
+}
+.rnav-toc{
+  display:inline-flex;
+  align-items:center;
+  gap:5px;
+  font:inherit;
+  font-size:11px;
+  font-weight:800;
+  letter-spacing:.01em;
+  color:#fff;
+  background:var(--brand2,#0D2A55);
+  border:1px solid var(--brand2,#0D2A55);
+  border-radius:8px;
+  padding:6px 12px;
+  cursor:pointer;
+  white-space:nowrap;
+  transition:background .12s ease,transform .04s ease;
+}
+.rnav-toc:hover{background:var(--brand,#1F5FBF);border-color:var(--brand,#1F5FBF)}
+.rnav-toc:active{transform:translateY(.5px)}
+.rnav-glyph{font-weight:800;opacity:.92}
+.rnav-count{
+  font-size:11px;
+  font-weight:600;
+  color:var(--muted,#6b7a8d);
+  white-space:nowrap;
+}
+.rnav-count b{color:var(--brand2,#0D2A55);font-weight:800}
+.rnav-sep{color:var(--line,#E3E8EF)}
+
+/* Download PDF */
+.rnav-pdf{
+  flex:0 0 auto;
+  display:inline-flex;
+  align-items:center;
+  gap:4px;
+  font-size:11px;
+  font-weight:800;
+  letter-spacing:.01em;
+  color:var(--brand,#1F5FBF);
+  background:var(--card,#fff);
+  border:1px solid var(--line,#E3E8EF);
+  border-radius:8px;
+  padding:6px 11px;
+  text-decoration:none;
+  white-space:nowrap;
+  transition:border-color .12s ease,color .12s ease,background .12s ease;
+}
+.rnav-pdf:hover{border-color:var(--brand,#1F5FBF);color:#fff;background:var(--brand,#1F5FBF)}
+
+/* Thin reading-progress bar, pinned to the bar's bottom edge */
+.rnav-progress{
+  position:absolute;
+  left:0;
+  right:0;
+  bottom:-1px;
+  height:2px;
+  background:transparent;
+  overflow:hidden;
+}
+.rnav-progress-fill{
+  display:block;
+  height:100%;
+  width:0;
+  background:var(--accent,#F26A3D);
+  transition:width .08s linear;
+}
+
+/* Focus visibility (keyboard) */
+.rnav-toc:focus-visible,
+.rnav-pdf:focus-visible,
+.rnav-arrow:focus-visible,
+.rtoc-item:focus-visible,
+.rtoc-close:focus-visible{
+  outline:2px solid var(--brand,#1F5FBF);
+  outline-offset:2px;
+}
+
+/* Narrow screens: drop the titles (arrows only), collapse the PDF label */
+@media (max-width:720px){
+  .rnav{gap:8px;margin:0 -24px 6px}
+  .rnav-ttl{display:none}
+  .rnav-arrow{max-width:none;padding:5px 8px}
+  .rnav-pdf-txt{display:none}
+  .rnav-pdf{padding:6px 9px}
+}
+
+/* ---- § Contents overlay ------------------------------------------------- */
+html.rtoc-lock{overflow:hidden}
+
+.rtoc-overlay{
+  position:fixed;
+  inset:0;
+  z-index:200;
+  display:none;
+  align-items:flex-start;
+  justify-content:center;
+  padding:7vh 20px 20px;
+}
+.rtoc-overlay.is-open{display:flex}
+.rtoc-backdrop{
+  position:fixed;
+  inset:0;
+  background:rgba(9,25,49,.52);
+  -webkit-backdrop-filter:blur(3px);
+  backdrop-filter:blur(3px);
+}
+.rtoc-panel{
+  position:relative;
+  z-index:1;
+  width:100%;
+  max-width:560px;
+  max-height:86vh;
+  overflow:auto;
+  background:var(--card,#fff);
+  border:1px solid var(--line,#E3E8EF);
+  border-radius:16px;
+  box-shadow:0 26px 64px -14px rgba(9,25,49,.42);
+  -webkit-overflow-scrolling:touch;
+  animation:rtoc-pop .16s ease-out;
+}
+@keyframes rtoc-pop{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){
+  .rtoc-panel{animation:none}
+  .rnav-progress-fill,.rnav-toc,.rnav-pdf,.rnav-arrow{transition:none}
+}
+
+.rtoc-head{
+  position:sticky;
+  top:0;
+  display:flex;
+  align-items:center;
+  gap:10px;
+  padding:14px 16px 12px;
+  background:var(--card,#fff);
+  border-bottom:1px solid var(--line,#E3E8EF);
+  border-radius:16px 16px 0 0;
+}
+.rtoc-title{
+  font-size:12px;
+  font-weight:800;
+  letter-spacing:.12em;
+  text-transform:uppercase;
+  color:var(--brand2,#0D2A55);
+}
+.rtoc-sub{font-size:11px;color:var(--muted,#6b7a8d)}
+.rtoc-close{
+  margin-left:auto;
+  width:26px;
+  height:26px;
+  line-height:1;
+  font-size:18px;
+  font-weight:400;
+  color:var(--muted,#6b7a8d);
+  background:transparent;
+  border:1px solid var(--line,#E3E8EF);
+  border-radius:8px;
+  cursor:pointer;
+  transition:background .12s ease,color .12s ease;
+}
+.rtoc-close:hover{background:var(--bg,#F6F8FB);color:var(--brand2,#0D2A55)}
+
+.rtoc-list{padding:8px}
+.rtoc-item{
+  display:flex;
+  align-items:center;
+  gap:13px;
+  padding:9px 12px;
+  border-radius:10px;
+  text-decoration:none;
+  color:var(--ink,#0f2440);
+  border:1px solid transparent;
+}
+.rtoc-item:hover{background:var(--bg,#F6F8FB)}
+.rtoc-item.is-current{background:#eef4fd;border-color:#cfe0f7}
+.rtoc-num{
+  font-size:12px;
+  font-weight:800;
+  color:var(--brand,#1F5FBF);
+  width:24px;
+  text-align:right;
+  flex:none;
+}
+.rtoc-item.is-current .rtoc-num{color:var(--accent,#F26A3D)}
+.rtoc-ttl{font-size:13.5px;font-weight:600;line-height:1.35}
+.rtoc-item.is-current .rtoc-ttl{color:var(--brand2,#0D2A55);font-weight:700}
+
+/* ---- Rebuilt footer ----------------------------------------------------- */
+.rfoot{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  flex-wrap:wrap;
+  gap:14px 22px;
+  margin-top:34px;
+  padding-top:18px;
+  border-top:1px solid var(--line,#E3E8EF);
+  font-size:11.5px;
+  color:var(--muted,#6b7a8d);
+}
+.rfoot-brand{display:flex;align-items:center;gap:13px;flex:none}
+.rfoot-mark{display:inline-flex;align-items:center}
+.rfoot-logo{height:26px;width:auto;display:block;opacity:.95}
+.rfoot-x{color:var(--line,#E3E8EF);font-size:13px;font-weight:400}
+/* text-wordmark fallback (revealed by <img> onerror if a logo file is missing) */
+.rfoot-wordmark{
+  font-weight:800;
+  font-size:14px;
+  letter-spacing:-.01em;
+  color:var(--brand2,#0D2A55);
+}
+.rfoot-txt{flex:1 1 auto;text-align:center;min-width:220px}
+.rfoot-txt b{color:var(--ink2,#33475b);font-weight:700}
+.rfoot-copy{flex:none;font-weight:700;color:var(--muted,#6b7a8d)}
+
+@media (max-width:620px){
+  .rfoot{justify-content:center;text-align:center}
+  .rfoot-txt{text-align:center}
+}

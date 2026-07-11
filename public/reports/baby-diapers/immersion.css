@@ -1,0 +1,185 @@
+/* ==========================================================================
+   immersion.css, RSPL Baby Diapers v2
+   Scroll-reveal, micro-polish hover, and the cover section grid.
+
+   Contract: McKinsey-grade subtle polish. Motion is OPT-IN via `html.js-reveal`
+   (set by immersion.js). Without JS, without IntersectionObserver, under
+   prefers-reduced-motion, and in print — every block is fully visible and
+   static. Tokens: navy #0d2a55 · blue #1f5fbf · coral #f26a3d · line #e3e8ef.
+   ========================================================================== */
+
+/* --------------------------------------------------------------------------
+   1 · Scroll reveal
+   The hidden start-state is scoped to `html.js-reveal`, so content defaults to
+   visible. Elements animate in only once immersion.js marks them `.is-visible`.
+   -------------------------------------------------------------------------- */
+html.js-reveal .reveal {
+  opacity: 0;
+  transform: translateY(14px);
+  transition:
+    opacity 0.55s cubic-bezier(0.22, 0.61, 0.36, 1),
+    transform 0.55s cubic-bezier(0.22, 0.61, 0.36, 1);
+  will-change: opacity, transform;
+}
+html.js-reveal .reveal.is-visible {
+  opacity: 1;
+  transform: none;
+  will-change: auto;
+}
+
+/* --------------------------------------------------------------------------
+   2 · Cover hero treatment (subtle) — a gentle settle on load.
+   Declared as a plain CSS animation (NOT js-gated) so it is present at first
+   paint and never flashes; disabled for reduced-motion / print below.
+   -------------------------------------------------------------------------- */
+.cv-immersive {
+  animation: cv-rise 0.7s cubic-bezier(0.22, 0.61, 0.36, 1) both;
+}
+@keyframes cv-rise {
+  from { opacity: 0; transform: translateY(-6px); }
+  to   { opacity: 1; transform: none; }
+}
+
+/* --------------------------------------------------------------------------
+   3 · Cover visual section grid
+   -------------------------------------------------------------------------- */
+.cv-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+  gap: 14px;
+  margin-top: 26px;
+}
+.cv-card {
+  display: flex;
+  flex-direction: column;
+  text-decoration: none;
+  color: inherit;
+  background: var(--card, #fff);
+  border: 1px solid var(--line, #e3e8ef);
+  border-radius: 14px;
+  overflow: hidden;
+  transition: box-shadow 0.2s ease, border-color 0.2s ease;
+}
+.cv-thumb {
+  position: relative;
+  display: block;
+  aspect-ratio: 16 / 10;
+  background: #0d2a55;
+  overflow: hidden;
+}
+.cv-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  transition: transform 0.35s cubic-bezier(0.22, 0.61, 0.36, 1);
+}
+/* navy placeholder tile for sections with no hero (07/08/13/15/19/20) */
+.cv-thumb--ph {
+  background: linear-gradient(135deg, #0d2a55 0%, #123970 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.cv-thumb--ph::after {
+  content: attr(data-n);
+  font-size: 34px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: rgba(255, 255, 255, 0.16);
+}
+.cv-thumb--ph img { display: none; }
+.cv-meta {
+  display: flex;
+  align-items: baseline;
+  gap: 9px;
+  padding: 11px 13px 13px;
+}
+.cv-num {
+  flex: none;
+  font-size: 12px;
+  font-weight: 800;
+  color: var(--brand, #1f5fbf);
+  font-variant-numeric: tabular-nums;
+}
+.cv-ttl {
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.32;
+  color: var(--ink, #0f2440);
+}
+/* hover: shadow-lift on the card + a subtle zoom on the thumb (no transform on
+   the card itself, so it never collides with the reveal transform). */
+.cv-card:hover {
+  box-shadow: 0 12px 28px -14px rgba(13, 42, 85, 0.34);
+  border-color: #cdd8e8;
+}
+.cv-card:hover .cv-thumb img { transform: scale(1.045); }
+
+/* --------------------------------------------------------------------------
+   4 · Section card micro-polish (`.rpt-lift`) — shadow-only lift, no transform.
+   -------------------------------------------------------------------------- */
+.rpt-lift {
+  transition: box-shadow 0.2s ease, border-color 0.2s ease;
+}
+.rpt-lift:hover {
+  box-shadow: 0 10px 24px -14px rgba(13, 42, 85, 0.28);
+  border-color: #cdd8e8;
+}
+
+/* --------------------------------------------------------------------------
+   5 · Smooth in-page scrolling + consistent focus-visible affordances.
+   -------------------------------------------------------------------------- */
+html { scroll-behavior: smooth; }
+
+.cv-card:focus-visible,
+a:focus-visible {
+  outline: 2px solid var(--brand, #1f5fbf);
+  outline-offset: 2px;
+  border-radius: 6px;
+}
+
+/* --------------------------------------------------------------------------
+   6 · Reduced-motion — no transforms, no opacity animation, no smooth scroll.
+   Everything resolves to its visible, static end-state.
+   -------------------------------------------------------------------------- */
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  html.js-reveal .reveal {
+    opacity: 1 !important;
+    transform: none !important;
+    transition: none !important;
+    will-change: auto;
+  }
+  .cv-immersive { animation: none !important; }
+  .cv-card,
+  .cv-card:hover,
+  .cv-thumb img,
+  .cv-card:hover .cv-thumb img,
+  .rpt-lift,
+  .rpt-lift:hover {
+    transition: none !important;
+    transform: none !important;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   7 · Print — all motion off, all content visible, no hover artefacts.
+   -------------------------------------------------------------------------- */
+@media print {
+  html { scroll-behavior: auto; }
+  html.js-reveal .reveal,
+  .reveal {
+    opacity: 1 !important;
+    transform: none !important;
+    transition: none !important;
+  }
+  .cv-immersive { animation: none !important; }
+  .cv-card,
+  .cv-thumb img,
+  .rpt-lift {
+    transition: none !important;
+    transform: none !important;
+    box-shadow: none !important;
+  }
+}

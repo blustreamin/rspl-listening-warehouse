@@ -1,0 +1,252 @@
+/* ==========================================================================
+   print.css · RSPL Baby Diapers v2
+   Styles the generated print.html: legible on screen AND paginated for paper.
+   Loaded two ways:
+     1. by print.html itself (all-media) so the bundle's print view reads well;
+     2. by each section page as <link media="print"> so a single section prints
+        cleanly on its own.
+   Design tokens (CONTRACT): navy #0D2A55, blue #1F5FBF, coral #F26A3D,
+   off-white #F6F8FB, card #FFF, line #E3E8EF.
+   ========================================================================== */
+
+:root {
+  --p-navy: #0d2a55;
+  --p-blue: #1f5fbf;
+  --p-coral: #f26a3d;
+  --p-bg: #f6f8fb;
+  --p-card: #fff;
+  --p-line: #e3e8ef;
+  --p-ink: #0f2440;
+  --p-muted: #6b7a8d;
+  --p-page: 20mm;               /* paper margin */
+  --p-content: 176mm;           /* ~A4 width minus margins */
+}
+
+/* --------------------------------------------------------------------------
+   Screen base — print.html must be readable in a browser too.
+   -------------------------------------------------------------------------- */
+html, body {
+  margin: 0;
+  padding: 0;
+}
+body {
+  background: #e9edf3;
+  color: var(--p-ink);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  line-height: 1.55;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+}
+
+/* Each section = one "sheet". On screen we mimic paper; on paper it's the page. */
+.pg {
+  box-sizing: border-box;
+  position: relative;
+  background: var(--p-card);
+  width: 100%;
+  max-width: 900px;
+  margin: 0 auto 26px;
+  padding: 30px 34px 40px;
+  border: 1px solid var(--p-line);
+  border-radius: 8px;
+  box-shadow: 0 2px 14px rgba(13, 42, 85, 0.08);
+  overflow: visible;
+}
+.pg-cover {
+  padding: 0 0 26px;           /* cover carries its own gradient banner */
+  overflow: hidden;
+}
+
+/* Running section title — a thin coral-ruled label at the top of each page. */
+.pg-runhead {
+  font-size: 10.5px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--p-navy);
+  border-bottom: 2px solid var(--p-coral);
+  padding-bottom: 5px;
+  margin-bottom: 14px;
+}
+.pg-error {
+  color: var(--p-coral);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+/* Constrain the inner .wrap so it fills the sheet rather than its own 1080px. */
+.pg .wrap {
+  max-width: 100% !important;
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+  padding-bottom: 0 !important;
+  margin: 0 !important;
+}
+
+/* --------------------------------------------------------------------------
+   Kill chrome & interactivity (backstop for anything the body strip missed).
+   Uses !important so it beats the id-scoped section rules.
+   -------------------------------------------------------------------------- */
+.rnav, .rnav-progress, .rtoc-overlay,
+.rpt-top,
+.rpt-progress, .reading-progress, .progress-bar,
+.rpt-nav, .site-nav, .rpt-topbar,
+.rpt-overlay, .toc-overlay, .nav-overlay, .rpt-toc-overlay,
+[class*="progress-bar"], [class*="reading-progress"],
+[data-rpt-nav], [data-progress],
+nav[role="navigation"] {
+  display: none !important;
+}
+
+/* Un-hide immersion reveal hooks / inline opacity so nothing is invisible. */
+[class*="reveal"], [class*="fade"], [class*="anim"],
+[data-reveal], [data-animate], [data-immersion],
+[style*="opacity:0"], [style*="opacity: 0"],
+[style*="visibility:hidden"], [style*="visibility: hidden"] {
+  opacity: 1 !important;
+  visibility: visible !important;
+  transform: none !important;
+  filter: none !important;
+}
+
+/* Kill every animation / transition so print is static and instant. */
+*, *::before, *::after {
+  animation: none !important;
+  transition: none !important;
+  scroll-behavior: auto !important;
+}
+
+/* --------------------------------------------------------------------------
+   Heroes — constrain so a section never opens with a full-bleed image.
+   -------------------------------------------------------------------------- */
+.hero-img img,
+.rpt-hero img, .rpt-hero picture img,
+[class*="hero"] img,
+figure img {
+  max-height: 40vh;
+  object-fit: cover;
+  width: 100%;
+}
+.pg-cover img {
+  max-height: 46vh;
+  object-fit: cover;
+}
+
+/* --------------------------------------------------------------------------
+   Force decorative backgrounds/gradients to render (batteries, bars, bands).
+   -------------------------------------------------------------------------- */
+.cover, .band, .bandhd, .ws, .nbar, .nbarwrap, .chip,
+.badge, .vb, .callbox, .cv-stats .s, .northline,
+[class*="battery"], [class*="bar"], [class*="ramp"], [class*="chip"] {
+  -webkit-print-color-adjust: exact !important;
+  print-color-adjust: exact !important;
+}
+
+/* --------------------------------------------------------------------------
+   PRINT (paper) rules.
+   -------------------------------------------------------------------------- */
+@page {
+  size: A4;
+  margin: var(--p-page);
+  /* Page numbers via CSS counters — honoured by Paged-Media engines
+     (Prince/WeasyPrint). Chrome ignores margin-boxes and uses its own
+     header/footer instead; harmless either way. */
+  @bottom-right {
+    content: "Page " counter(page) " / " counter(pages);
+    font: 700 9pt -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+    color: #6b7a8d;
+  }
+  @bottom-left {
+    content: "Baby Diapers — Category Report · Blustream × RSPL";
+    font: 400 8pt -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+    color: #9aa7b6;
+  }
+}
+
+@media print {
+  html, body {
+    background: #fff !important;
+  }
+  body {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  /* one section == start a fresh page */
+  .pg {
+    max-width: none;
+    width: auto;
+    margin: 0;
+    padding: 0;
+    border: none;
+    border-radius: 0;
+    box-shadow: none;
+    background: transparent;
+    page-break-before: always;
+    break-before: page;
+  }
+  .pg:first-of-type {
+    page-break-before: avoid;
+    break-before: avoid;
+  }
+
+  .pg-runhead {
+    /* repeats visually per section; keep it tight on paper */
+    margin-bottom: 12px;
+  }
+
+  /* heroes on paper: cap by physical height, not viewport */
+  .hero-img img, .rpt-hero img, [class*="hero"] img, figure img {
+    max-height: 78mm !important;
+  }
+  .pg-cover img {
+    max-height: 96mm !important;
+  }
+
+  /* Keep atomic blocks whole across page breaks. */
+  .band, .pair, .vb, .ws, .callbox, .northline, .note,
+  .nrow, .wsrow, .bandhd, .cv-stats, .cv-attrib,
+  .persona, .persona-card, [class*="persona"], .card,
+  figure, table, tr, blockquote, .quote, [class*="verbatim"] {
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
+
+  /* Headings should not dangle at the foot of a page. */
+  h1, h2, h3, .subtitle, .hdl, .part-h {
+    page-break-after: avoid;
+    break-after: avoid;
+  }
+  h1, h2, h3 {
+    page-break-inside: avoid;
+  }
+
+  /* Links: quiet, no underline noise; do not print the URL (keeps it clean). */
+  a {
+    color: inherit;
+    text-decoration: none;
+  }
+
+  /* Slightly tighten body type for paper density. */
+  .pg .wrap, .pg {
+    font-size: 11.5px;
+  }
+
+  /* Avoid orphan/widow single lines where the engine supports it. */
+  p, li, .lede, .framing {
+    orphans: 2;
+    widows: 2;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   Screen niceties: give the page some breathing room around the sheets.
+   -------------------------------------------------------------------------- */
+@media screen {
+  body {
+    padding: 26px 12px;
+  }
+  .pg-cover {
+    max-width: 900px;
+  }
+}

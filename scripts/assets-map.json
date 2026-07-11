@@ -1,0 +1,83 @@
+{
+  "heroes": {
+    "cover": "A10",
+    "01": "A01",
+    "02": "A16",
+    "03": "A04",
+    "04": "A06",
+    "05": "A05",
+    "06": "A15",
+    "09": "A02",
+    "10": "A08",
+    "11": "A03",
+    "12": "A09",
+    "14": "A07",
+    "16": "A11",
+    "17": "A14",
+    "18": "A12",
+    "21": "A13"
+  },
+  "hero_alt": {
+    "cover": "Baby Diapers — category section divider",
+    "01": "Skin-safety anxiety as the category's defining tension",
+    "02": "How the evidence base was built",
+    "03": "Skin safety and unbroken sleep dominate babycare",
+    "04": "Overnight dryness and rash-free skin lead",
+    "05": "Each lifestage resets the dominant need",
+    "06": "Five archetypes split the buyer",
+    "09": "The daily care arc: massage, bath, feed, sleep",
+    "10": "Night is the dominant usage occasion",
+    "11": "Mother owns the routine; father stepping in at night",
+    "12": "Mothers own diapering; fathers visibly stepping in",
+    "14": "Skin-safety anxiety governs first choice; reviews seal it",
+    "16": "Marketplaces dominate; q-commerce and pharmacy fill gaps",
+    "17": "Price-per-diaper math dominates SKU choice",
+    "18": "Three giants own the category's voice",
+    "21": "Rash anxiety blocks trial; softness converts"
+  },
+  "personas": {
+    "06": {
+      "1": "P03",
+      "2": "P01",
+      "3": "P02",
+      "4": "P04",
+      "5": "P05"
+    }
+  },
+  "persona_names": {
+    "P01": "Anxious First-Timer",
+    "P02": "Confident Optimizer",
+    "P03": "Premium Skin-Safety Seeker",
+    "P04": "Value-Rational Switcher",
+    "P05": "Conscious Hybrid User"
+  },
+  "drivers": {
+    "sections": ["18", "19"],
+    "icons": {
+      "softness": "B01",
+      "overnight_absorption": "B02",
+      "rash_skin_safety": "B03",
+      "leak_protection": "B04",
+      "fit": "B05",
+      "value_for_money": "B06",
+      "availability": "B07"
+    }
+  },
+  "vectors": {},
+  "_vectors_held": {
+    "_reason": "C-series journey/role icons held for v2: the v1-reframed content structure has no consistent label anchors. §14 uses a Discover/Evaluate/Decide/Repeat frame (not Trial/Switch); §10 occasion rows already carry emoji; §11 would ice only 2 of 6 role cards (Mother/Father), reading as inconsistent. Icons are optimized & ready; wiring needs a small content-structure pass.",
+    "14": {"Trial": "C01", "Repeat": "C02", "Switch": "C03"},
+    "10": {"Night": "C04", "Day/Outing": "C05"},
+    "11": {"Mother": "C06", "Father": "C07", "Grandparent": "C08", "Maalish wali": "C09"}
+  },
+  "logos": {
+    "pampers": "pampers",
+    "huggies": "huggies",
+    "mamypoko": "mamypoko",
+    "little-angels": "little-angels",
+    "lovingle": "lovingle",
+    "rspl": "rspl",
+    "blustream": "blustream"
+  },
+  "logo_sections": ["17", "18"]
+}
