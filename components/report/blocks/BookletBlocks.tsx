@@ -13,10 +13,10 @@ import {
   VerbatimContent, cleanVerbatimText, sanitiseConsumerText, formatAttribution, evidencePct,
   BatteryMeter,
 } from './LovingleBlocks';
+export { BatteryMeter } from './LovingleBlocks';
 
 // N-12 — re-export the shared meter so section renderers can keep importing it
 // from BookletBlocks (its real home is LovingleBlocks, to avoid a cycle).
-export { BatteryMeter };
 
 const arr = <T,>(v: any): T[] => (Array.isArray(v) ? v : v ? [v] : []);
 const str = (v: any): string => {
