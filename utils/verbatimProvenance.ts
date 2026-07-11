@@ -13,6 +13,12 @@
 //
 //  Matching is fuzzy by design: the model lightly edits/truncates source text,
 //  so we look for any surviving n-gram (5-word shingle) shared with the corpus.
+//
+//  N-14 (translated verbatims): when a verbatim carries `original_text`, THAT
+//  is what gets provenance-checked — the English `quote` is a translation and
+//  is definitionally absent from the corpus. Normalisation is Unicode-aware
+//  (Indic scripts U+0900–U+0D7F survive it) so native-script source spans can
+//  match their records instead of normalising to an empty string.
 // ============================================================================
 
 import type { EvidenceEventV1 } from '../types';
@@ -28,8 +34,11 @@ export interface VerbatimAudit {
 }
 
 // Normalize text for matching: lowercase, drop punctuation, collapse whitespace.
+// Indic-script characters (Devanagari–Malayalam, U+0900–U+0D7F) are word
+// characters here — stripping them (the pre-N-14 behaviour) reduced any
+// native-script quote to '' and made it unmatchable by construction.
 const norm = (s: string): string =>
-  (s || '').toLowerCase().replace(/[^a-z0-9\s]/g, ' ').replace(/\s+/g, ' ').trim();
+  (s || '').toLowerCase().replace(/[^a-z0-9ऀ-ൿ\s]/g, ' ').replace(/\s+/g, ' ').trim();
 
 const SHINGLE_N = 5;
 
@@ -78,8 +87,15 @@ function isNotConsumerVoice(raw: string): boolean {
   if (/\|/.test(t) && /\b(size|count|pcs|pack|pants|diaper)\b/i.test(t)) return true;
   if (/^buy\s/i.test(t)) return true;
   if (/\b1\.\s.*\b2\.\s.*\b3\.\s/i.test(t)) return true;
-  const ascii = (t.match(/[a-z]/gi) || []).length;
-  if (ascii < t.length * 0.45) return true;
+  // Mojibake ≠ Indic script (N-14): replacement chars mark true corruption;
+  // Devanagari–Malayalam characters count as word characters, not noise.
+  if ((t.match(/�/g) || []).length >= 2) return true;
+  const latin = (t.match(/[a-z]/gi) || []).length;
+  const indic = (t.match(/[ऀ-ൿ]/g) || []).length;
+  if (latin + indic < t.length * 0.45) return true;
+  // Indic-dominant text is accepted as voice here — the experiential-marker
+  // regex below is English-only and must not gate out native-script opinions.
+  if (indic >= t.length * 0.3) return false;
   // Must contain at least one experiential / first-person marker.
   if (!/\b(i|we|my|me|our|you|she|he|her|baby|son|daughter|mom|mother|husband|wife|tried|bought|switched|use|using|love|hate|rash|leak|comfort|smell|skin|night|recommend|worst|best|happy|disappointed)\b/i.test(t)) return true;
   return false;
@@ -125,7 +141,14 @@ export function verifyContentVerbatims(
 
   const classify = (node: any): Provenance | null => {
     if (typeof node?.quote !== 'string' || node.quote.trim().length === 0) return null;
-    const prov = classifyQuote(node.quote, inCorpus, inCurated);
+    // N-14: a translated quote is grounded through its original_text — the
+    // English rendering is definitionally not in the corpus. A translated
+    // quote WITHOUT original_text can never verify and is pruned, which is
+    // the intended enforcement of contract C3.
+    const groundable = typeof node.original_text === 'string' && node.original_text.trim().length > 0
+      ? node.original_text
+      : node.quote;
+    const prov = classifyQuote(groundable, inCorpus, inCurated);
     node.prov = prov;
     audit.total++;
     if (prov === 'corpus') audit.corpus++;

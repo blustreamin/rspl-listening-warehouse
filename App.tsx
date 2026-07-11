@@ -3,8 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { ReportView } from './components/ReportView';
 import { DataStudio } from './components/DataStudio';
 import { ProviderSelector } from './components/ProviderSelector';
-import { persistEvidence, loadEvidence } from './lib/persistence';
-import { computeEvidenceHashKey } from './services/pipeline';
+import { loadEvidence } from './lib/persistence';
 import { isRunActive, getRunState } from './lib/runState';
 import { isRegistryBacked } from './constants/projectConfig';
 import { ProjectId, EvidenceGraph } from './types';
@@ -38,12 +37,13 @@ const App: React.FC = () => {
               ...prev,
               [data.projectId!]: data
           }));
-          // Persist the computed graph so the report survives a refresh —
-          // WITH its hash, so the run-start dedup probe recognises the row
-          // instead of persisting the same corpus a second time.
-          void computeEvidenceHashKey(data).then((h) =>
-            persistEvidence({ ...(data as any), evidenceHash: h })
-          );
+          // NO client-side persist here (11-Jul fix). For registry-backed
+          // projects the graph arriving from Data Studio was ALREADY persisted
+          // by the server assemble (and carries its dataset links + pinned
+          // hash). The old fire-and-forget persist here is what wrote a
+          // 1,409-event bundle-only row over the canonical corpus — and its
+          // failure path was invisible end to end. Demo projects persist at
+          // run start (ensureEvidencePersisted), unchanged.
           // Auto-switch project context if data implies a different project —
           // guarded: it would remount ReportView and abandon a live run.
           if (data.projectId !== projectId) {

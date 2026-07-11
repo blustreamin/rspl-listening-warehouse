@@ -11,7 +11,12 @@
 import React from 'react';
 import {
   VerbatimContent, cleanVerbatimText, sanitiseConsumerText, formatAttribution, evidencePct,
+  BatteryMeter,
 } from './LovingleBlocks';
+
+// N-12 — re-export the shared meter so section renderers can keep importing it
+// from BookletBlocks (its real home is LovingleBlocks, to avoid a cycle).
+export { BatteryMeter };
 
 const arr = <T,>(v: any): T[] => (Array.isArray(v) ? v : v ? [v] : []);
 const str = (v: any): string => {
@@ -116,7 +121,7 @@ const MET_LABEL: Record<string, { label: string; cls: string }> = {
   PARTIAL: { label: 'PARTIALLY MET', cls: 'bk-met-partial' },
 };
 
-export const FourBandMatrix: React.FC<{ bands: MatrixBand[]; totalN?: number }> = ({ bands, totalN }) => {
+export const FourBandMatrix: React.FC<{ bands: MatrixBand[]; totalN?: number; iconFor?: (title: string) => React.ReactNode }> = ({ bands, totalN, iconFor }) => {
   const list = arr<MatrixBand>(bands).filter((b) => arr(b.subThemes).length);
   if (!list.length) return null;
   const denom = typeof totalN === 'number'
@@ -133,6 +138,7 @@ export const FourBandMatrix: React.FC<{ bands: MatrixBand[]; totalN?: number }> 
               return (
                 <div key={ti} className="bk-subtheme">
                   <div className="bk-subtheme-head">
+                    {iconFor && <span className="bk-subtheme-icon" aria-hidden="true">{iconFor(str(t.title))}</span>}
                     <span className="bk-subtheme-title">{sanitiseConsumerText(str(t.title))}</span>
                     {met && <span className={`bk-met ${met.cls}`}>{met.label}</span>}
                     <EvidenceShare n={t.data_points} totalN={denom} />
@@ -519,6 +525,8 @@ export interface PerceptionCard {
   brand: string;
   perception?: string;
   cues?: string;                 // visual & verbal cues, mass vs premium
+  sov_pct?: number;              // N-42 — share of voice %
+  rating?: number;               // N-42 — 0–5 star rating (Agent B field)
   data_points?: number;
   verbatims?: VerbatimContent[];
 }
@@ -529,18 +537,41 @@ export const PerceptionCardGrid: React.FC<{ brands: PerceptionCard[] }> = ({ bra
   const denom = sumDp(list);
   return (
     <div className="bk-perceptions">
-      {list.map((b, i) => (
+      {list.map((b, i) => {
+        const hasSov = typeof b.sov_pct === 'number';
+        const hasRating = typeof b.rating === 'number';
+        return (
         <div key={i} className="bk-perception">
-          <div className="bk-perception-logo" aria-hidden="true">{str(b.brand)}</div>
-          <div className="bk-perception-headrow">
-            <div className="bk-perception-brand">{str(b.brand)}</div>
+          {/* N-04/N-38 — real supplied logo asset; graceful text-mark until it lands */}
+          <div className="bk-perception-logorow">
+            <BrandLogo brand={b.brand} />
             <EvidenceShare n={b.data_points} totalN={denom} />
           </div>
+          <div className="bk-perception-brand">{str(b.brand)}</div>
+          {/* N-42 — SOV% visual bar + star rating UP FRONT, above the body text */}
+          {(hasSov || hasRating) && (
+            <div className="bk-perception-metrics">
+              {hasSov && (
+                <div className="bk-perception-metric">
+                  <span className="bk-perception-metriclab">Share of voice</span>
+                  <BatteryMeter pct={b.sov_pct} title={`${b.sov_pct}% of category conversation`} />
+                  <span className="bk-perception-metricval">{b.sov_pct! < 1 ? '<1%' : `${b.sov_pct}%`}</span>
+                </div>
+              )}
+              {hasRating && (
+                <div className="bk-perception-metric">
+                  <span className="bk-perception-metriclab">Rating</span>
+                  <StarRating value={b.rating} />
+                </div>
+              )}
+            </div>
+          )}
           {b.perception && <p className="bk-perception-line">{sanitiseConsumerText(b.perception)}</p>}
           {b.cues && <p className="bk-perception-cues">{sanitiseConsumerText(b.cues)}</p>}
           <QuoteChipGrid items={b.verbatims} />
         </div>
-      ))}
+        );
+      })}
     </div>
   );
 };
@@ -597,7 +628,9 @@ export const SegmentLensRow: React.FC<{ lens: any }> = ({ lens }) => {
   );
 };
 
-// ── LifestageStepper — Newborn → Infant → Crawler → Toddler/Potty-training ──
+// ── LifestageStepper — six-stage standard (N-19 / contract C10):
+//    Newborn <3m → Infant 3–8m → Crawler 8–12m → Early Toddler/Walker 12–18m
+//    → Middle Toddler 18–24m → Late Toddler/Potty-Training 24–36m ──────────
 
 export interface LifestageStage {
   lifestage: string;
@@ -609,13 +642,21 @@ export interface LifestageStage {
   verbatims?: VerbatimContent[];
 }
 
-const STAGE_ORDER = ['newborn', 'infant', 'crawler', 'toddler'];
+const STAGE_ORDER = ['newborn', 'infant', 'crawler', 'early_toddler', 'middle_toddler', 'late_toddler_potty'];
 const STAGE_LABELS: Record<string, string> = {
-  newborn: 'Newborn', infant: 'Infant', crawler: 'Crawler', toddler: 'Toddler · Potty-training',
+  newborn: 'Newborn <3m', infant: 'Infant 3–8m', crawler: 'Crawler 8–12m',
+  early_toddler: 'Early Toddler · Walker 12–18m', middle_toddler: 'Middle Toddler 18–24m',
+  late_toddler_potty: 'Late Toddler · Potty-Training 24–36m',
 };
 const stageKey = (s: string): string => {
   const t = String(s || '').toLowerCase();
-  return STAGE_ORDER.find((k) => t.includes(k)) || (/(potty|train|2-3|walk)/.test(t) ? 'toddler' : t);
+  if (t.includes('early') || t.includes('walker')) return 'early_toddler';
+  if (t.includes('middle')) return 'middle_toddler';
+  if (t.includes('late') || /(potty|train)/.test(t)) return 'late_toddler_potty';
+  // Legacy four-stage payloads ('toddler_potty_training', '2-3') map to the
+  // last stage so stale cached sections still sort/label sanely until regen.
+  if (t.includes('toddler') || /2-3/.test(t)) return 'late_toddler_potty';
+  return STAGE_ORDER.find((k) => t.includes(k)) || t;
 };
 const stageIdx = (s: string): number => {
   const i = STAGE_ORDER.indexOf(stageKey(s));
@@ -717,7 +758,8 @@ export const PersonaCard: React.FC<{ p: PersonaContent; totalN?: number }> = ({ 
     <div className="bk-persona">
       <div className="bk-persona-head">
         <span className="bk-persona-name">{name}</span>
-        {p.pool_estimate && <span className="bk-persona-size" title="Estimated size of this persona in the category pool">{str(p.pool_estimate)}</span>}
+        {/* N-56 — the "% of corpus voices" size chip is retired from persona
+            cards (it read as spurious precision on a qualitative portrait). */}
         <EvidenceShare n={p.data_points} totalN={totalN} />
       </div>
       {p.description && <p className="bk-persona-desc">{sanitiseConsumerText(p.description)}</p>}
@@ -772,6 +814,218 @@ export const PersonaCardGrid: React.FC<{ personas: PersonaContent[] }> = ({ pers
   const denom = sumDp(list);
   return <div className="bk-personas">{list.map((p, i) => <PersonaCard key={i} p={p} totalN={denom} />)}</div>;
 };
+
+// ── N-42 · StarRating — 0–5 star component (fractional fill via clip) ─────────
+export const StarRating: React.FC<{ value?: number; outOf?: number }> = ({ value, outOf = 5 }) => {
+  if (typeof value !== 'number' || !isFinite(value)) return null;
+  const v = Math.max(0, Math.min(outOf, value));
+  const fillPct = (v / outOf) * 100;
+  const row = () => Array.from({ length: outOf }, (_, i) => (
+    <svg key={i} viewBox="0 0 24 24" width="13" height="13" aria-hidden="true">
+      <path d="M12 3.2l2.7 5.5 6 .9-4.35 4.2 1.03 6L12 17l-5.38 2.8 1.03-6L3.3 9.6l6-.9z"
+        fill="currentColor" />
+    </svg>
+  ));
+  return (
+    <span className="bk-stars" role="img" aria-label={`${v.toFixed(1)} out of ${outOf} stars`} title={`${v.toFixed(2)} / ${outOf}`}>
+      <span className="bk-stars-stack">
+        <span className="bk-stars-track">{row()}</span>
+        <span className="bk-stars-fill" style={{ width: `${fillPct}%` }}>{row()}</span>
+      </span>
+      <span className="bk-stars-num">{v.toFixed(1)}</span>
+    </span>
+  );
+};
+
+// ── N-04 / N-38 · BrandLogo — real supplied asset from /public/brands/<slug>.png
+// Never generated, never hotlinked. Graceful text-mark fallback (empty state)
+// until the client's PNGs land in public/brands/. Slugs per the register.
+const BRAND_SLUG_ALIASES: Record<string, string> = {
+  'little angels': 'little-angels', 'littles': 'little-angels', 'little-angels': 'little-angels',
+  'mamy poko': 'mamypoko', 'mamypoko': 'mamypoko',
+  'super bottoms': 'superbottoms', 'baby hug': 'babyhug',
+};
+export const brandSlug = (name?: string): string => {
+  const raw = String(name || '').toLowerCase().trim();
+  if (!raw) return '';
+  if (BRAND_SLUG_ALIASES[raw]) return BRAND_SLUG_ALIASES[raw];
+  return raw.replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+};
+
+export const BrandLogo: React.FC<{ brand?: string }> = ({ brand }) => {
+  const [failed, setFailed] = React.useState(false);
+  const slug = brandSlug(brand);
+  const name = str(brand);
+  // No slug, or asset missing → clean text-mark (the graceful empty state).
+  if (!slug || failed) {
+    return <span className="bk-brandlogo bk-brandlogo-mark" aria-label={name || 'Brand'}>{name || '—'}</span>;
+  }
+  return (
+    <span className="bk-brandlogo" aria-label={name}>
+      <img src={`/brands/${slug}.png`} alt={name} loading="lazy" onError={() => setFailed(true)} />
+    </span>
+  );
+};
+
+// ── N-11 / N-60 · ChartFootnote — per-chart "% of <basis>" definition ─────────
+// Renders the structured `basis` string Agent B emits under a chart so every
+// percentage says what it is a percentage OF. Renders nothing without a basis.
+export const ChartFootnote: React.FC<{ basis?: string; note?: string }> = ({ basis, note }) => {
+  const b = str(basis).trim();
+  const n = str(note).trim();
+  if (!b && !n) return null;
+  return (
+    <p className="bk-chartfoot">
+      {b && <>Percentages shown as <b>% of {sanitiseConsumerText(b)}</b>.</>}
+      {b && n ? ' ' : null}
+      {n && <span className="bk-chartfoot-note">{sanitiseConsumerText(n)}</span>}
+    </p>
+  );
+};
+
+// ── N-55 · PersonaScatter — 2×2 map, X: locus (internal↔external),
+// Y: mass↔premium. Personas plot as labeled dots. Hand-rolled SVG so it
+// rasterises cleanly into the PDF (html2canvas captures inline SVG).
+const localeSeg = (s?: string): number => {
+  const t = String(s || '').toLowerCase();
+  if (/premium|super.?premium/.test(t) && !/mid/.test(t)) return 82;   // top
+  if (/mid/.test(t)) return 50;                                         // middle
+  if (/mass|value|economy|budget/.test(t)) return 18;                  // bottom
+  return 50;
+};
+const locusX = (s?: string): number => {
+  const t = String(s || '').toLowerCase();
+  if (t.includes('intern')) return 22;   // left
+  if (t.includes('extern')) return 78;    // right
+  return 50;
+};
+export const PersonaScatter: React.FC<{ personas: PersonaContent[] }> = ({ personas }) => {
+  const list = arr<PersonaContent>(personas)
+    .filter((p) => p?.name || p?.persona_name).slice(0, 5)
+    .map((p, i) => ({
+      i, name: str(p.name || p.persona_name),
+      x: locusX(p.locus_of_control), y: localeSeg(p.segment),
+    }));
+  if (list.length < 2) return null;  // a scatter needs ≥2 points to read as a map
+  const S = 340, pad = 34, span = S - pad * 2;
+  const px = (x: number) => pad + (x / 100) * span;
+  const py = (y: number) => S - pad - (y / 100) * span;
+  // spread coincident dots slightly so labels never stack into one blob
+  const seen: Record<string, number> = {};
+  return (
+    <div className="bk-scatter">
+      <svg viewBox={`0 0 ${S} ${S}`} className="bk-scatter-svg" role="img"
+        aria-label="Persona map: locus of control by price segment">
+        <rect x={pad} y={pad} width={span} height={span} fill="#F8FAFC" stroke="var(--bk-border)" />
+        <line x1={pad + span / 2} y1={pad} x2={pad + span / 2} y2={S - pad} stroke="var(--bk-border)" strokeDasharray="4 4" />
+        <line x1={pad} y1={pad + span / 2} x2={S - pad} y2={pad + span / 2} stroke="var(--bk-border)" strokeDasharray="4 4" />
+        {list.map((p) => {
+          const key = `${p.x}-${p.y}`;
+          const k = (seen[key] = (seen[key] || 0) + 1) - 1;
+          const off = k * 15;
+          const cx = px(p.x) + off, cy = py(p.y) - off;
+          const anchor = p.x > 55 ? 'end' : 'start';
+          const lx = anchor === 'end' ? cx - 11 : cx + 11;
+          return (
+            <g key={p.i}>
+              <circle cx={cx} cy={cy} r="7" fill="var(--bk-blue-primary)" stroke="#fff" strokeWidth="2" />
+              <text x={cx} y={cy + 3} textAnchor="middle" className="bk-scatter-n">{p.i + 1}</text>
+              <text x={lx} y={cy + 3.5} textAnchor={anchor} className="bk-scatter-lab">{p.name}</text>
+            </g>
+          );
+        })}
+        <text x={S / 2} y={S - 9} textAnchor="middle" className="bk-scatter-axis">Internal ← locus of control → External</text>
+        <text x={13} y={S / 2} textAnchor="middle" transform={`rotate(-90 13 ${S / 2})`} className="bk-scatter-axis">Mass ← price tier → Premium</text>
+      </svg>
+    </div>
+  );
+};
+
+// ── N-58 · DataFoundationPanels — four small S20 panels (lifestage split,
+// first-vs-second-time moms, geography, SKU). Fed by Agent C outputs; each
+// panel renders its rows when present, else a labeled skeleton (bind later).
+interface FoundationRow { label: string; pct?: number; count?: number; }
+const toFoundationRows = (v: any): FoundationRow[] =>
+  arr<any>(v).map((r) => ({
+    label: str(r?.label ?? r?.name ?? r?.segment ?? r?.state ?? r?.sku ?? r?.lifestage),
+    pct: typeof r?.pct === 'number' ? r.pct : typeof r?.percent === 'number' ? r.percent : undefined,
+    count: typeof r?.count === 'number' ? r.count : undefined,
+  })).filter((r) => r.label);
+
+const FoundationPanel: React.FC<{ title: string; rows: FoundationRow[] }> = ({ title, rows }) => (
+  <div className="bk-foundpanel">
+    <div className="bk-foundpanel-title">{title}</div>
+    {rows.length > 0 ? (
+      <div className="bk-foundpanel-rows">
+        {rows.slice(0, 6).map((r, i) => (
+          <div key={i} className="bk-foundrow">
+            <span className="bk-foundrow-label">{sanitiseConsumerText(r.label)}</span>
+            <span className="bk-foundrow-track">
+              <span style={{ width: `${Math.max(2, Math.min(100, r.pct ?? 0))}%` }} />
+            </span>
+            <span className="bk-foundrow-val">{typeof r.pct === 'number' ? `${r.pct}%` : typeof r.count === 'number' ? r.count.toLocaleString() : ''}</span>
+          </div>
+        ))}
+      </div>
+    ) : (
+      <div className="bk-foundpanel-skeleton" aria-hidden="true">
+        <span /><span /><span /><span />
+        <em className="bk-foundpanel-await">Awaiting data</em>
+      </div>
+    )}
+  </div>
+);
+
+export const DataFoundationPanels: React.FC<{ data: any }> = ({ data }) => {
+  const panels = [
+    { title: 'Lifestage distribution', rows: toFoundationRows(data?.lifestage_distribution ?? data?.lifestage_split) },
+    { title: 'First-time vs second-time moms', rows: toFoundationRows(data?.first_vs_second ?? data?.parity_split) },
+    { title: 'Geography', rows: toFoundationRows(data?.geography ?? data?.geo ?? data?.state_split) },
+    { title: 'SKU', rows: toFoundationRows(data?.sku_distribution ?? data?.sku_split ?? data?.sku) },
+  ];
+  return (
+    <div className="bk-foundpanels">
+      {panels.map((p, i) => <FoundationPanel key={i} title={p.title} rows={p.rows} />)}
+    </div>
+  );
+};
+
+// ── N-30 · role icons (family-member cards) / N-22 · discovery-source icons ───
+// Monoline SVGs in the RitualPanel house style (currentColor stroke). Matched
+// by keyword so cached/varied member & source labels still resolve an icon.
+const ic2 = { fill: 'none' as const, stroke: 'currentColor', strokeWidth: 1.7, strokeLinecap: 'round' as const, strokeLinejoin: 'round' as const };
+const IcoMother: React.FC = () => (<svg width="18" height="18" viewBox="0 0 24 24" {...ic2}><circle cx="12" cy="6.5" r="3" /><path d="M6 21c0-4 2.7-7 6-7s6 3 6 7M9.5 13.5c1.6 1 3.4 1 5 0" /></svg>);
+const IcoFather: React.FC = () => (<svg width="18" height="18" viewBox="0 0 24 24" {...ic2}><circle cx="12" cy="6.5" r="3" /><path d="M6.5 21v-5.5M17.5 21v-5.5M6.5 15.5a5.5 5.5 0 0 1 11 0" /></svg>);
+const IcoGrandparent: React.FC = () => (<svg width="18" height="18" viewBox="0 0 24 24" {...ic2}><circle cx="12" cy="6.5" r="3" /><path d="M7 21c0-4 2.2-7 5-7s5 3 5 7M9 5.5c.4 1.6 4.6 1.6 6 0" /></svg>);
+const IcoNanny: React.FC = () => (<svg width="18" height="18" viewBox="0 0 24 24" {...ic2}><circle cx="9" cy="7" r="2.6" /><path d="M4 20c0-3.3 2.2-6 5-6M15 8.5l2.6 2.6M14 21l3-9 3 2-3 8z" /></svg>);
+const IcoFamily: React.FC = () => (<svg width="18" height="18" viewBox="0 0 24 24" {...ic2}><circle cx="8" cy="7" r="2.3" /><circle cx="16" cy="7" r="2.3" /><path d="M3.5 20c0-3 1.9-5.3 4.5-5.3S12.5 17 12.5 20M11.5 20c0-3 1.9-5.3 4.5-5.3S20.5 17 20.5 20" /></svg>);
+const ROLE_ICONS: Array<{ re: RegExp; icon: React.ReactNode }> = [
+  { re: /mother|\bmom\b|mumm?y|\bma\b/i, icon: <IcoMother /> },
+  { re: /father|\bdad\b|papa|\bpa\b/i, icon: <IcoFather /> },
+  { re: /grand|dadi|nani|dada|nana/i, icon: <IcoGrandparent /> },
+  { re: /nann?y|maid|help|aaya|ayah|caretaker|creche|daycare/i, icon: <IcoNanny /> },
+  { re: /joint|family|relative|in.?law|sibling|aunt|uncle/i, icon: <IcoFamily /> },
+];
+export const roleIcon = (label?: string): React.ReactNode =>
+  ROLE_ICONS.find((g) => g.re.test(String(label || '')))?.icon || <IcoFamily />;
+
+const IcoHospital: React.FC = () => (<svg width="16" height="16" viewBox="0 0 24 24" {...ic2}><rect x="4" y="4" width="16" height="16" rx="2" /><path d="M12 8v8M8 12h8" /></svg>);
+const IcoDoctor: React.FC = () => (<svg width="16" height="16" viewBox="0 0 24 24" {...ic2}><path d="M7 4v5a5 5 0 0 0 10 0V4M9 4h-.5M15 4h.5M17 14a4 4 0 0 1 4 4v1" /><circle cx="17" cy="12" r="1.4" /></svg>);
+const IcoInfluencer: React.FC = () => (<svg width="16" height="16" viewBox="0 0 24 24" {...ic2}><circle cx="12" cy="8" r="4" /><path d="M5 20a7 7 0 0 1 14 0M17 3.5l1 2 2 .5-1.5 1.4.4 2-1.9-1-1.9 1 .4-2L18 6z" /></svg>);
+const IcoSocial: React.FC = () => (<svg width="16" height="16" viewBox="0 0 24 24" {...ic2}><circle cx="7" cy="8" r="2.2" /><circle cx="17" cy="6" r="2.2" /><circle cx="15" cy="17" r="2.2" /><path d="M8.9 9l6-2M15.6 8l-.4 7" /></svg>);
+const IcoSearch: React.FC = () => (<svg width="16" height="16" viewBox="0 0 24 24" {...ic2}><circle cx="10.5" cy="10.5" r="6" /><path d="M15 15l4.5 4.5" /></svg>);
+const IcoStore: React.FC = () => (<svg width="16" height="16" viewBox="0 0 24 24" {...ic2}><path d="M4 9l1-4h14l1 4M4 9h16v2a2 2 0 0 1-4 0 2 2 0 0 1-4 0 2 2 0 0 1-4 0 2 2 0 0 1-4 0zM5 11v9h14v-9" /></svg>);
+const SOURCE_ICONS: Array<{ re: RegExp; icon: React.ReactNode }> = [
+  { re: /hospital|clinic|kit|maternity|birth/i, icon: <IcoHospital /> },
+  { re: /doctor|paediatric|pediatric|nurse|expert|gynae/i, icon: <IcoDoctor /> },
+  { re: /influencer|blogger|youtub|celebrit/i, icon: <IcoInfluencer /> },
+  { re: /social|instagram|facebook|reel|community|forum|group|whatsapp/i, icon: <IcoSocial /> },
+  { re: /search|google|amazon|flipkart|online|e-?com|website|app/i, icon: <IcoSearch /> },
+  { re: /store|shop|kirana|pharmacy|chemist|retail|in.?store|mart/i, icon: <IcoStore /> },
+  { re: /family|friend|mother|mom|relative|word.?of.?mouth|peer/i, icon: <IcoFamily /> },
+];
+export const sourceIcon = (label?: string): React.ReactNode =>
+  SOURCE_ICONS.find((g) => g.re.test(String(label || '')))?.icon || <IcoInfluencer />;
 
 // ── Section furniture ────────────────────────────────────────────────────────
 

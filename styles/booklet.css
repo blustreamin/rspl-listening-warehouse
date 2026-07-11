@@ -70,6 +70,14 @@
 .bk-scope .lv-sheet { border: 1px solid var(--bk-border); }
 .bk-scope .lv-zone { padding: 20px; }
 .bk-scope .lv-grid { gap: 16px; }
+/* N-32 — verbatims must always read as subordinate evidence, strictly SMALLER
+   than the finding they support. The carried warm `.lv-vb` chip is 13px, which
+   in §11 (channel_dynamics) towers over its own finding text (`.lv-flow-name`
+   13px / `.lv-flow-note` 11.5px). In the booklet scope every finding renders at
+   ≥13px, so pin the quote to 11px italic-grey (bk-quote-text is already 12px). */
+.bk-scope .lv-vb { font-size: 11px; }
+.bk-scope .lv-vb .lv-src,
+.bk-scope .lv-vb .lv-vb-attr { font-size: 10px; }
 /* carried lv- card grids obey the global two-equal-columns rule too */
 .bk-scope .lv-cardgrid,
 .bk-scope .lv-flow-2row,
@@ -499,7 +507,19 @@
 .bk-perception-headrow { margin-top: 10px; }
 .bk-perception-brand { font-size: 15px; font-weight: 800; color: var(--bk-ink); }
 .bk-perception-line { margin: 5px 0 0; font-size: 14px; line-height: 1.5; color: var(--bk-ink); }
-.bk-perception-cues { margin: 6px 0 0; font-size: 12px; font-style: italic; color: var(--bk-grey); }
+/* N-40 — the mass-vs-premium visual/verbal CUE line is a signal, not a quiet
+   caption: green flat-callout treatment (unmissable), never grey italic. */
+.bk-perception-cues {
+  margin: 8px 0 0; font-size: 12.5px; line-height: 1.5; font-weight: 600;
+  font-style: normal; color: #14532D;
+  border-radius: var(--bk-r-callout); border-left: 3px solid var(--bk-green);
+  background: #E8F8EE; padding: 8px 11px;
+}
+.bk-perception-cues::before {
+  content: 'Cue'; display: block; font-size: 9.5px; font-weight: 800;
+  letter-spacing: .12em; text-transform: uppercase; color: var(--bk-green);
+  margin-bottom: 2px;
+}
 
 /* ---------- BrandDriverCards (trial · repeat · switching) --------------------
    Per-brand cards in the standard 2-col grid; three labeled stacks of list
@@ -615,6 +635,115 @@
 }
 
 /* ============================================================================
+   AGENT-D UI PASS — new primitives (battery, stars, brand logo, chart footnote,
+   persona scatter, data-foundation panels, role/source icons, §05 divider, and
+   the N-08 section footnote). All bk- prefixed; booklet tokens only.
+   ============================================================================ */
+
+/* ---------- N-12 · BatteryMeter — 5-step magnitude, colour-graded ------------ */
+.bk-battery { display: inline-flex; align-items: center; gap: 2px; vertical-align: middle; margin-left: 8px; }
+.bk-battery i { width: 5px; height: 11px; border-radius: 1.5px; background: var(--bk-border); flex: none; }
+.bk-battery-lo  i.bk-battery-on { background: #93C5FD; }
+.bk-battery-mid i.bk-battery-on { background: var(--bk-blue-primary); }
+.bk-battery-hi  i.bk-battery-on { background: var(--bk-blue-deep); }
+.lv-attr .bk-battery { margin-left: 4px; }
+.lv-flow-head .bk-battery { margin-left: 6px; }
+
+/* ---------- N-42 · StarRating (fractional fill via overlay) ------------------ */
+.bk-stars { display: inline-flex; align-items: center; gap: 6px; }
+.bk-stars-stack { position: relative; display: inline-block; line-height: 0; white-space: nowrap; }
+.bk-stars-track { display: inline-flex; color: var(--bk-border); line-height: 0; }
+.bk-stars-fill { position: absolute; left: 0; top: 0; display: inline-flex; color: var(--bk-orange); overflow: hidden; white-space: nowrap; line-height: 0; }
+.bk-stars-num { font-size: 11px; font-weight: 700; color: var(--bk-ink); }
+
+/* ---------- N-04/N-38 · BrandLogo (real asset; text-mark empty state) -------- */
+.bk-brandlogo { display: inline-flex; align-items: center; min-height: 26px; }
+.bk-brandlogo img { display: block; height: 26px; width: auto; max-width: 130px; object-fit: contain; }
+.bk-brandlogo-mark {
+  font-size: 12px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase;
+  color: var(--bk-blue-deep); border: 2px solid var(--bk-blue-deep);
+  border-radius: var(--bk-r-callout); padding: 4px 10px;
+}
+
+/* ---------- N-42 · brand-card header (logo row + metrics up front) ----------- */
+.bk-perception-logorow { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 8px; }
+.bk-perception-metrics { display: flex; flex-direction: column; gap: 6px; margin: 6px 0 4px; }
+.bk-perception-metric { display: flex; align-items: center; gap: 8px; }
+.bk-perception-metriclab {
+  flex: 0 0 92px; font-size: 9.5px; font-weight: 800; letter-spacing: .1em;
+  text-transform: uppercase; color: var(--bk-grey);
+}
+.bk-perception-metricval { font-size: 12px; font-weight: 800; color: var(--bk-blue-deep); }
+
+/* ---------- N-11/N-60 · ChartFootnote ("% of <basis>") ---------------------- */
+.bk-chartfoot { margin: 10px 0 0; font-size: 11px; line-height: 1.45; color: var(--bk-grey); font-style: italic; }
+.bk-chartfoot b { font-style: normal; font-weight: 700; color: var(--bk-ink); }
+.bk-chartfoot-note { color: var(--bk-grey); }
+
+/* ---------- N-55 · PersonaScatter (2×2 map) ---------------------------------- */
+.bk-scatter { border: 1px solid var(--bk-border); border-radius: var(--bk-r-card); padding: 12px; background: #fff; max-width: 520px; margin: 0 auto; }
+.bk-scatter-svg { display: block; width: 100%; height: auto; }
+.bk-scatter-n { font-size: 9px; font-weight: 800; fill: #fff; font-family: var(--bk-sans); }
+.bk-scatter-lab { font-size: 10px; font-weight: 700; fill: var(--bk-blue-deep); font-family: var(--bk-sans); }
+.bk-scatter-axis { font-size: 9px; font-weight: 700; letter-spacing: .04em; fill: var(--bk-grey); text-transform: uppercase; font-family: var(--bk-sans); }
+
+/* ---------- N-58 · DataFoundationPanels (S20 skeleton → bound) --------------- */
+.bk-foundpanels { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+.bk-foundpanel { border: 1px solid var(--bk-border); border-top: 3px solid var(--bk-blue-primary); border-radius: var(--bk-r-card); padding: 16px; background: #fff; }
+.bk-foundpanel-title { font-size: 10.5px; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; color: var(--bk-blue-primary); margin-bottom: 10px; }
+.bk-foundpanel-rows { display: flex; flex-direction: column; gap: 7px; }
+.bk-foundrow { display: grid; grid-template-columns: minmax(80px, 1fr) 90px auto; gap: 8px; align-items: center; }
+.bk-foundrow-label { font-size: 12px; color: var(--bk-ink); min-width: 0; overflow-wrap: anywhere; }
+.bk-foundrow-track { height: 6px; background: var(--bk-blue-chip); border-radius: 99px; overflow: hidden; }
+.bk-foundrow-track > span { display: block; height: 100%; border-radius: 99px; background: var(--bk-blue-primary); }
+.bk-foundrow-val { font-size: 11px; font-weight: 700; color: var(--bk-blue-deep); text-align: right; white-space: nowrap; }
+.bk-foundpanel-skeleton { position: relative; display: flex; flex-direction: column; gap: 8px; padding: 4px 0; }
+.bk-foundpanel-skeleton span { height: 8px; border-radius: 4px; background: var(--bk-border); opacity: .55; }
+.bk-foundpanel-skeleton span:nth-child(2) { width: 78%; }
+.bk-foundpanel-skeleton span:nth-child(3) { width: 88%; }
+.bk-foundpanel-skeleton span:nth-child(4) { width: 62%; }
+.bk-foundpanel-await { display: block; margin-top: 4px; font-size: 10px; font-style: normal; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--bk-grey); }
+
+/* ---------- N-30/N-22 · role & discovery-source icons ------------------------ */
+.bk-stagecard-ico { display: inline-flex; align-items: center; color: var(--bk-blue-primary); flex: none; }
+.bk-subtheme-icon { display: inline-flex; align-items: center; flex: none; }
+/* the icon inherits the band-accent colour of its subtheme title */
+.bk-band-blue .bk-subtheme-icon { color: var(--bk-blue-primary); }
+.bk-band-orange .bk-subtheme-icon { color: #B45309; }
+.bk-band-red .bk-subtheme-icon { color: var(--bk-red); }
+
+/* ---------- N-08 · section footnote (data-point count, above footer) --------- */
+.bk-section-footnote {
+  margin: 20px 0 0; padding-top: 10px; border-top: 1px dashed var(--bk-border);
+  font-size: 11px; font-style: italic; color: var(--bk-grey);
+}
+
+/* ---------- N-20 · Baby Diapers full-bleed divider slide --------------------- */
+.bk-divider-page { }
+.bk-divider {
+  position: relative; overflow: hidden; border-radius: var(--bk-r-card);
+  background: var(--bk-blue-deep);
+  background-image:
+    radial-gradient(120% 90% at 85% -10%, rgba(26, 86, 219, .55), transparent 60%),
+    radial-gradient(90% 70% at 0% 110%, rgba(26, 86, 219, .30), transparent 55%);
+  color: #fff; min-height: 420px;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  text-align: center; gap: 14px; padding: clamp(40px, 6vw, 72px);
+  font-family: var(--bk-sans);
+}
+.bk-divider-accent { position: absolute; left: 0; right: 0; top: 0; height: 6px;
+  background: linear-gradient(90deg, var(--bk-orange), var(--bk-red), var(--bk-blue-primary)); }
+.bk-divider-kicker { font-size: 12px; font-weight: 700; letter-spacing: .30em; text-transform: uppercase; color: rgba(255, 255, 255, .75); }
+.bk-divider-title { margin: 0; font-size: clamp(38px, 6vw, 60px); font-weight: 800; letter-spacing: .03em; text-transform: uppercase; line-height: 1.02; color: #fff; }
+.bk-divider-rule { width: 76px; height: 3px; background: var(--bk-orange); border-radius: 2px; }
+.bk-divider-sub { margin: 0; max-width: 44ch; font-size: clamp(13px, 1.6vw, 16px); font-weight: 500; line-height: 1.5; color: #BFDBFE; }
+
+@media (max-width: 768px) {
+  .bk-foundpanels { grid-template-columns: 1fr; }
+  .bk-perception-metric { flex-wrap: wrap; }
+}
+
+/* ============================================================================
    RUN INSPECTOR — app chrome (all projects): collapsed status pill by default,
    right-side drawer on click. State persists in localStorage; pulse fires only
    on error/repair events; nothing auto-expands.
@@ -683,6 +812,24 @@
    by width at ~0.54pt/px, so a full page ≈ 1430 CSS px tall — the cover fills
    its page instead of floating in white. */
 .pdf-export .bk-cover { min-height: 1430px; }
+/* N-20 — the §05 "Baby Diapers" divider fills its own A4 page, like the cover. */
+.pdf-export .bk-divider { min-height: 1430px; }
+
+/* N-18 — html2canvas mis-renders `writing-mode: vertical-rl`: it lays the band /
+   tier label text out horizontally but STILL applies the rotate(180deg), so the
+   blue/green margin labels come out inverted / mirrored on paper. In the EXPORT
+   CLONE ONLY (.pdf-export is added by ExportBar's onclone; never the live DOM),
+   drop writing-mode and use a plain rotate(-90deg) — which html2canvas renders
+   correctly. Geometry-preserving: the label stays a centred vertical strip in
+   its 44px column, reading bottom-to-top, identical to on-screen. Screen and
+   window.print() keep the writing-mode path (browsers render it fine).
+   ⚠ Owner verifies orientation on a real PDF export of §03 or §05 (human gate). */
+.pdf-export .bk-band-label span,
+.pdf-export .bk-tier-label span {
+  writing-mode: horizontal-tb;
+  transform: rotate(-90deg);
+  white-space: nowrap;
+}
 
 /* ---------- print ----------------------------------------------------------- */
 @media print {
@@ -695,14 +842,20 @@
   .bk-stat, .bk-stat *, .bk-callout, .bk-callout *, .bk-band-label, .bk-tier-label,
   .bk-tier-hero, .bk-tier-hero *, .bk-segrow-label,
   .bk-stepper-node, .bk-quote, .bk-pill, .bk-persona-size, .bk-tier-note,
-  .bk-subtheme-how, .bk-callout-row {
+  .bk-subtheme-how, .bk-callout-row,
+  /* AGENT-D UI pass — new coloured-fill elements keep their fills in print */
+  .bk-divider, .bk-divider *, .bk-perception-cues, .bk-battery, .bk-battery *,
+  .bk-stars-fill, .bk-stars-fill *, .bk-foundpanel, .bk-foundrow-track,
+  .bk-foundrow-track *, .bk-brandlogo-mark {
     -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important;
   }
+  /* N-20 — divider is its own printed page */
+  .bk-divider-page { break-before: page; }
   .bk-toc-row { color: var(--bk-ink) !important; text-decoration: none !important; }
   .bk-quote, .bk-subtheme, .bk-stat, .bk-callout, .bk-gap, .bk-iconcard, .bk-ritual,
   .bk-region, .bk-tier-item, .bk-perception, .bk-segrow, .bk-stagecard, .bk-persona,
   .bk-strip, .bk-synthesis, .bk-toc-band, .bk-toc-row, .bk-foot-wrap,
-  .bk-drivercard, .bk-attrrow { break-inside: avoid; }
+  .bk-drivercard, .bk-attrrow, .bk-foundpanel, .bk-scatter { break-inside: avoid; }
   .bk-headbar, .bk-zonetitle { break-after: avoid; }
   .bk-foot-logorow { break-after: avoid; }
 }

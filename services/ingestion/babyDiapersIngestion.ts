@@ -8,7 +8,10 @@ import { IngestRequestV1, EvidenceGraph, EvidenceEventV1 } from '../../types';
 // parseable "Jan, 2013"-style string). Serials are accepted only in a
 // plausible mention-date window; anything else falls through to Date parsing.
 const EXCEL_EPOCH_MS = Date.UTC(1899, 11, 30);
-const parseRowDate = (v: string): Date | null => {
+// Exported so the India-gate date window (api/_lib/indiaGate.ts) applies the
+// EXACT same datedness semantics as the ingest — if the two ever diverged, the
+// gate audit could not reconcile against the graph's dateRange.datedCount.
+export const parseRowDate = (v: string): Date | null => {
   if (!v) return null;
   if (/^\d+(\.\d+)?$/.test(v)) {
     const n = parseFloat(v);
@@ -69,6 +72,23 @@ const getField = (raw: any, fieldName: string | undefined): string => {
   return String(val).trim();
 };
 
+// TEXT resolution — mapped field first, then the raw-key rescue chain.
+// 'Title' fallbacks matter: Awario X-post exports put the tweet text in Title
+// with an empty Post Snippet (883 X rows in one file alone were silently
+// vanishing here on 05-Jul). Exported (like parseRowDate) so the India gate
+// (api/_lib/indiaGate.ts) sees the SAME text the event will carry — a gate
+// that misses rescued text would drop rows whose events hold India signals.
+export const resolveRowText = (raw: any, textField?: string): string => {
+  let text = getField(raw, textField);
+  if (!text || text.length < 5) {
+    for (const fb of ['Post Snippet', 'reviewDescription', 'review_text', 'text', 'caption', 'content', 'comment', 'Title', 'title']) {
+      const val = raw[fb];
+      if (val && String(val).trim().length >= 5) { text = String(val).trim(); break; }
+    }
+  }
+  return text || '';
+};
+
 // Tag diaper STYLE from text (style axis)
 const tagStyle = (t: string): string | undefined => {
   const s = t.toLowerCase();
@@ -124,18 +144,9 @@ export const babyDiapersIngestion = (request: IngestRequestV1): EvidenceGraph =>
       // TypeError mid-assembly; the reconciliation guard catches mass loss.
       if (!raw || typeof raw !== 'object') return;
 
-      // TEXT — resolve the best available content but NEVER drop the row.
-      // 'Title' fallbacks matter: Awario X-post exports put the tweet text in
-      // Title with an empty Post Snippet (883 X rows in one file alone were
-      // silently vanishing here on 05-Jul).
-      let text = getField(raw, fieldMap.text);
-      if (!text || text.length < 5) {
-        for (const fb of ['Post Snippet', 'reviewDescription', 'review_text', 'text', 'caption', 'content', 'comment', 'Title', 'title']) {
-          const val = raw[fb];
-          if (val && String(val).trim().length >= 5) { text = String(val).trim(); break; }
-        }
-      }
-      if (!text) text = '';
+      // TEXT — resolve the best available content but NEVER drop the row
+      // (shared with the India gate via resolveRowText above).
+      const text = resolveRowText(raw, fieldMap.text);
 
       const cleanText = text.trim().toLowerCase();
       if (text.trim().length >= 10) verbatimCount++; // panel's usable-verbatim floor

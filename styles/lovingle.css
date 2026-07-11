@@ -776,6 +776,12 @@
 .lv-flat-table{width:100%; border-collapse:collapse; font-size:12.5px}
 .lv-flat-table thead th{background:var(--b-700); color:#fff; text-align:left; font-weight:600;
   font-size:10.5px; letter-spacing:.05em; text-transform:uppercase; padding:8px 11px}
+/* N-24 — the header sits on a blue (--b-700) fill, so every header cell needs
+   white text. `.lv-xtab th:first-child{color:var(--ink-3)}` (0,2,1) otherwise
+   out-specifies `.lv-flat-table thead th` (0,1,2) and paints the FIRST header
+   cell ("SIZE" in §06, "Term" in §17) dark-grey on blue = invisible. This
+   (0,2,2) restores white on the first cell for flat tables specifically. */
+.lv-flat-table thead th:first-child{color:#fff}
 .lv-flat-table tbody td{padding:8px 11px; border-bottom:1px solid var(--line); color:var(--ink-2); vertical-align:top; line-height:1.45}
 .lv-flat-table tbody tr:nth-child(even){background:var(--paper-warm)}
 .lv-flat-table tbody td b{color:var(--b-700)}

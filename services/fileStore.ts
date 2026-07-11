@@ -20,19 +20,30 @@ export const FileStore = {
     return STORE[projectId] || { projectId, files: [] };
   },
 
-  addFile: (projectId: ProjectId, file: UploadedFile) => {
+  /** Adds the file and registers it in the remote datasets registry. Returns
+   *  the remote dataset id, or null when registration failed — the caller
+   *  MUST surface a null (11-Jul: fire-and-forget registration meant a failed
+   *  write left the registry silently diverged from the local bundle). */
+  addFile: async (projectId: ProjectId, file: UploadedFile): Promise<string | null> => {
     if (!STORE[projectId]) STORE[projectId] = { projectId, files: [] };
     STORE[projectId].files.push(file);
 
     // Write-through: rows -> Storage, metadata -> datasets table.
-    void persistDataset({
+    const id = await persistDataset({
       projectId,
       name: file.name,
       sourceTag: file.sourceTag,
       columns: file.parsedPreview?.columns || [],
       rows: Array.isArray(file.rawContent) ? file.rawContent : [],
-    }).then((id) => { if (id) REMOTE_IDS[file.id] = id; });
+    });
+    if (id) REMOTE_IDS[file.id] = id;
+    return id;
   },
+
+  /** Whether a bundle file made it into the remote datasets registry.
+   *  Module-level (survives DataStudio unmount/remount) — the ingest gate for
+   *  registry-backed projects derives from THIS, not component state. */
+  hasRemoteId: (fileId: string): boolean => !!REMOTE_IDS[fileId],
 
   removeFile: (projectId: ProjectId, fileId: string) => {
     if (!STORE[projectId]) return;

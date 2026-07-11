@@ -308,6 +308,45 @@ export interface TemplatePack {
 
 // --- NEW CANONICAL SCHEMA V1 ---
 
+// India-gate classification (V-01). Only the first three classes survive the
+// gate; NON_IN and UNKNOWN_GLOBAL rows are excluded from the assembled graph
+// and accounted for in GateAuditV1.
+export type GeoClass = 'IN_PLATFORM' | 'IN_GEO' | 'IN_SIGNAL' | 'NON_IN' | 'UNKNOWN_GLOBAL';
+
+// Per-assembly gate audit (V-01/V-02) — every exclusion is counted here, per
+// normalized source tag, so Section 20 can render the gate transparently.
+// Invariant (enforced at assembly): postGate.total ===
+//   preGate.total - dropped.NON_IN - dropped.UNKNOWN_GLOBAL - dateWindow.droppedPreWindow
+export interface GateAuditV1 {
+  version: string;
+  assembledAtISO: string;
+  cutoffISO: string;          // events dated before this are excluded (V-02)
+  windowMonths: number;       // 36
+  registry: { rowSum: number; byTag: Record<string, number> };
+  preGate: { total: number; byTag: Record<string, number> };
+  reconciliation: { tolerance: number; ok: boolean; deltas: string[] };
+  geoClass: {
+    kept: { IN_PLATFORM: number; IN_GEO: number; IN_SIGNAL: number };
+    dropped: { NON_IN: number; UNKNOWN_GLOBAL: number };
+    byTag: Record<string, Partial<Record<GeoClass, number>>>;
+  };
+  dateWindow: {
+    droppedPreWindow: number;
+    undatedKept: number;      // rows with no parseable date are KEPT (documented)
+    datedKept: number;
+    byTag: Record<string, { droppedPreWindow: number; undatedKept: number; datedKept: number }>;
+  };
+  postGate: { total: number; byTag: Record<string, number> };
+}
+
+// Raw monthly mention series (V-02 side product) — geo-gated but NOT
+// date-windowed, for the seasonality trend chart only. Never feeds synthesis.
+export interface TrendMonthlyV1 {
+  basis: 'geo_gated_date_unwindowed';
+  months: number;             // 60
+  series: Array<{ month: string; count: number }>; // 'YYYY-MM', zero-filled
+}
+
 export interface EvidenceEventV1 {
   evidenceId: string;
   eventType: 'SOCIAL_MENTION' | 'COMMERCE_REVIEW' | 'SEARCH_INTENT_SIGNAL';
@@ -395,6 +434,15 @@ export interface EvidenceGraph {
     verbatimCount?: number;
     dateRange?: { min: string | null; max: string | null; datedCount: number };
     stateCounts?: Array<{ state: string; count: number }>;
+    // India-gate audit + seasonality series (V-01/V-02) — emitted only by the
+    // server-side assemble (api/_lib/assemble.ts).
+    gateAudit?: GateAuditV1;
+    trendMonthly?: TrendMonthlyV1;
+    // Deterministic assemble-time analyses (N-15…N-58, Agent C layer),
+    // versioned by graph id + evidence hash. Inline import() keeps types.ts
+    // import-statement-free (its full compile-time erasure is load-bearing
+    // for the api/_lib server bundle).
+    analyses?: import('./services/analyses/analysisTypes').AnalysesBundleV1;
   };
   // Fallback for legacy pipeline compatibility
   evidence_graph_v1?: { events: any[] };

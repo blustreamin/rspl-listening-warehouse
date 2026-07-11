@@ -8,7 +8,8 @@
     "dev:full": "vercel dev",
     "build": "vite build",
     "preview": "vite preview",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "qa:report": "tsx scripts/qa/report.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.32.1",

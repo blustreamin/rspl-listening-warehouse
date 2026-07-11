@@ -21,6 +21,15 @@ export async function persistEvidence(graph: EvidenceGraph, datasetIds: string[]
     console.warn("[persistence] refused to persist a mock/demo evidence graph.");
     return false;
   }
+  // STRUCTURAL VETO (11-Jul): a registry-backed project's persisted graph must
+  // carry its registry dataset links. A linkless graph (e.g. a Data-Studio
+  // bundle-only ingest) becoming the LATEST row is exactly how a 1,409-event
+  // increment displaced the 60,744-event canonical corpus in Section 20.
+  const ids: string[] = datasetIds.length ? datasetIds : ((graph as any).__datasetIds || []);
+  if (isRegistryBacked(graph.projectId as ProjectId) && ids.length === 0) {
+    console.warn("[persistence] refused to persist a registry-backed graph with no dataset links.");
+    return false;
+  }
   const events = graph.events || (graph as any).evidence_graph_v1?.events || [];
   const evidenceHash = (graph as any).evidenceHash || null;
 
@@ -42,7 +51,7 @@ export async function persistEvidence(graph: EvidenceGraph, datasetIds: string[]
           project_id: graph.projectId,
           id: sign.id,
           storage_path: sign.path,
-          dataset_ids: datasetIds,
+          dataset_ids: ids,
           evidence_hash: evidenceHash,
           event_count: events.length,
           aggregations: graph.aggregations || {},
@@ -62,7 +71,7 @@ export async function persistEvidence(graph: EvidenceGraph, datasetIds: string[]
   try {
     const r = await apiPost("/api/evidence", {
       project_id: graph.projectId,
-      dataset_ids: datasetIds,
+      dataset_ids: ids,
       evidence_hash: evidenceHash,
       graph,
     });

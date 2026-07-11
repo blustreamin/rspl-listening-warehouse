@@ -31,6 +31,8 @@ import {
   TierLadder, PerceptionCardGrid, SegmentLensRow, LifestageStepper,
   LifestageLensRow, RegionLensRow, PersonaCardGrid, BkZoneTitle, BkSynthesis,
   BkPoolNote, BkAbsentState, EvidenceShare, sumDp,
+  BatteryMeter, ChartFootnote, PersonaScatter, DataFoundationPanels,
+  roleIcon, sourceIcon,
   type MatrixBand, type GapItem, type IconCard,
 } from './blocks/BookletBlocks';
 
@@ -139,6 +141,8 @@ const MemberRoleCards: React.FC<{ roles: any }> = ({ roles }) => {
       {list.map((r, i) => (
         <div key={i} className="bk-stagecard">
           <div className="bk-stagecard-head">
+            {/* N-30 — role vector icon beside each family-member label */}
+            <span className="bk-stagecard-ico" aria-hidden="true">{roleIcon(r.member)}</span>
             <span className="bk-stagecard-stage">{String(r.member || '').replace(/_/g, ' ') || 'Family member'}</span>
             <EvidenceShare n={r.data_points} totalN={denom} />
           </div>
@@ -275,7 +279,7 @@ export const BkNeedsByLifestage: React.FC<Props> = ({ data, section }) => {
       }));
   return (
     <LovingleSectionShell section={section} data={data}
-      standfirst={<>Needs reset at every milestone — newborn → infant → crawler → toddler/potty-training.</>}>
+      standfirst={<>Needs reset at every milestone — newborn → infant → crawler → early toddler/walker → middle toddler → late toddler/potty-training.</>}>
       <PoolRow note={data?.pool_note} />
       <Zone span={12} title="Needs evolution by lifestage">
         <LifestageStepper stages={stages} />
@@ -335,7 +339,8 @@ export const BkDecisionJourney: React.FC<Props> = ({ data, section }) => {
       <PoolRow note={data?.pool_note} />
       {trustBands.length > 0 && (
         <Zone span={12} title="Discovery sources & the trust they command" sub="Hospital kit · doctor · influencers · social · search · in-store · family & friends">
-          <FourBandMatrix bands={trustBands} />
+          {/* N-22 — source-type vector icon beside each discovery-source row */}
+          <FourBandMatrix bands={trustBands} iconFor={sourceIcon} />
         </Zone>
       )}
       {data?.decision_maker && (
@@ -349,6 +354,10 @@ export const BkDecisionJourney: React.FC<Props> = ({ data, section }) => {
           ]} />
         </Zone>
       )}
+      {/* N-23 — Segment & Lifestage lens moved UP, adjacent to Triggers/What-Shapes
+          (the "lens up" option); the Size-Selection table now trails so it lands
+          on the following page of this section's 2-page PDF spill. */}
+      <LensRows data={data} />
       {sizes.length > 0 && (
         <Zone span={12} title="Size selection by lifestage" sub="NB / XS / S / M / L and beyond">
           <div className="lv-xtab">
@@ -363,7 +372,6 @@ export const BkDecisionJourney: React.FC<Props> = ({ data, section }) => {
           </div>
         </Zone>
       )}
-      <LensRows data={data} />
       <SynthRow title="What the journey means" text={data?.synthesis} />
     </LovingleSectionShell>
   );
@@ -399,9 +407,9 @@ export const BkUsageOccasions: React.FC<Props> = ({ data, section }) => {
         <Zone span={12} title="Seasonality" sub="The 12-month conversation rhythm">
           {monthly.length >= 2 && <WaveChart monthly={monthly} />}
           {seasonal?.narrative && <p className="bk-stagecard-reading" style={{ marginTop: 10 }}>{sanitiseConsumerText(str(seasonal.narrative))}</p>}
-          {/* N9 — social listening ≠ retail sales; the data-source note carries. */}
-          <BkPoolNote note={str(seasonal?.data_source_note)
-            || 'Data source: social listening corpus (consumer conversations, reviews and social posts). Conversation volume reflects online posting patterns, which may differ from retail sales patterns.'} />
+          {/* N-07 — method/data-source notes no longer render in section bodies
+              (the old N9 note + its hardcoded "corpus" fallback are removed);
+              methodology lives in Section 20 only. */}
         </Zone>
       )}
       <LensRows data={data} />
@@ -500,12 +508,36 @@ export const BkChannelDynamics: React.FC<Props> = ({ data, section }) => {
       <PoolRow note={data?.pool_note} />
       <Zone span={12} title="The channel map" sub="Urgency vs planned · what each channel is for">
         <ChannelFlow nodes={nodes} flowNotes={arr(data?.flow_notes)} />
+        {nodes.some((n: any) => typeof n?.share === 'number') && (
+          /* N-11/N-60 — channel shares get their "% of <basis>" definition */
+          <ChartFootnote basis={str(data?.channel_basis) || 'observed channel conversation across the corpus'} />
+        )}
       </Zone>
       {toIconCards(data?.choice_drivers).length > 0 && (
         <Zone span={12} title="Channel choice drivers" sub="Speed · price · pack size · availability · trust · loyalty offers · occasion">
           <IconCardGrid columns={[
             { kicker: 'What decides where to buy', tone: 'blue', icon: 'trigger', cards: toIconCards(data?.choice_drivers) },
           ]} />
+        </Zone>
+      )}
+      {/* N-35 — purchase-frequency-by-SKU renders AFTER channel choice drivers
+          (Agent C content); shown only when the field is present. */}
+      {arr(data?.purchase_frequency_by_sku ?? data?.sku_frequency).length > 0 && (
+        <Zone span={12} title="Purchase frequency by SKU" sub="How often each pack is repurchased">
+          <div className="lv-xtab">
+            <table className="lv-flat-table">
+              <thead><tr><th>SKU / pack</th><th>Frequency</th><th>Notes</th></tr></thead>
+              <tbody>
+                {arr<any>(data?.purchase_frequency_by_sku ?? data?.sku_frequency).map((r, i) => (
+                  <tr key={i}>
+                    <td><b>{str(r?.sku ?? r?.pack ?? r?.label)}</b></td>
+                    <td>{str(r?.frequency ?? r?.cadence ?? (typeof r?.pct === 'number' ? `${r.pct}%` : ''))}</td>
+                    <td>{sanitiseConsumerText(str(r?.note ?? r?.description))}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </Zone>
       )}
       {arr(data?.shifts).length > 0 && (
@@ -598,10 +630,14 @@ export const BkCompetitiveLandscape: React.FC<Props> = ({ data, section }) => {
                   <span className="lv-attr-name">{str(s?.brand)}</span>
                   <span className="lv-attr-track"><span style={{ width: `${Math.min(100, Math.max(1, pct))}%` }} /></span>
                   <span className="lv-attr-score">{label}</span>
+                  {/* N-12 — 5-step battery magnitude indicator beside the % */}
+                  <BatteryMeter pct={pct} title={`${label} share of voice`} />
                 </div>
               );
             })}
           </div>
+          {/* N-11/N-60 — per-chart "% of <basis>" definition (Agent B field) */}
+          <ChartFootnote basis={str(data?.sov_basis) || 'the total category conversation (share of voice)'} />
         </Zone>
       )}
       {data?.selection_read && (
@@ -609,15 +645,28 @@ export const BkCompetitiveLandscape: React.FC<Props> = ({ data, section }) => {
       )}
       {brands.length > 0 && (
         <Zone span={12} title="Brand perception" sub="Associations, and the cues that signal mass vs premium">
-          <PerceptionCardGrid brands={brands.map((b) => ({
-            brand: b?.brand, perception: b?.perception || b?.positioning_summary, cues: b?.cues,
-            data_points: b?.data_points, verbatims: arr(b?.verbatims),
-          }))} />
+          {/* N-42 — brand-card header carries SOV% bar + star rating up front
+              (Agent B structured fields), joined in from the SOV list. */}
+          <PerceptionCardGrid brands={brands.map((b) => {
+            const sovHit = sov.find((s) => String(s?.brand || '').toLowerCase() === String(b?.brand || '').toLowerCase());
+            const ratingRaw = typeof b?.rating === 'number' ? b.rating
+              : typeof b?.avg_rating === 'number' ? b.avg_rating
+              : typeof b?.star_rating === 'number' ? b.star_rating : undefined;
+            return {
+              brand: b?.brand, perception: b?.perception || b?.positioning_summary, cues: b?.cues,
+              sov_pct: typeof sovHit?.share_pct === 'number' ? sovHit.share_pct : undefined,
+              rating: typeof ratingRaw === 'number' && ratingRaw >= 0 && ratingRaw <= 5 ? ratingRaw : undefined,
+              data_points: b?.data_points, verbatims: arr(b?.verbatims),
+            };
+          })} />
         </Zone>
       )}
       {crossBrands.filter((b) => arr(b.attribute_scale).length).length >= 2 && (
-        <Zone span={12} title="Brand rating on key category drivers" sub="0–5, cross-brand">
+        <Zone span={12} title="Brand rating on key category drivers" sub="0–5, cross-brand · top 6 drivers">
+          {/* N-43 — decluttered: max 6 drivers (capped in CrossBrandBars),
+              series legend at top, and a source line under the chart. */}
           <CrossBrandBars brands={crossBrands} />
+          <ChartFootnote note={str(data?.rating_basis) || 'Driver scores are 0–5 ratings synthesised across e-commerce reviews and social mentions for each brand; the six highest-signal drivers are shown.'} />
         </Zone>
       )}
       {hasDrivers && (
@@ -685,11 +734,18 @@ export const BkPricingDynamics: React.FC<Props> = ({ data, section }) => {
           ))}
         </Zone>
       )}
-      {(toIconCards(data?.promotions).length > 0 || toIconCards(data?.premiumisation_triggers).length > 0) && (
-        <Zone span={12} title="Promotions & premiumisation">
+      {toIconCards(data?.promotions).length > 0 && (
+        <Zone span={12} title="Promotions" sub="The promo types this buyer expects">
           <IconCardGrid columns={[
             { kicker: 'Promo types expected', tone: 'blue', icon: 'trigger', cards: toIconCards(data?.promotions) },
-            { kicker: 'Premiumisation triggers', tone: 'green', icon: 'positive', cards: toIconCards(data?.premiumisation_triggers) },
+          ]} />
+        </Zone>
+      )}
+      {/* N-50 — premiumisation triggers get their OWN visual block on p14 */}
+      {toIconCards(data?.premiumisation_triggers).length > 0 && (
+        <Zone span={12} title="Premiumisation triggers" sub="What unlocks a step up in price tier">
+          <IconCardGrid columns={[
+            { kicker: 'What unlocks a step up', tone: 'green', icon: 'positive', cards: toIconCards(data?.premiumisation_triggers) },
           ]} />
         </Zone>
       )}
@@ -771,13 +827,14 @@ export const BkConsumerVocabulary: React.FC<Props> = ({ data, section }) => {
         <Zone span={12} title="The vocabulary map" sub="Ranked by corpus frequency, most-used first">
           <div className="lv-xtab">
             <table className="lv-flat-table">
-              <thead><tr><th>Term</th><th>Language</th><th>Functional meaning</th><th>Emotional meaning</th><th>Pack implication</th><th>Freq</th></tr></thead>
+              {/* N-51 — no Language column; Freq now carries a % share (value is
+                  model-emitted %; Agent D owns the "%" suffix / header polish). */}
+              <thead><tr><th>Term</th><th>Functional meaning</th><th>Emotional meaning</th><th>Pack implication</th><th>Freq</th></tr></thead>
               <tbody>
                 {terms.map((t, i) => (
                   <tr key={i}>
                     {/* carve-out: the term itself renders as written */}
                     <td><b>{str(t?.term)}</b></td>
-                    <td>{str(t?.language)}</td>
                     <td>{sanitiseConsumerText(str(t?.functional_meaning))}</td>
                     <td>{sanitiseConsumerText(str(t?.emotional_meaning))}</td>
                     <td>{sanitiseConsumerText(str(t?.pack_implication))}</td>
@@ -852,7 +909,12 @@ export const BkConsumerPersonas: React.FC<Props> = ({ data, section }) => {
     <LovingleSectionShell section={section} data={data}
       standfirst={<>At most five living portraits — each sized against the conversation pool, with channel, segment, SKU, behaviour and locus of control.</>}>
       <PoolRow note={data?.pool_note} />
-      <Zone span={12} title="The persona set" sub="Max 5 · sized · locus-of-control tagged · one full-text quote each">
+      {/* N-55 — 2×2 persona map: X locus (internal↔external), Y price tier
+          (mass↔premium). SVG so it rasterises into the PDF. Self-hides <2 dots. */}
+      <Zone span={12} title="Persona map" sub="Locus of control (internal ↔ external) × price tier (mass ↔ premium)">
+        <PersonaScatter personas={arr<any>(data?.personas)} />
+      </Zone>
+      <Zone span={12} title="The persona set" sub="Max 5 · locus-of-control tagged · one full-text quote each">
         <PersonaCardGrid personas={arr<any>(data?.personas)} />
       </Zone>
       <LensRows data={data} />
@@ -870,6 +932,12 @@ export const BkConsumerPersonas: React.FC<Props> = ({ data, section }) => {
 
 export const BkDataFoundation: React.FC<Props> = ({ data, section }) => (
   <LovingleSectionShell section={section} data={data}>
+    {/* N-58 — four small data-foundation panels (lifestage distribution,
+        first-vs-second-time moms, geography, SKU) fed by Agent C outputs.
+        Skeleton until the fields bind; render their rows when present. */}
+    <Zone span={12} title="Data foundation at a glance" sub="Lifestage · first vs second-time moms · geography · SKU">
+      <DataFoundationPanels data={data} />
+    </Zone>
     <div className="lv-col-12"><DataIngestionAnalysis /></div>
   </LovingleSectionShell>
 );

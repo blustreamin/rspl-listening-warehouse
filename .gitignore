@@ -13,6 +13,11 @@ dist-share
 dist-ssr
 *.local
 
+# QA harness run artifacts (timestamped); the checked-in baseline is kept explicitly
+qa_report_*.json
+!scripts/qa/qa_report_baseline_jul6.json
+.qa/
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
@@ -31,3 +36,14 @@ metadata.json
 !.env.example
 .vercel
 .env*
+
+# Agent session scaffolding (RSPL overhaul, 11-Jul) — not shipped
+*-PHASE-A-REPORT.md
+*-PHASE-B-REPORT.md
+ASSEMBLY-PHASE-*.md
+ANALYSES-PHASE-*.md
+AGENT-*-MAP.md
+AGENT-*-REPORT.md
+B-RENDERER-TOUCHES.md
+BLOCKED-DECISIONS.md
+scratchpad/

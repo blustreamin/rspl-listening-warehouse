@@ -1,0 +1,941 @@
+{
+  "schema": "qa_report_v1",
+  "register": "N-61",
+  "project": "baby-diapers",
+  "generatedAt": "2026-07-11T09:38:31.488Z",
+  "source": {
+    "kind": "snapshot",
+    "ref": "/Users/mbpro16/Documents/Coding Projects/Blustream Client RSPL Listening Warehouse/rspl-listening-warehouse/share/snapshot.baby-diapers.json",
+    "evidenceHash": "e0ad3ca0c022af79775f134653305da520fc2b06"
+  },
+  "sectionsLoaded": 21,
+  "summary": {
+    "fail": 49,
+    "warn": 2,
+    "pass": 101,
+    "gate": "BLOCK",
+    "failingRegisters": [
+      "N-02",
+      "N-09",
+      "N-13",
+      "N-14",
+      "N-53",
+      "N-56",
+      "N-59"
+    ]
+  },
+  "findings": [
+    {
+      "register_id": "N-02",
+      "section": "babycare_needs",
+      "status": "PASS",
+      "evidence": "max 3 verbatims in any single group"
+    },
+    {
+      "register_id": "N-02",
+      "section": "channel_dynamics",
+      "status": "PASS",
+      "evidence": "max 4 verbatims in any single group"
+    },
+    {
+      "register_id": "N-02",
+      "section": "competitive_landscape",
+      "status": "FAIL",
+      "evidence": "7 verbatims stack in one group (brands) — exceeds 5/slide"
+    },
+    {
+      "register_id": "N-02",
+      "section": "consumer_personas",
+      "status": "PASS",
+      "evidence": "max 5 verbatims in any single group"
+    },
+    {
+      "register_id": "N-02",
+      "section": "consumer_vocabulary",
+      "status": "FAIL",
+      "evidence": "10 verbatims stack in one group (terms) — exceeds 5/slide"
+    },
+    {
+      "register_id": "N-02",
+      "section": "data_foundation",
+      "status": "PASS",
+      "evidence": "max 0 verbatims in any single group"
+    },
+    {
+      "register_id": "N-02",
+      "section": "decision_journey",
+      "status": "PASS",
+      "evidence": "max 4 verbatims in any single group"
+    },
+    {
+      "register_id": "N-02",
+      "section": "diaper_needs_fes",
+      "status": "PASS",
+      "evidence": "max 5 verbatims in any single group"
+    },
+    {
+      "register_id": "N-02",
+      "section": "exec_summary",
+      "status": "PASS",
+      "evidence": "max 0 verbatims in any single group"
+    },
+    {
+      "register_id": "N-02",
+      "section": "family_roles_babycare",
+      "status": "PASS",
+      "evidence": "max 5 verbatims in any single group"
+    },
+    {
+      "register_id": "N-02",
+      "section": "family_roles_diapering",
+      "status": "PASS",
+      "evidence": "max 2 verbatims in any single group"
+    },
+    {
+      "register_id": "N-02",
+      "section": "features_benefits",
+      "status": "PASS",
+      "evidence": "max 3 verbatims in any single group"
+    },
+    {
+      "register_id": "N-02",
+      "section": "first_vs_second_time_moms",
+      "status": "PASS",
+      "evidence": "max 0 verbatims in any single group"
+    },
+    {
+      "register_id": "N-02",
+      "section": "lovingle_journey",
+      "status": "PASS",
+      "evidence": "max 1 verbatims in any single group"
+    },
+    {
+      "register_id": "N-02",
+      "section": "needs_by_lifestage",
+      "status": "PASS",
+      "evidence": "max 4 verbatims in any single group"
+    },
+    {
+      "register_id": "N-02",
+      "section": "parenting_rituals",
+      "status": "FAIL",
+      "evidence": "7 verbatims stack in one group (rituals) — exceeds 5/slide"
+    },
+    {
+      "register_id": "N-02",
+      "section": "pricing_dynamics",
+      "status": "PASS",
+      "evidence": "max 3 verbatims in any single group"
+    },
+    {
+      "register_id": "N-02",
+      "section": "regional_differences",
+      "status": "PASS",
+      "evidence": "max 4 verbatims in any single group"
+    },
+    {
+      "register_id": "N-02",
+      "section": "shopper_roles",
+      "status": "PASS",
+      "evidence": "max 3 verbatims in any single group"
+    },
+    {
+      "register_id": "N-02",
+      "section": "shopping_search_terms",
+      "status": "FAIL",
+      "evidence": "6 verbatims stack in one group (clusters) — exceeds 5/slide"
+    },
+    {
+      "register_id": "N-02",
+      "section": "usage_occasions",
+      "status": "PASS",
+      "evidence": "max 5 verbatims in any single group"
+    },
+    {
+      "register_id": "N-03",
+      "section": "cross-section",
+      "status": "PASS",
+      "evidence": "185 insight sentences, no near-duplicate ≥0.7"
+    },
+    {
+      "register_id": "N-09",
+      "section": "babycare_needs",
+      "status": "FAIL",
+      "evidence": "\"corpus\"×2 (e.g. pool_note: \"Corpus is diaper-keyword-weighted (60,744 records); babycare-wide nee…\") · \"corpus is diaper\"×1 (e.g. pool_note: \"Corpus is diaper-keyword-weighted (60,744 records); babycare-wide nee…\") · \"keyword-weighted\"×1 (e.g. pool_note: \"Corpus is diaper-keyword-weighted (60,744 records); babycare-wide nee…\")"
+    },
+    {
+      "register_id": "N-09",
+      "section": "channel_dynamics",
+      "status": "PASS",
+      "evidence": "no banned strings"
+    },
+    {
+      "register_id": "N-09",
+      "section": "competitive_landscape",
+      "status": "FAIL",
+      "evidence": "\"corpus\"×4 (e.g. perception: \"Little Angels is the value champion with a fiercely loyal, advocacy-d…\")"
+    },
+    {
+      "register_id": "N-09",
+      "section": "consumer_personas",
+      "status": "FAIL",
+      "evidence": "\"corpus\"×5 (e.g. pool_estimate: \"~28% of corpus voices\")"
+    },
+    {
+      "register_id": "N-09",
+      "section": "consumer_vocabulary",
+      "status": "FAIL",
+      "evidence": "\"corpus\"×1 (e.g. consumer_frequency_note: \"Fewer than 15 appearances across 60,744 corpus records in consumer vo…\")"
+    },
+    {
+      "register_id": "N-09",
+      "section": "data_foundation",
+      "status": "FAIL",
+      "evidence": "\"corpus\"×7 (e.g. label: \"Lovingle corpus depth\") · \"corpus is diaper\"×1 (e.g. detail: \"The corpus is diaper-keyword-weighted. Babycare topics beyond diapers…\") · \"keyword-weighted\"×1 (e.g. detail: \"The corpus is diaper-keyword-weighted. Babycare topics beyond diapers…\")"
+    },
+    {
+      "register_id": "N-09",
+      "section": "decision_journey",
+      "status": "PASS",
+      "evidence": "no banned strings"
+    },
+    {
+      "register_id": "N-09",
+      "section": "diaper_needs_fes",
+      "status": "PASS",
+      "evidence": "no banned strings"
+    },
+    {
+      "register_id": "N-09",
+      "section": "exec_summary",
+      "status": "FAIL",
+      "evidence": "\"corpus\"×1 (e.g. what_it_means: \"At 329 corpus mentions versus incumbents at 14,000–16,000, Lovingle's…\")"
+    },
+    {
+      "register_id": "N-09",
+      "section": "family_roles_babycare",
+      "status": "FAIL",
+      "evidence": "\"corpus\"×3 (e.g. role_summary: \"Nanny or domestic help presence is implied in working-mother contexts…\") · \"corpus is diaper\"×1 (e.g. pool_note: \"This corpus is diaper-keyword-weighted; direct evidence on non-diaper…\") · \"keyword-weighted\"×1 (e.g. pool_note: \"This corpus is diaper-keyword-weighted; direct evidence on non-diaper…\")"
+    },
+    {
+      "register_id": "N-09",
+      "section": "family_roles_diapering",
+      "status": "FAIL",
+      "evidence": "\"corpus\"×3 (e.g. role_summary: \"Primary executor of all diaper use decisions — brand selection, overn…\") · \"keyword-weighted\"×1 (e.g. pool_note: \"This corpus (60,744 records, diaper-keyword-weighted) carries limited…\")"
+    },
+    {
+      "register_id": "N-09",
+      "section": "features_benefits",
+      "status": "PASS",
+      "evidence": "no banned strings"
+    },
+    {
+      "register_id": "N-09",
+      "section": "first_vs_second_time_moms",
+      "status": "FAIL",
+      "evidence": "\"corpus\"×2 (e.g. pool_note: \"Parity signals extracted from ~480 records where reviewers explicitly…\") · \"corpus is diaper\"×1 (e.g. pool_note: \"Parity signals extracted from ~480 records where reviewers explicitly…\") · \"keyword-weighted\"×1 (e.g. pool_note: \"Parity signals extracted from ~480 records where reviewers explicitly…\")"
+    },
+    {
+      "register_id": "N-09",
+      "section": "lovingle_journey",
+      "status": "FAIL",
+      "evidence": "\"corpus\"×2 (e.g. title: \"Low corpus visibility limits word-of-mouth pull\") · \"corpus is diaper\"×1 (e.g. pool_note: \"Lovingle appears 329 times in a 60,744-record corpus — 1% share of vo…\") · \"keyword-weighted\"×1 (e.g. pool_note: \"Lovingle appears 329 times in a 60,744-record corpus — 1% share of vo…\")"
+    },
+    {
+      "register_id": "N-09",
+      "section": "needs_by_lifestage",
+      "status": "FAIL",
+      "evidence": "\"corpus\"×4 (e.g. points: \"Elastic marks on thighs and groin, and material roughness causing ras…\") · \"corpus is diaper\"×1 (e.g. pool_note: \"Evidence base: 60,744 records across 7 platforms (2012–2026). Corpus …\") · \"keyword-weighted\"×1 (e.g. pool_note: \"Evidence base: 60,744 records across 7 platforms (2012–2026). Corpus …\")"
+    },
+    {
+      "register_id": "N-09",
+      "section": "parenting_rituals",
+      "status": "FAIL",
+      "evidence": "\"corpus\"×3 (e.g. description: \"Feeding is the structural anchor of the daytime routine — diaper chan…\") · \"corpus is diaper\"×1 (e.g. pool_note: \"Corpus is diaper-keyword-weighted across 60,744 records; direct evide…\") · \"keyword-weighted\"×1 (e.g. pool_note: \"Corpus is diaper-keyword-weighted across 60,744 records; direct evide…\")"
+    },
+    {
+      "register_id": "N-09",
+      "section": "pricing_dynamics",
+      "status": "PASS",
+      "evidence": "no banned strings"
+    },
+    {
+      "register_id": "N-09",
+      "section": "regional_differences",
+      "status": "FAIL",
+      "evidence": "\"corpus\"×4 (e.g. items: \"Lovingle's highest-rated corpus verbatim originates from a Maharashtr…\")"
+    },
+    {
+      "register_id": "N-09",
+      "section": "shopper_roles",
+      "status": "PASS",
+      "evidence": "no banned strings"
+    },
+    {
+      "register_id": "N-09",
+      "section": "shopping_search_terms",
+      "status": "FAIL",
+      "evidence": "\"corpus\"×1 (e.g. pool_note: \"Search-term evidence is reconstructed from YouTube video titles, revi…\")"
+    },
+    {
+      "register_id": "N-09",
+      "section": "usage_occasions",
+      "status": "FAIL",
+      "evidence": "\"corpus\"×3 (e.g. reading: \"East India (West Bengal, Odisha, Bihar) has the thinnest corpus repre…\")"
+    },
+    {
+      "register_id": "N-11",
+      "section": "babycare_needs",
+      "status": "PASS",
+      "evidence": "no % rendered"
+    },
+    {
+      "register_id": "N-11",
+      "section": "channel_dynamics",
+      "status": "PASS",
+      "evidence": "no % rendered"
+    },
+    {
+      "register_id": "N-11",
+      "section": "competitive_landscape",
+      "status": "PASS",
+      "evidence": "2 %-string(s) + basis field present"
+    },
+    {
+      "register_id": "N-11",
+      "section": "consumer_personas",
+      "status": "PASS",
+      "evidence": "6 %-string(s) + basis field present"
+    },
+    {
+      "register_id": "N-11",
+      "section": "consumer_vocabulary",
+      "status": "PASS",
+      "evidence": "no % rendered"
+    },
+    {
+      "register_id": "N-11",
+      "section": "data_foundation",
+      "status": "PASS",
+      "evidence": "methodology section — exempt"
+    },
+    {
+      "register_id": "N-11",
+      "section": "decision_journey",
+      "status": "PASS",
+      "evidence": "1 %-string(s) + basis field present"
+    },
+    {
+      "register_id": "N-11",
+      "section": "diaper_needs_fes",
+      "status": "PASS",
+      "evidence": "no % rendered"
+    },
+    {
+      "register_id": "N-11",
+      "section": "exec_summary",
+      "status": "PASS",
+      "evidence": "1 %-string(s) + basis field present"
+    },
+    {
+      "register_id": "N-11",
+      "section": "family_roles_babycare",
+      "status": "PASS",
+      "evidence": "no % rendered"
+    },
+    {
+      "register_id": "N-11",
+      "section": "family_roles_diapering",
+      "status": "PASS",
+      "evidence": "no % rendered"
+    },
+    {
+      "register_id": "N-11",
+      "section": "features_benefits",
+      "status": "PASS",
+      "evidence": "no % rendered"
+    },
+    {
+      "register_id": "N-11",
+      "section": "first_vs_second_time_moms",
+      "status": "PASS",
+      "evidence": "1 %-string(s) + basis field present"
+    },
+    {
+      "register_id": "N-11",
+      "section": "lovingle_journey",
+      "status": "PASS",
+      "evidence": "3 %-string(s) + basis field present"
+    },
+    {
+      "register_id": "N-11",
+      "section": "needs_by_lifestage",
+      "status": "PASS",
+      "evidence": "no % rendered"
+    },
+    {
+      "register_id": "N-11",
+      "section": "parenting_rituals",
+      "status": "PASS",
+      "evidence": "no % rendered"
+    },
+    {
+      "register_id": "N-11",
+      "section": "pricing_dynamics",
+      "status": "PASS",
+      "evidence": "1 %-string(s) + basis field present"
+    },
+    {
+      "register_id": "N-11",
+      "section": "regional_differences",
+      "status": "PASS",
+      "evidence": "1 %-string(s) + basis field present"
+    },
+    {
+      "register_id": "N-11",
+      "section": "shopper_roles",
+      "status": "PASS",
+      "evidence": "no % rendered"
+    },
+    {
+      "register_id": "N-11",
+      "section": "shopping_search_terms",
+      "status": "PASS",
+      "evidence": "no % rendered"
+    },
+    {
+      "register_id": "N-11",
+      "section": "usage_occasions",
+      "status": "PASS",
+      "evidence": "no % rendered"
+    },
+    {
+      "register_id": "N-13",
+      "section": "babycare_needs",
+      "status": "FAIL",
+      "evidence": "no numeric coverage/evidencePct field in stored content"
+    },
+    {
+      "register_id": "N-13",
+      "section": "channel_dynamics",
+      "status": "FAIL",
+      "evidence": "no numeric coverage/evidencePct field in stored content"
+    },
+    {
+      "register_id": "N-13",
+      "section": "competitive_landscape",
+      "status": "FAIL",
+      "evidence": "no numeric coverage/evidencePct field in stored content"
+    },
+    {
+      "register_id": "N-13",
+      "section": "consumer_personas",
+      "status": "FAIL",
+      "evidence": "no numeric coverage/evidencePct field in stored content"
+    },
+    {
+      "register_id": "N-13",
+      "section": "consumer_vocabulary",
+      "status": "FAIL",
+      "evidence": "no numeric coverage/evidencePct field in stored content"
+    },
+    {
+      "register_id": "N-13",
+      "section": "data_foundation",
+      "status": "FAIL",
+      "evidence": "no numeric coverage/evidencePct field in stored content"
+    },
+    {
+      "register_id": "N-13",
+      "section": "decision_journey",
+      "status": "FAIL",
+      "evidence": "no numeric coverage/evidencePct field in stored content"
+    },
+    {
+      "register_id": "N-13",
+      "section": "diaper_needs_fes",
+      "status": "FAIL",
+      "evidence": "no numeric coverage/evidencePct field in stored content"
+    },
+    {
+      "register_id": "N-13",
+      "section": "exec_summary",
+      "status": "FAIL",
+      "evidence": "no numeric coverage/evidencePct field in stored content"
+    },
+    {
+      "register_id": "N-13",
+      "section": "family_roles_babycare",
+      "status": "FAIL",
+      "evidence": "no numeric coverage/evidencePct field in stored content"
+    },
+    {
+      "register_id": "N-13",
+      "section": "family_roles_diapering",
+      "status": "FAIL",
+      "evidence": "no numeric coverage/evidencePct field in stored content"
+    },
+    {
+      "register_id": "N-13",
+      "section": "features_benefits",
+      "status": "FAIL",
+      "evidence": "no numeric coverage/evidencePct field in stored content"
+    },
+    {
+      "register_id": "N-13",
+      "section": "first_vs_second_time_moms",
+      "status": "FAIL",
+      "evidence": "no numeric coverage/evidencePct field in stored content"
+    },
+    {
+      "register_id": "N-13",
+      "section": "lovingle_journey",
+      "status": "FAIL",
+      "evidence": "no numeric coverage/evidencePct field in stored content"
+    },
+    {
+      "register_id": "N-13",
+      "section": "needs_by_lifestage",
+      "status": "FAIL",
+      "evidence": "no numeric coverage/evidencePct field in stored content"
+    },
+    {
+      "register_id": "N-13",
+      "section": "parenting_rituals",
+      "status": "FAIL",
+      "evidence": "no numeric coverage/evidencePct field in stored content"
+    },
+    {
+      "register_id": "N-13",
+      "section": "pricing_dynamics",
+      "status": "FAIL",
+      "evidence": "no numeric coverage/evidencePct field in stored content"
+    },
+    {
+      "register_id": "N-13",
+      "section": "regional_differences",
+      "status": "FAIL",
+      "evidence": "no numeric coverage/evidencePct field in stored content"
+    },
+    {
+      "register_id": "N-13",
+      "section": "shopper_roles",
+      "status": "FAIL",
+      "evidence": "no numeric coverage/evidencePct field in stored content"
+    },
+    {
+      "register_id": "N-13",
+      "section": "shopping_search_terms",
+      "status": "FAIL",
+      "evidence": "no numeric coverage/evidencePct field in stored content"
+    },
+    {
+      "register_id": "N-13",
+      "section": "usage_occasions",
+      "status": "FAIL",
+      "evidence": "no numeric coverage/evidencePct field in stored content"
+    },
+    {
+      "register_id": "N-14",
+      "section": "babycare_needs",
+      "status": "PASS",
+      "evidence": "10 verbatim(s) ASCII-English or translated"
+    },
+    {
+      "register_id": "N-14",
+      "section": "channel_dynamics",
+      "status": "FAIL",
+      "evidence": "1 untranslated non-English verbatim(s); e.g. romanized [ke,jaisa]: \"thank u Flipkart for fast delivery and the diaper is too good my baby is 10 mon…\""
+    },
+    {
+      "register_id": "N-14",
+      "section": "competitive_landscape",
+      "status": "FAIL",
+      "evidence": "1 untranslated non-English verbatim(s); e.g. romanized [kiye,aur,accha,ka,hai]: \"Maine Amazon Brand Supples Premium Diaper Pants use kiye aur overall experience…\""
+    },
+    {
+      "register_id": "N-14",
+      "section": "consumer_personas",
+      "status": "PASS",
+      "evidence": "5 verbatim(s) ASCII-English or translated"
+    },
+    {
+      "register_id": "N-14",
+      "section": "consumer_vocabulary",
+      "status": "FAIL",
+      "evidence": "4 untranslated non-English verbatim(s); e.g. romanized [aur,hai,ki,ko,iska]: \"Yeh dipaer best aur extra soft hai, jo baby ki sensitive skin ko rashes se bach…\""
+    },
+    {
+      "register_id": "N-14",
+      "section": "data_foundation",
+      "status": "PASS",
+      "evidence": "0 verbatim(s) ASCII-English or translated"
+    },
+    {
+      "register_id": "N-14",
+      "section": "decision_journey",
+      "status": "PASS",
+      "evidence": "10 verbatim(s) ASCII-English or translated"
+    },
+    {
+      "register_id": "N-14",
+      "section": "diaper_needs_fes",
+      "status": "PASS",
+      "evidence": "15 verbatim(s) ASCII-English or translated"
+    },
+    {
+      "register_id": "N-14",
+      "section": "exec_summary",
+      "status": "PASS",
+      "evidence": "0 verbatim(s) ASCII-English or translated"
+    },
+    {
+      "register_id": "N-14",
+      "section": "family_roles_babycare",
+      "status": "FAIL",
+      "evidence": "1 untranslated non-English verbatim(s); e.g. romanized [mere,liye,hain]: \"my mother in law who supports me like no one else ever could (bhagwaan ne unhe …\""
+    },
+    {
+      "register_id": "N-14",
+      "section": "family_roles_diapering",
+      "status": "PASS",
+      "evidence": "6 verbatim(s) ASCII-English or translated"
+    },
+    {
+      "register_id": "N-14",
+      "section": "features_benefits",
+      "status": "PASS",
+      "evidence": "6 verbatim(s) ASCII-English or translated"
+    },
+    {
+      "register_id": "N-14",
+      "section": "first_vs_second_time_moms",
+      "status": "PASS",
+      "evidence": "2 verbatim(s) ASCII-English or translated"
+    },
+    {
+      "register_id": "N-14",
+      "section": "lovingle_journey",
+      "status": "PASS",
+      "evidence": "3 verbatim(s) ASCII-English or translated"
+    },
+    {
+      "register_id": "N-14",
+      "section": "needs_by_lifestage",
+      "status": "PASS",
+      "evidence": "4 verbatim(s) ASCII-English or translated"
+    },
+    {
+      "register_id": "N-14",
+      "section": "parenting_rituals",
+      "status": "FAIL",
+      "evidence": "1 untranslated non-English verbatim(s); e.g. romanized [ka,hai]: \"Soap selection ka hai confusion? Gentle Baby Soap se mila care ka solution. It …\""
+    },
+    {
+      "register_id": "N-14",
+      "section": "pricing_dynamics",
+      "status": "PASS",
+      "evidence": "11 verbatim(s) ASCII-English or translated"
+    },
+    {
+      "register_id": "N-14",
+      "section": "regional_differences",
+      "status": "FAIL",
+      "evidence": "5 untranslated non-English verbatim(s); e.g. romanized [mein,hota,hai,raat,bhar]: \"Winter-specific performance language: 'winter mein leak hota hai', 'raat bhar d…\""
+    },
+    {
+      "register_id": "N-14",
+      "section": "shopper_roles",
+      "status": "PASS",
+      "evidence": "3 verbatim(s) ASCII-English or translated"
+    },
+    {
+      "register_id": "N-14",
+      "section": "shopping_search_terms",
+      "status": "PASS",
+      "evidence": "48 verbatim(s) ASCII-English or translated"
+    },
+    {
+      "register_id": "N-14",
+      "section": "usage_occasions",
+      "status": "PASS",
+      "evidence": "11 verbatim(s) ASCII-English or translated"
+    },
+    {
+      "register_id": "N-15",
+      "section": "family_roles_babycare",
+      "status": "WARN",
+      "evidence": "roles carry counts (data_points) only — 0/5 expose a %; sum-to-100 unverifiable at the data layer"
+    },
+    {
+      "register_id": "N-17",
+      "section": "babycare_needs",
+      "status": "PASS",
+      "evidence": "no %-ranked list"
+    },
+    {
+      "register_id": "N-17",
+      "section": "channel_dynamics",
+      "status": "PASS",
+      "evidence": "no %-ranked list"
+    },
+    {
+      "register_id": "N-17",
+      "section": "competitive_landscape",
+      "status": "PASS",
+      "evidence": "1 %-ranked list(s) non-increasing (ties allowed)"
+    },
+    {
+      "register_id": "N-17",
+      "section": "consumer_personas",
+      "status": "PASS",
+      "evidence": "1 %-ranked list(s) non-increasing (ties allowed)"
+    },
+    {
+      "register_id": "N-17",
+      "section": "consumer_vocabulary",
+      "status": "PASS",
+      "evidence": "no %-ranked list"
+    },
+    {
+      "register_id": "N-17",
+      "section": "data_foundation",
+      "status": "PASS",
+      "evidence": "no %-ranked list"
+    },
+    {
+      "register_id": "N-17",
+      "section": "decision_journey",
+      "status": "PASS",
+      "evidence": "no %-ranked list"
+    },
+    {
+      "register_id": "N-17",
+      "section": "diaper_needs_fes",
+      "status": "PASS",
+      "evidence": "no %-ranked list"
+    },
+    {
+      "register_id": "N-17",
+      "section": "exec_summary",
+      "status": "PASS",
+      "evidence": "no %-ranked list"
+    },
+    {
+      "register_id": "N-17",
+      "section": "family_roles_babycare",
+      "status": "PASS",
+      "evidence": "no %-ranked list"
+    },
+    {
+      "register_id": "N-17",
+      "section": "family_roles_diapering",
+      "status": "PASS",
+      "evidence": "no %-ranked list"
+    },
+    {
+      "register_id": "N-17",
+      "section": "features_benefits",
+      "status": "PASS",
+      "evidence": "no %-ranked list"
+    },
+    {
+      "register_id": "N-17",
+      "section": "first_vs_second_time_moms",
+      "status": "PASS",
+      "evidence": "no %-ranked list"
+    },
+    {
+      "register_id": "N-17",
+      "section": "lovingle_journey",
+      "status": "PASS",
+      "evidence": "no %-ranked list"
+    },
+    {
+      "register_id": "N-17",
+      "section": "needs_by_lifestage",
+      "status": "PASS",
+      "evidence": "no %-ranked list"
+    },
+    {
+      "register_id": "N-17",
+      "section": "parenting_rituals",
+      "status": "PASS",
+      "evidence": "no %-ranked list"
+    },
+    {
+      "register_id": "N-17",
+      "section": "pricing_dynamics",
+      "status": "PASS",
+      "evidence": "no %-ranked list"
+    },
+    {
+      "register_id": "N-17",
+      "section": "regional_differences",
+      "status": "PASS",
+      "evidence": "no %-ranked list"
+    },
+    {
+      "register_id": "N-17",
+      "section": "shopper_roles",
+      "status": "PASS",
+      "evidence": "no %-ranked list"
+    },
+    {
+      "register_id": "N-17",
+      "section": "shopping_search_terms",
+      "status": "PASS",
+      "evidence": "no %-ranked list"
+    },
+    {
+      "register_id": "N-17",
+      "section": "usage_occasions",
+      "status": "PASS",
+      "evidence": "no %-ranked list"
+    },
+    {
+      "register_id": "N-18",
+      "section": "babycare_needs",
+      "status": "WARN",
+      "evidence": "margin-box label is CSS-rotated (.bk-band-label span { writing-mode:vertical transform:rotate }; .bk-tier-label span { writing-mode:vertical transform:rotate } in styles/booklet.css) with NO .pdf-export upright fallback; PDF path is html2canvas (ExportBar) which rasterises writing-mode+transform unreliably. Static DOM-in-print verdict — pixel-level assertion needs a headless browser. Set QA_N18_STRICT=1 to gate."
+    },
+    {
+      "register_id": "N-53",
+      "section": "shopping_search_terms",
+      "status": "FAIL",
+      "evidence": "1 finding(s) <5%: \"Cloth and reusable diaper discovery searches\" = 3.0% (total 3115 data_points)"
+    },
+    {
+      "register_id": "N-56",
+      "section": "babycare_needs",
+      "status": "PASS",
+      "evidence": "clean"
+    },
+    {
+      "register_id": "N-56",
+      "section": "channel_dynamics",
+      "status": "PASS",
+      "evidence": "clean"
+    },
+    {
+      "register_id": "N-56",
+      "section": "competitive_landscape",
+      "status": "PASS",
+      "evidence": "clean"
+    },
+    {
+      "register_id": "N-56",
+      "section": "consumer_personas",
+      "status": "FAIL",
+      "evidence": "\"% of corpus voices\"×5 (e.g. pool_estimate: \"~28% of corpus voices\")"
+    },
+    {
+      "register_id": "N-56",
+      "section": "consumer_vocabulary",
+      "status": "PASS",
+      "evidence": "clean"
+    },
+    {
+      "register_id": "N-56",
+      "section": "data_foundation",
+      "status": "PASS",
+      "evidence": "clean"
+    },
+    {
+      "register_id": "N-56",
+      "section": "decision_journey",
+      "status": "PASS",
+      "evidence": "clean"
+    },
+    {
+      "register_id": "N-56",
+      "section": "diaper_needs_fes",
+      "status": "PASS",
+      "evidence": "clean"
+    },
+    {
+      "register_id": "N-56",
+      "section": "exec_summary",
+      "status": "PASS",
+      "evidence": "clean"
+    },
+    {
+      "register_id": "N-56",
+      "section": "family_roles_babycare",
+      "status": "PASS",
+      "evidence": "clean"
+    },
+    {
+      "register_id": "N-56",
+      "section": "family_roles_diapering",
+      "status": "PASS",
+      "evidence": "clean"
+    },
+    {
+      "register_id": "N-56",
+      "section": "features_benefits",
+      "status": "PASS",
+      "evidence": "clean"
+    },
+    {
+      "register_id": "N-56",
+      "section": "first_vs_second_time_moms",
+      "status": "PASS",
+      "evidence": "clean"
+    },
+    {
+      "register_id": "N-56",
+      "section": "lovingle_journey",
+      "status": "PASS",
+      "evidence": "clean"
+    },
+    {
+      "register_id": "N-56",
+      "section": "needs_by_lifestage",
+      "status": "PASS",
+      "evidence": "clean"
+    },
+    {
+      "register_id": "N-56",
+      "section": "parenting_rituals",
+      "status": "PASS",
+      "evidence": "clean"
+    },
+    {
+      "register_id": "N-56",
+      "section": "pricing_dynamics",
+      "status": "PASS",
+      "evidence": "clean"
+    },
+    {
+      "register_id": "N-56",
+      "section": "regional_differences",
+      "status": "PASS",
+      "evidence": "clean"
+    },
+    {
+      "register_id": "N-56",
+      "section": "shopper_roles",
+      "status": "PASS",
+      "evidence": "clean"
+    },
+    {
+      "register_id": "N-56",
+      "section": "shopping_search_terms",
+      "status": "PASS",
+      "evidence": "clean"
+    },
+    {
+      "register_id": "N-56",
+      "section": "usage_occasions",
+      "status": "PASS",
+      "evidence": "clean"
+    },
+    {
+      "register_id": "N-59",
+      "section": "regional_differences↔data_foundation",
+      "status": "FAIL",
+      "evidence": "S15 geo total 1146 (138+620+304+58+26) ≠ S20 geo total 870 (564+108+73+65+60)"
+    }
+  ]
+}

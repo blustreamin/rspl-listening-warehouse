@@ -16,7 +16,7 @@ import { DataIngestionInfographic } from './report/DataIngestionInfographic';
 import { beginRun, completeRun, abandonRun, reportRunProgress, setRunEvidenceHash, isRunActive, useRunState } from '../lib/runState';
 import { useProviderId, ensureProviderStatus } from '../lib/llmSettings';
 import { ensureEvidencePersisted } from '../lib/persistence';
-import { assembleGraphFromRegistry } from '../services/graphAssembly';
+import { assembleGraphFromRegistry, assembleGraphServerFirst } from '../services/graphAssembly';
 import { apiGet } from '../lib/api';
 import { isRegistryBacked } from '../constants/projectConfig';
 import { graphProvenance, sameIdSet } from '../lib/graphProvenance';
@@ -360,7 +360,10 @@ export const ReportView: React.FC<Props> = ({ projectId, injectedEvidence, onEvi
           graph = validEvidence;             // reuse the pinned hash → cache hits
         } else {
           if (validEvidence) logAssembly(`injected graph not trusted (provenance=${graphProvenance(validEvidence)}, ${injectedIds.length} links vs ${registryIds.length} registered) — re-assembling from the registry.`);
-          const assembled = await assembleGraphFromRegistry(projectId, logAssembly);
+          // SERVER-FIRST (11-Jul): the gated server assemble is the only path
+          // allowed to canonicalise a registry-backed corpus — the in-browser
+          // assembly applies no India gate and must not displace a gated row.
+          const assembled = await assembleGraphServerFirst(projectId, logAssembly);
           if (!alive()) return;
           if (!assembled || (assembled.events?.length ?? 0) === 0) {
             abortRun(`Evidence-graph assembly from ${registryIds.length} registered datasets FAILED — run aborted before any synthesis. No provider called, nothing persisted. See [assembly] lines above; re-run to retry transient errors.`);
@@ -397,9 +400,13 @@ export const ReportView: React.FC<Props> = ({ projectId, injectedEvidence, onEvi
         const persisted = await ensureEvidencePersisted(graph, hashKey);
         if (!persisted && alive()) {
           // Persist failure must never again be invisible (the 05-Jul lesson).
+          // 'CRITICAL' is load-bearing: it matches the RunInspector's
+          // ATTENTION_RE, so the collapsed pill shows a red dot — the prior
+          // wording matched nothing and the line was invisible unless the
+          // drawer happened to be open (11-Jul).
           setInspectorData(prev => ({
             ...prev,
-            retryLog: [...prev.retryLog, `[persist] evidence graph NOT persisted (hash ${hashKey.substring(0, 8)}…) — synthesis continues; persistence retries at the next run start.`],
+            retryLog: [...prev.retryLog, `[persist] CRITICAL: evidence graph NOT persisted (hash ${hashKey.substring(0, 8)}…) — synthesis continues; persistence retries at the next run start.`],
           }));
         }
       }

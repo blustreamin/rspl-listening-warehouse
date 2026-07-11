@@ -4,6 +4,6 @@
     "api/llm.ts": { "maxDuration": 300 },
     "api/cache.ts": { "maxDuration": 30 },
     "api/datasets.ts": { "maxDuration": 30 },
-    "api/evidence.ts": { "maxDuration": 30 }
+    "api/evidence.ts": { "maxDuration": 300 }
   }
 }

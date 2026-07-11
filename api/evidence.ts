@@ -16,6 +16,24 @@ import {
 //   POST { mode: "register", project_id, id, storage_path, evidence_hash,
 //          event_count, aggregations, dataset_ids } -> inserts the graph row
 //        without the blob. sign + register = the large-corpus-safe persist.
+//   POST { mode: "assemble", project_id, dataset_ids? } -> SERVER-SIDE
+//        assembly (11-Jul fix): registry -> Storage downloads -> deterministic
+//        ingest -> India gate + date window (V-01/V-02) -> events blob ->
+//        row insert LAST. Hard failure returns non-200 — the sign/PUT/register
+//        chain above died invisibly in the browser at 81k events (aborted PUT,
+//        every recovery path client-side, nothing server-side to log).
+//        Implementation is dynamically imported so a defect in it can never
+//        cold-start-crash this module and take down the GET the live report
+//        depends on.
+// Mirror of MOCK_ALLOWED in constants/projectConfig.ts — deliberately inlined
+// (NOT imported): this module must have zero cross-directory static imports so
+// no tracing/bundling defect can ever cold-start-crash the GET the live report
+// reads. Same secure default: a project not listed here is registry-backed.
+const DEMO_PROJECTS = new Set([
+  "disposable-period-panties", "reusable-period-panties", "sanitary-pads", "adult-diapers",
+]);
+const registryBacked = (projectId: string) => !DEMO_PROJECTS.has(projectId);
+
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (handlePreflight(req, res)) return;
 
@@ -46,6 +64,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       return res.status(200).json({
         stats: {
           event_count: data.event_count ?? 0,
+          // V-03 — the assembled graph's CANONICAL dataset-set size (the rows it
+          // was actually built from), so the S20 footnote can cite it instead of
+          // the raw ingestion registry ("80 files · 143,372"). Read-only/additive.
+          dataset_count: Array.isArray(data.dataset_ids) ? data.dataset_ids.length : 0,
           generated_at: data.generated_at,
           evidence_hash: data.evidence_hash,
           aggregations: data.aggregations || {},
@@ -89,6 +111,25 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method === "POST") {
     const b = readBody(req);
 
+    // Server-side assembly (11-Jul fix) — see header comment.
+    if (b.mode === "assemble") {
+      try {
+        const { assembleProject } = await import("./_lib/assemble.js");
+        const result = await assembleProject(admin, b);
+        return res.status(200).json({ ...result, persistence: true });
+      } catch (err: any) {
+        const status = typeof err?.statusCode === "number" ? err.statusCode : 500;
+        console.error(`[evidence.assemble] ${status} ${err?.message}`, err?.details ?? "", err?.stack ?? "");
+        // 4xx details are our own structured validation objects (safe, and the
+        // UI needs them); 5xx details can carry raw driver/Postgres messages —
+        // those stay in the server log only (the endpoint is unauthenticated).
+        return res.status(status).json({
+          error: err?.message || "assemble_failed",
+          details: status < 500 ? err?.details : undefined,
+        });
+      }
+    }
+
     // Phase 1 — hand the client a signed upload URL for the events blob.
     if (b.mode === "sign") {
       if (!b.project_id) return res.status(400).json({ error: "missing_project_id" });
@@ -104,6 +145,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     // Phase 2 — register the graph row against the already-uploaded blob.
     if (b.mode === "register") {
       if (!b.project_id || !b.storage_path) return res.status(400).json({ error: "missing_fields" });
+      // SERVER-SIDE structural veto (11-Jul): a registry-backed project's
+      // canonical graph must carry its dataset links. The client-side veto in
+      // lib/persistence.ts cannot protect this endpoint from older bundles or
+      // direct calls — and a linkless row becoming LATEST is exactly how a
+      // 1,409-event increment displaced the canonical corpus in Section 20.
+      if (registryBacked(b.project_id) && !(Array.isArray(b.dataset_ids) && b.dataset_ids.length > 0)) {
+        return res.status(422).json({ error: "linkless_graph_refused", persistence: true });
+      }
       const { data, error } = await admin
         .from("evidence_graphs")
         .insert({
@@ -122,6 +171,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
 
     if (!b.project_id || !b.graph) return res.status(400).json({ error: "missing_fields" });
+    // Same structural veto as mode:"register" (see comment there).
+    if (registryBacked(b.project_id) && !(Array.isArray(b.dataset_ids) && b.dataset_ids.length > 0)) {
+      return res.status(422).json({ error: "linkless_graph_refused", persistence: true });
+    }
     await ensureBucket();
 
     const id = crypto.randomUUID();

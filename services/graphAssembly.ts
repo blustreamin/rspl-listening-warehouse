@@ -19,7 +19,8 @@
 import { EvidenceGraph, IngestRequestV1, ProjectId, UploadedFile, FileSourceTag } from '../types';
 import { generateAutoMapping } from './mappingService';
 import { ingestRawData } from './gemini';
-import { apiGet } from '../lib/api';
+import { apiGet, apiPost } from '../lib/api';
+import { loadEvidence } from '../lib/persistence';
 import { isRegistryBacked } from '../constants/projectConfig';
 
 interface DatasetRow {
@@ -64,6 +65,42 @@ const fetchDatasetRows = async (d: DatasetRow): Promise<any[]> => {
   if (!Array.isArray(rows) || rows.length === 0) throw new Error('empty blob');
   return rows;
 };
+
+/** SERVER-FIRST assembly for registry-backed projects (11-Jul fix): the
+ *  canonical corpus is assembled, gated (V-01 India gate / V-02 date window)
+ *  and PERSISTED inside /api/evidence mode:"assemble", then loaded back with
+ *  its pinned hash and dataset links. The in-browser path below stays only as
+ *  a fallback for a not-yet-deployed API (its 400 missing_fields is the
+ *  pre-assemble handler's signature) — it applies NO gate, so it must never
+ *  silently displace a gated graph once the API is live. */
+export async function assembleGraphServerFirst(
+  projectId: ProjectId,
+  log?: (msg: string) => void
+): Promise<EvidenceGraph | null> {
+  try {
+    log?.('Requesting server-side assembly (India gate + date window applied in /api/evidence)…');
+    const r = await apiPost('/api/evidence', { mode: 'assemble', project_id: projectId });
+    if (r?.ok) {
+      const dropped = r.dropped
+        ? (r.dropped.NON_IN || 0) + (r.dropped.UNKNOWN_GLOBAL || 0) + (r.dropped.pre_window || 0)
+        : 0;
+      log?.(`Server assembled + persisted ${Number(r.event_count || 0).toLocaleString('en-US')} events from ${r.dataset_count} datasets (pre-gate ${Number(r.pre_gate_count || 0).toLocaleString('en-US')}, gate dropped ${dropped.toLocaleString('en-US')}) — loading the graph.`);
+      const g = await loadEvidence(String(projectId));
+      if (g && (g.events?.length ?? 0) > 0) return g;
+      log?.('ABORT: server assembly persisted but the graph could not be loaded back.');
+      return null;
+    }
+    if (r?.error === 'missing_fields') {
+      log?.('Server assemble mode not deployed — falling back to in-browser assembly (NO India gate applied).');
+      return assembleGraphFromRegistry(projectId, log);
+    }
+    log?.(`ABORT: server assembly failed (${r?.error || 'no response'})${r?.details ? ' — ' + JSON.stringify(r.details) : ''}. Nothing was persisted.`);
+    return null;
+  } catch (e: any) {
+    log?.(`ABORT: server assembly unreachable (${e?.message || e}). Nothing was persisted.`);
+    return null;
+  }
+}
 
 /** Assemble the project's evidence graph from its registered datasets.
  *  Returns null when the registry is empty or nothing could be fetched.

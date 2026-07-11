@@ -6,6 +6,9 @@ import { FileStore } from '../services/fileStore';
 import { parseFile } from '../services/fileParsing';
 import { MappingModal } from './MappingModal';
 import { useRunState } from '../lib/runState';
+import { apiPost } from '../lib/api';
+import { loadEvidence } from '../lib/persistence';
+import { isRegistryBacked } from '../constants/projectConfig';
 
 interface Props {
   projectId: ProjectId;
@@ -23,6 +26,7 @@ export const DataStudio: React.FC<Props> = ({ projectId, onDataIngested }) => {
   const [isUploading, setIsUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
+  const [successInfo, setSuccessInfo] = useState<string | null>(null);
   
   // Mapping State
   const [showMappingModal, setShowMappingModal] = useState(false);
@@ -37,6 +41,7 @@ export const DataStudio: React.FC<Props> = ({ projectId, onDataIngested }) => {
     setFiles([...(bundle.files || [])]);
     setManualText('');
     setSuccess(false);
+    setSuccessInfo(null);
     setError(null);
     setMappings({}); // Reset mappings on project change
   }, [projectId]);
@@ -45,6 +50,17 @@ export const DataStudio: React.FC<Props> = ({ projectId, onDataIngested }) => {
   const uniqueFiles = useMemo(() => {
      return files; // Files are now guaranteed unique by handleFileUpload
   }, [files]);
+
+  // Registration gate (11-Jul fix), REGISTRY-BACKED projects only: bundle
+  // files that never made it into the remote datasets registry. Derived from
+  // the module-level FileStore (survives unmount/remount — component state
+  // silently disarmed the gate) and keyed by file id (names can collide).
+  // Demo projects tolerate missing registration: their corpus is in-browser
+  // and must keep working offline/without a backend.
+  const unregistered = useMemo(
+    () => (isRegistryBacked(projectId) ? files.filter(f => !FileStore.hasRemoteId(f.id)) : []),
+    [files, projectId, isUploading]
+  );
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (uploadLocked) return; // RUN-STATE LOCK — no corpus changes under a running synthesis
@@ -58,6 +74,7 @@ export const DataStudio: React.FC<Props> = ({ projectId, onDataIngested }) => {
     const existingKeys = new Set(currentBundle.files.map(getFileIdentity));
     const newFiles: UploadedFile[] = [];
 
+    const failedRegs: string[] = [];
     try {
         for (let i = 0; i < e.target.files.length; i++) {
             const file = e.target.files[i];
@@ -71,24 +88,35 @@ export const DataStudio: React.FC<Props> = ({ projectId, onDataIngested }) => {
                 console.warn(`Skipping duplicate file: ${file.name}`);
                 continue;
             }
-            
+
             // Mark as seen for this batch
             existingKeys.add(key);
 
             const uploaded = await parseFile(file);
             newFiles.push(uploaded);
-            FileStore.addFile(projectId, uploaded);
-        }
-
-        if (newFiles.length > 0) {
-            // Re-sync local state with store
-            setFiles([...FileStore.getBundle(projectId).files]);
-            setShowMappingModal(true);
+            // AWAITED registration (11-Jul fix): a failed dataset write used
+            // to be fire-and-forget — the file stayed in the bundle while the
+            // registry silently missed it. For registry-backed projects the
+            // derived `unregistered` gate blocks ingest until resolved.
+            const remoteId = await FileStore.addFile(projectId, uploaded);
+            if (!remoteId) failedRegs.push(uploaded.name);
         }
     } catch (err) {
         setError("Failed to parse file. Ensure valid CSV/Excel format.");
         console.error(err);
     } finally {
+        // Runs even when a parse throws mid-batch: already-registered files
+        // must still sync into view state, and registration failures before
+        // the crash must still surface.
+        if (failedRegs.length > 0 && isRegistryBacked(projectId)) {
+            setError(`Dataset registration failed for: ${failedRegs.join(', ')}. `
+              + `These files are NOT in the registry — remove them from the bundle and re-upload before ingesting.`);
+        }
+        if (newFiles.length > 0) {
+            // Re-sync local state with store
+            setFiles([...FileStore.getBundle(projectId).files]);
+            setShowMappingModal(true);
+        }
         setIsUploading(false);
         // Reset input to allow selecting same file again if user deletes it and re-uploads
         if (fileInputRef.current) fileInputRef.current.value = '';
@@ -125,50 +153,92 @@ export const DataStudio: React.FC<Props> = ({ projectId, onDataIngested }) => {
         setShowMappingModal(true);
         return;
     }
-    
+
+    if (unregistered.length > 0) {
+        setError(`These files failed dataset registration and are missing from the registry: `
+          + `${unregistered.map(f => f.name).join(', ')}. `
+          + `Remove them from the bundle and re-upload before ingesting — assembling now would silently exclude them.`);
+        return;
+    }
+
     setIsProcessing(true);
     setError(null);
     setSuccess(false);
+    setSuccessInfo(null);
 
     try {
-      // Construct IngestRequestV1 using uniqueFiles
-      const requestPayload: IngestRequestV1 = {
-          schemaVersion: "ingest_request_v1",
-          orgId: "rspl_org_default",
-          projectId: projectId,
-          runMeta: {
-              trigger: "ui_upload",
-              requestedAtISO: new Date().toISOString()
-          },
-          inputs: uniqueFiles.map(f => ({
-              inputId: f.id,
-              sourceTag: f.sourceTag,
-              fileMeta: {
-                  fileId: f.id,
-                  fileName: f.name,
-                  rowCount: f.parsedPreview?.rowCount || 0
-              },
-              mapping: {
-                  canonicalFieldMap: mappings[f.id].fieldMap,
-                  constants: mappings[f.id].constants as any
-              },
-              // Pass ALL rows — deterministic ingestion handles dedup + filtering efficiently
-              rows: f.rawContent.map((row: any, i: number) => ({
-                  rowId: `r_${i}`,
-                  raw: row
-              }))
-          }))
-      };
-
-      // 2. Send to Gemini Ingestion Engine
-      const result = await ingestRawData(requestPayload);
-      
-      if (result) {
-        FileStore.recordIngestion(projectId, "run_" + Date.now());
-        onDataIngested(result);
-        setSuccess(true);
+      if (isRegistryBacked(projectId)) {
+        // SERVER-SIDE ASSEMBLE (11-Jul fix). The canonical corpus for a
+        // registry-backed project is the WHOLE registry, assembled and
+        // persisted inside /api/evidence — never a bundle-only graph built in
+        // this browser (the old path persisted a 1,409-event increment OVER
+        // the 60,744-event corpus, and its failure mode was invisible).
+        // Any non-200 lands in the error banner and the bundle stays DRAFT.
+        const r = await apiPost('/api/evidence', { mode: 'assemble', project_id: projectId });
+        if (r?.ok) {
+          const g = await loadEvidence(projectId);
+          if (g) {
+            FileStore.recordIngestion(projectId, "run_" + Date.now());
+            onDataIngested(g);
+            setSuccess(true);
+            const droppedTotal = r.dropped
+              ? (r.dropped.NON_IN || 0) + (r.dropped.UNKNOWN_GLOBAL || 0) + (r.dropped.pre_window || 0)
+              : 0;
+            setSuccessInfo(
+              `${Number(r.event_count || 0).toLocaleString('en-US')} events assembled and persisted from `
+              + `${r.dataset_count} registered datasets (pre-gate ${Number(r.pre_gate_count || 0).toLocaleString('en-US')}; `
+              + `India gate + date window excluded ${droppedTotal.toLocaleString('en-US')}).`
+            );
+          } else {
+            setError("Assembly persisted but the graph could not be loaded back — check the browser console and /api/evidence.");
+          }
+        } else {
+          const detail = r?.details
+            ? ` — ${typeof r.details === 'string' ? r.details : JSON.stringify(r.details)}`
+            : '';
+          setError(`Server assembly failed (${r?.error || 'no response'})${detail}. Nothing was persisted; the report corpus is unchanged.`);
+        }
       } else {
-        setError("Failed to generate evidence graph. Check API Key or Input.");
+        // DEMO projects keep the legacy in-browser path: their ingestions
+        // dedup (not lossless), which the server assemble's exact audit
+        // refuses; their graphs persist at run start, unchanged.
+        const requestPayload: IngestRequestV1 = {
+            schemaVersion: "ingest_request_v1",
+            orgId: "rspl_org_default",
+            projectId: projectId,
+            runMeta: {
+                trigger: "ui_upload",
+                requestedAtISO: new Date().toISOString()
+            },
+            inputs: uniqueFiles.map(f => ({
+                inputId: f.id,
+                sourceTag: f.sourceTag,
+                fileMeta: {
+                    fileId: f.id,
+                    fileName: f.name,
+                    rowCount: f.parsedPreview?.rowCount || 0
+                },
+                mapping: {
+                    canonicalFieldMap: mappings[f.id].fieldMap,
+                    constants: mappings[f.id].constants as any
+                },
+                // Pass ALL rows — deterministic ingestion handles dedup + filtering efficiently
+                rows: f.rawContent.map((row: any, i: number) => ({
+                    rowId: `r_${i}`,
+                    raw: row
+                }))
+            }))
+        };
+
+        const result = await ingestRawData(requestPayload);
+
+        if (result) {
+          FileStore.recordIngestion(projectId, "run_" + Date.now());
+          onDataIngested(result);
+          setSuccess(true);
+        } else {
+          setError("Failed to generate evidence graph. Check API Key or Input.");
+        }
       }
     } catch (e) {
       setError(e instanceof Error ? e.message : "Unknown error during ingestion");
@@ -244,7 +314,7 @@ export const DataStudio: React.FC<Props> = ({ projectId, onDataIngested }) => {
             <svg className="w-5 h-5 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
             <div>
                 <span className="font-bold block mb-1">Ingestion Successful</span>
-                Evidence Graph generated. Return to Report View to see insights.
+                {successInfo || 'Evidence Graph generated. Return to Report View to see insights.'}
             </div>
         </div>
       )}

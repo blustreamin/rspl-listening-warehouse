@@ -158,7 +158,11 @@ const SOURCE_HEURISTICS: Record<string, Record<keyof CanonicalFieldMap, string[]
   other: {
     text: ['review', 'body', 'content', 'text', 'comment', 'description', 'snippet', 'message'],
     title: ['title', 'subject', 'headline', 'summary'],
-    rating: ['rating', 'stars', 'score', 'grade'],
+    // 'score' removed (11-Jul): Reddit/Quora upvote scores are not star
+    // ratings — 445 upvote values that happened to fall in 1..5 polluted the
+    // corpus avg-rating as "2.2 (445)". Scores are dropped entirely (owner
+    // decision); a genuine ratings file can still be mapped manually.
+    rating: ['rating', 'stars', 'grade'],
     createdAtISO: ['date', 'time', 'posted', 'created'],
     author: ['author', 'user', 'reviewer', 'handle'],
     brand: ['brand', 'manufacturer', 'make'],

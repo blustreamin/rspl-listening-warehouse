@@ -1,6 +1,6 @@
 
 import { EvidenceGraph, TemplatePack, EvidenceEventV1 } from '../types';
-import { BABY_DIAPERS_TEMPLATE } from '../templates/baby_diapers_template';
+import { BABY_DIAPERS_TEMPLATE, DO_NOT_RESTATE } from '../templates/baby_diapers_template';
 import { normalizeBabyDiapers } from '../utils/normalizers/normalizeBabyDiapers';
 import { evaluateBabyDiapersQuality } from './babyDiapersQualityGate';
 import { callLLM } from '../lib/llmClient';
@@ -50,10 +50,17 @@ for (const sec of BABY_DIAPERS_TEMPLATE.sections) {
       `[BabyDiapers] REGISTRY INTEGRITY FAILURE: section "${sec.sectionId}" has no keyword-targeting entry — its evidence capsule will be untargeted.`
     );
   }
+  if (DO_NOT_RESTATE[sec.sectionId] === undefined) {
+    console.error(
+      `[BabyDiapers] REGISTRY INTEGRITY FAILURE: section "${sec.sectionId}" has no DO-NOT-RESTATE register entry (contract C8) — anti-repetition will be unenforced for it.`
+    );
+  }
 }
 
 
-const prepareTargetedEvidence = (graph: EvidenceGraph, sectionId: string) => {
+// Exported for the QA acceptance probes (N-14: Indic-script records must
+// survive this filter) — production callers stay module-internal.
+export const prepareTargetedEvidence = (graph: EvidenceGraph, sectionId: string) => {
   const events = graph.events || [];
   const kws = SECTION_KEYWORDS[sectionId] || [];
 
@@ -79,14 +86,23 @@ const prepareTargetedEvidence = (graph: EvidenceGraph, sectionId: string) => {
     // Brand-list dumps (≥3 known brands strung together with no sentence)
     const brandHits = (t.match(/\b(huggies|pampers|mamypoko|mamy poko|little angel|wowper|panda|cuddle|supples)\b/gi) || []).length;
     if (brandHits >= 3 && !/\b(i|we|my|me|because|but|after|when|switched|tried|love|hate|rash)\b/i.test(t)) return true;
-    // Mojibake / heavy non-Latin (corrupted encodings): too few ASCII letters
-    const ascii = (t.match(/[a-z]/gi) || []).length;
-    if (ascii < t.length * 0.45) return true;
+    // Mojibake / corrupted encodings — but NEVER native Indic scripts (N-14:
+    // an Indian-language voice is real evidence, not noise). Devanagari through
+    // Malayalam (U+0900–U+0D7F) count as word characters alongside Latin.
+    if ((t.match(/�/g) || []).length >= 2) return true; // replacement chars = true mojibake
+    const latin = (t.match(/[a-z]/gi) || []).length;
+    const indic = (t.match(/[ऀ-ൿ]/g) || []).length;
+    if (latin + indic < t.length * 0.45) return true;
     return false;
   };
 
   const isHumanVoice = (raw: string): boolean => {
     const t = raw.trim();
+    // Indic-script text that survived the spam filter is treated as consumer
+    // voice (N-14) — the experiential-marker regex below is English-only and
+    // must not gate out native-script opinions.
+    const indic = (t.match(/[ऀ-ൿ]/g) || []).length;
+    if (indic >= t.length * 0.3) return true;
     // First/second-person or experiential markers — the signature of an opinion.
     return /\b(i|we|my|me|our|you|she|he|her|his|baby|son|daughter|mom|mother|husband|wife|tried|bought|switched|use|using|love|hate|rash|leak|comfort|smell|skin|night|recommend|worst|best|happy|disappointed)\b/i.test(t);
   };
@@ -230,7 +246,7 @@ const prepareTargetedEvidence = (graph: EvidenceGraph, sectionId: string) => {
   const json = JSON.stringify({
     stats: graph.aggregations,
     sample_evidence: simplified,
-    note: `Targeted REAL evidence for '${sectionId}' — ${simplified.length} distinct ingested records (Amazon / Flipkart / FirstCry / Instagram / Facebook / social listening). Every verbatim MUST be copied from a sample_evidence 'text' field; set source: to that record's platform. The 'axes' field carries detected style:/pack: tags — keep STYLE and PACK as separate axes. Represent 4+ platforms per section. There is no other permitted source of quotes.`,
+    note: `Targeted REAL evidence for '${sectionId}' — ${simplified.length} distinct ingested records (Amazon / Flipkart / FirstCry / Instagram / Facebook / social listening). Every verbatim MUST be grounded in a sample_evidence 'text' field: English text is copied word-for-word into 'quote'; non-English text is translated faithfully into English for 'quote' (suffixed " (translated)") with the source span copied EXACTLY into 'original_text' (contract C3). Set source: to that record's platform. The 'axes' field carries detected style:/pack: tags — keep STYLE and PACK as separate axes. Represent 4+ platforms per section. There is no other permitted source of quotes.`,
   });
 
   return { json, count: simplified.length, layerMix, layerCapExceeded };
@@ -370,10 +386,15 @@ ${isRepair ? "CRITICAL: Previous output failed the quality gate. Use Search Grou
 
 SECTION TASK: ${sectionPrompt}
 
+CONTRACT FIELDS (contract C6/C7 — add BOTH to this section's Output object, exactly):
+- "section_subtitle": string — the section's single crispest insight, ≤14 words, never methodology.
+- "coverage_declaration": { "coverage_pct": N, "basis": string, "thin_areas": string[] } — honest machine-readable coverage; not body copy.
+${DO_NOT_RESTATE[sectionId] ? `DO-NOT-RESTATE (contract C8 — insights owned elsewhere; cross-reference in one clause at most, never re-analyse): ${DO_NOT_RESTATE[sectionId]}` : ''}
+
 FIELD BUDGETS (HARD CEILINGS — these override any looser field description above):
 - headline: ≤9 words · body/description/what_it_means/reading: ≤35 words
 - why / how_met_today / style·lifestage·day-night notes / shift notes: ≤22 words each
-- pool_note: ≤55 words · synthesis: ≤110 words · notes/points per card: MAX 3
+- section_subtitle: ≤14 words · synthesis: ≤110 words · notes/points per card: MAX 3
 Prefer omission over compression — cut items, don't cram sentences. Exceeding a ceiling is a defect.
 
 TERMINOLOGY — VENDOR-NEUTRAL SOURCE NAMES:
@@ -389,14 +410,16 @@ EVIDENCE_CAPSULE: ${capsule.json}
 OUTPUT JSON RULES:
 1. STRICT JSON, no markdown wrappers.
 2. No empty arrays; no placeholders ("N/A", "Derived", "Inferred").
-3. Every verbatim = {quote, source, consumer}; consumer is baby-age anchored.
+3. Every verbatim = {quote, original_text?, source, consumer}; consumer is baby-age anchored; original_text is MANDATORY when the quote is a translation (contract C3) and omitted otherwise.
 4. INDIA only, INR pricing. No TikTok, no WhatsApp.
 
 VERBATIM SOURCING — NON-NEGOTIABLE (provenance is audited downstream):
-- Every "quote" MUST be copied from a 'text' field inside EVIDENCE_CAPSULE.sample_evidence. Quote it word-for-word; you may trim to the relevant span but you may NOT paraphrase, merge two records, or invent.
+- Every "quote" MUST be grounded in a 'text' field inside EVIDENCE_CAPSULE.sample_evidence. You may trim to the relevant span but you may NOT paraphrase, merge two records, or invent.
+- ENGLISH SOURCE: copy the span word-for-word into "quote". Do not emit original_text.
+- NON-ENGLISH SOURCE (Hindi, Hinglish sentences, Telugu, Tamil, any Indian language — contract C3): "quote" = a faithful English translation of the span, suffixed " (translated)"; "original_text" = the source span copied EXACTLY as written, untouched. Never drop a voice for its language.
 - Set "source" to that record's 'platform' value and "consumer" to a baby-age-anchored descriptor consistent with that record's geo/brand.
 - If the capsule lacks enough on-point material for a sub-point, write fewer verbatims rather than fabricating one. A short, real set beats a padded, invented one.
-- Quotes that cannot be traced back to a real ingested record are flagged "unverified" in the published report and logged for audit — do not manufacture quotes to hit a count.
+- Quotes that cannot be traced back to a real ingested record (via the quote itself, or via original_text for translations) are DROPPED from the published report and logged for audit — do not manufacture quotes to hit a count, and never translate without original_text (it will be dropped).
 `;
 
   // Output budget: the deep sections (long arrays of cards/stories, each with
